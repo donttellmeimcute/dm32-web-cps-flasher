@@ -56,6 +56,10 @@ Los nombres de archivos de Baofeng que aparecen en `data/flash-boards.json` y en
 
 ## Cómo se instala la imagen
 
+La versión `2026.11.14-p25-audiofix` silencia el amplificador entre llamadas P25, incluido el reposo tras encender
+la radio o volver de TX. Conserva la voz, la cola de audio y el tono de permiso. La corrección pasa las pruebas
+automatizadas y compila sin avisos; queda pendiente comprobar el siseo en el altavoz físico.
+
 `data/releases.json` lista la imagen; el flasher descarga `firmware/dm32/<imagen>.bin` y su manifiesto
 `rfoundry-release/1` (`.json`) de este mismo sitio y comprueba tamaño, SHA-256, rangos y que no toque el códec antes de
 escribir nada. No hay servicio de compilación: no se eligen funciones. En "Usar mi propia compilación del firmware" se
