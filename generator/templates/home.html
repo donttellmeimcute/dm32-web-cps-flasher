@@ -1,0 +1,63 @@
+<section class="hero">
+	<div class="wrap hero-grid">
+		<div class="hero-text">
+			<h1>{{t home.headline}}</h1>
+			<p class="lead">{{t home.lead}}</p>
+			<div class="actions">
+				<a class="btn btn-primary" href="{{home}}flash/index.html">{{t home.cta_flash}}</a>
+				<a class="btn btn-primary" href="{{home}}codeplug/index.html">{{t home.cta_editor}}</a>
+			</div>
+			<p class="small muted">{{t home.browser}}</p>
+			<dl class="feature-rows">
+				<div><dt>{{t home.f_flash}}</dt><dd>{{t home.f_flash_text}}</dd></div>
+				<div><dt>{{t home.f_editor}}</dt><dd>{{t home.f_editor_text}}</dd></div>
+				<div><dt>{{t home.f_firmware}}</dt><dd><span id="fw-version">…</span></dd></div>
+			</dl>
+		</div>
+		<figure class="hero-device">
+			<img src="{{root}}static/img/radios/{{ radio_id }}.svg" alt="{{ radio_name }}">
+		</figure>
+	</div>
+</section>
+
+<section class="wrap section">
+	<div class="notice warn"><p><strong>{{t home.experimental_title}}</strong> {{t home.experimental_text}}</p></div>
+	<div class="card">
+		<h2>{{t home.update_mode_title}}</h2>
+		<ol>
+			<li>{{t home.update_mode_1}}</li>
+			<li>{{t home.update_mode_2}}</li>
+			<li>{{t home.update_mode_3}}</li>
+		</ol>
+		<p class="small muted">{{t home.update_mode_note}}</p>
+	</div>
+</section>
+
+<section class="wrap section">
+	<div class="card">
+		<h2>{{t home.codec_title}}</h2>
+		<p>{{t home.codec_text}}</p>
+	</div>
+</section>
+
+<section class="wrap section">
+	<div class="card">
+		<h2>{{t home.credits_title}}</h2>
+		<ul>
+			<li><a href="https://github.com/radiofoundry/radiofoundry">RadioFoundry</a>: {{t home.credit_rf}}</li>
+			<li><a href="https://github.com/tylerwatt12/Open25-DM32">Open25-DM32 (tylerwatt12)</a>: {{t home.credit_open25}}</li>
+			<li><a href="https://github.com/donttellmeimcute/DM32-nxdn-p25">DM32-nxdn-p25 (lyra XE1POC)</a>: {{t home.credit_p25}}</li>
+		</ul>
+		<p class="small muted">{{t home.license}} <a href="https://github.com/donttellmeimcute/dm32-web-cps-flasher">{{t home.site_source}}</a></p>
+	</div>
+</section>
+<script type="module">
+// the image the flasher installs (data/releases.json, written with the image by the site build)
+const out = document.getElementById("fw-version");
+try {
+	const r = (await (await fetch("{{root}}data/releases.json")).json()).releases.at(-1);
+	out.textContent = `${r.version} · ${Math.round(r.size / 1024)} KB · SHA-256 ${r.sha256.slice(0, 16)}…`;
+} catch (e) {
+	out.textContent = "?";
+}
+</script>

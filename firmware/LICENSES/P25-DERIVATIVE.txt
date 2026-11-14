@@ -1,0 +1,6 @@
+User-authorized GPL-compatible P25 development derivative.
+Original RadioFoundry files remain MIT with their notices. Added P25/IMBE
+files retain GPL-3.0-or-later; combined laboratory distribution is GPLv3+.
+Not an upstream MIT-only contribution. Derivative by lyra XE1POC.
+See COPYING-P25 and source manifest.
+Experimental. P25 and NXDN48 voice verified on the radio both ways (2026-11-14).

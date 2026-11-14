@@ -1,0 +1,124 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open25-DM32 (P25 / NXDN) · DM32 Web CPS &amp; Flasher</title>
+<meta name="description" content="Web flasher and codeplug editor (CPS) for the Baofeng DM-32UV running the Open25-DM32 firmware (P25 / NXDN).">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DM32 Web CPS &amp; Flasher">
+<meta property="og:title" content="Open25-DM32 (P25 / NXDN) · DM32 Web CPS &amp; Flasher">
+<meta property="og:description" content="Web flasher and codeplug editor (CPS) for the Baofeng DM-32UV running the Open25-DM32 firmware (P25 / NXDN).">
+<meta property="og:url" content="https://donttellmeimcute.github.io/dm32-web-cps-flasher/en/">
+<meta property="og:locale" content="en_US">
+<meta name="generator" content="site/build_dm32.py (RadioFoundry site generator) dfbaf20c">
+<link rel="alternate" hreflang="es" href="https://donttellmeimcute.github.io/dm32-web-cps-flasher/">
+<link rel="alternate" hreflang="en" href="https://donttellmeimcute.github.io/dm32-web-cps-flasher/en/">
+<link rel="alternate" hreflang="x-default" href="https://donttellmeimcute.github.io/dm32-web-cps-flasher/">
+<link rel="icon" href="../static/img/icon.svg?v=ce400590ae" type="image/svg+xml">
+<link rel="icon" href="../static/img/icon-32.png?v=ce400590ae" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="../static/img/apple-touch-icon.png?v=ce400590ae">
+<link rel="stylesheet" href="../static/css/tokens.css?v=ce400590ae">
+<link rel="stylesheet" href="../static/css/site.css?v=ce400590ae">
+<script>try{var t=localStorage.getItem("rfoundry-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body class="page-home" data-root="../" data-home="../en/" data-gl-more="More">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+	<div class="wrap header-row">
+		<a class="brand" href="../en/index.html">
+			<img src="../static/img/icon.svg?v=ce400590ae" alt="" width="28" height="28">
+			<span>DM32 Web CPS <b>&amp; Flasher</b></span>
+		</a>
+		<button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+		<nav id="site-nav" class="site-nav" aria-label="Main"><a href="../en/flash/index.html">Flasher</a><a href="../en/codeplug/index.html">Codeplug editor</a></nav>
+		<div class="header-tools">
+			<details class="lang-switch"><summary aria-label="Language" title="Language">EN</summary><nav aria-label="Language"><a href="../index.html" lang="es" hreflang="es" data-hint="Este sitio también está en español." data-go="Ver en español" data-no="No, gracias">Español</a><a href="../en/index.html" aria-current="true" lang="en" hreflang="en" data-hint="This site is also in English." data-go="View in English" data-no="No, thanks">English</a></nav></details>
+			<button class="theme-toggle" type="button" aria-label="Switch light and dark" title="Switch light and dark">◐</button>
+		</div>
+	</div>
+</header>
+<main id="main">
+<section class="hero">
+	<div class="wrap hero-grid">
+		<div class="hero-text">
+			<h1>DM32 Web CPS &amp; Flasher</h1>
+			<p class="lead">Install the Open25-DM32 firmware with P25 and NXDN on your Baofeng DM-32UV and edit its codeplug in the browser. Nothing is uploaded to any server: the radio, the backups and your files stay on your computer.</p>
+			<div class="actions">
+				<a class="btn btn-primary" href="../en/flash/index.html">Flasher</a>
+				<a class="btn btn-primary" href="../en/codeplug/index.html">Codeplug editor</a>
+			</div>
+			<p class="small muted">Needs Chrome or Edge on a desktop computer (Web Serial) and the radio&#x27;s programming cable.</p>
+			<dl class="feature-rows">
+				<div><dt>Flasher</dt><dd>Back up, install, update and restore the firmware over the programming cable.</dd></div>
+				<div><dt>Codeplug editor</dt><dd>FM, DMR, P25, NXDN and P25 trunking channels, zones, contacts and the ID database: read and write the radio or save files.</dd></div>
+				<div><dt>Firmware included</dt><dd><span id="fw-version">…</span></dd></div>
+			</dl>
+		</div>
+		<figure class="hero-device">
+			<img src="../static/img/radios/dm32.svg" alt="Baofeng DM-32UV">
+		</figure>
+	</div>
+</section>
+
+<section class="wrap section">
+	<div class="notice warn"><p><strong>Experimental firmware.</strong> P25 and NXDN voice work both ways on the radio, but this is an experimental build: APRS and some features are not tested on air yet. Always keep the backup the flasher offers. Use it at your own risk, on frequencies you are licensed for.</p></div>
+	<div class="card">
+		<h2>DM-32UV update mode</h2>
+		<ol>
+			<li>Switch the radio off and connect the programming cable to the computer.</li>
+			<li>Hold PTT and SK1 while you switch the radio on.</li>
+			<li>A green LED means the radio is in update mode.</li>
+		</ol>
+		<p class="small muted">The flasher tells you what to do with the radio at each step. Usually switching it off and on when asked is enough; update mode is the factory loader&#x27;s fallback route.</p>
+	</div>
+</section>
+
+<section class="wrap section">
+	<div class="card">
+		<h2>The AMBE codec is not on this site</h2>
+		<p>This site only hosts the firmware image without the AMBE codec (proprietary to DVSI). The flasher takes the codec from your radio&#x27;s memory (read during the backup) or from the original Baofeng firmware file you pick, and merges it with the image inside the browser. The codec is never uploaded to any server or distributed here.</p>
+	</div>
+</section>
+
+<section class="wrap section">
+	<div class="card">
+		<h2>Credits</h2>
+		<ul>
+			<li><a href="https://github.com/radiofoundry/radiofoundry">RadioFoundry</a>: the original web flasher and codeplug editor (MIT, The RadioFoundry Authors).</li>
+			<li><a href="https://github.com/tylerwatt12/Open25-DM32">Open25-DM32 (tylerwatt12)</a>: the firmware base (GPL-3.0).</li>
+			<li><a href="https://github.com/donttellmeimcute/DM32-nxdn-p25">DM32-nxdn-p25 (lyra XE1POC)</a>: the P25 and NXDN derivative, and this adaptation of the site.</li>
+		</ul>
+		<p class="small muted">The site&#x27;s code is MIT (The RadioFoundry Authors, with modifications). The firmware image is GPL-3.0-or-later; its source is in the DM32-nxdn-p25 repository. <a href="https://github.com/donttellmeimcute/dm32-web-cps-flasher">This site&#x27;s source</a></p>
+	</div>
+</section>
+<script type="module">
+// the image the flasher installs (data/releases.json, written with the image by the site build)
+const out = document.getElementById("fw-version");
+try {
+	const r = (await (await fetch("../data/releases.json")).json()).releases.at(-1);
+	out.textContent = `${r.version} · ${Math.round(r.size / 1024)} KB · SHA-256 ${r.sha256.slice(0, 16)}…`;
+} catch (e) {
+	out.textContent = "?";
+}
+</script>
+
+</main>
+<footer class="site-footer">
+	<div class="wrap footer-help">
+		<a class="help-card" href="https://github.com/donttellmeimcute/DM32-nxdn-p25/issues" target="_blank" rel="noopener">
+			<span class="icon icon-github help-card-icon" aria-hidden="true"></span>
+			<span><strong>Found a bug?</strong><span class="small muted">Open an issue on the DM32-nxdn-p25 firmware repository.</span></span>
+		</a>
+	</div>
+	
+	<div class="wrap footer-row">
+		<p>Site MIT (The RadioFoundry Authors) · firmware GPL-3.0-or-later · <a href="https://github.com/donttellmeimcute/DM32-nxdn-p25">Firmware source</a> · <a href="https://github.com/donttellmeimcute/dm32-web-cps-flasher">Site source</a></p>
+		<p class="build-stamp"><a href="https://github.com/donttellmeimcute/DM32-nxdn-p25/releases">Changelog</a> · dfbaf20c-dirty · <time datetime="2026-11-14T18:45Z">2026-11-14 18:45 UTC</time></p>
+	</div>
+</footer>
+<script type="module" src="../static/js/site.js?v=ce400590ae"></script>
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+DM32 Web CPS & Flasher — Open25-DM32 (P25 / NXDN)
+https://github.com/donttellmeimcute/dm32-web-cps-flasher
+
+Website (HTML, CSS, JavaScript, data/, downloads/, tools/)
+  The RadioFoundry web flasher, codeplug editor and site generator output.
+  Copyright (c) 2026 The RadioFoundry Authors. MIT License (LICENSE).
+  https://github.com/radiofoundry/radiofoundry
+  Modified in 2026 by lyra XE1POC: DM-32UV only; installs the firmware image hosted on this site instead of
+  requesting builds from the RadioFoundry build service; no flash log, problem reports or file samples are sent to
+  the RadioFoundry backend; Spanish default with English; branding and pink accent. Every file keeps its SPDX header.
+  downloads/rfoundry-tool.zip is RadioFoundry's rfoundry command-line tool (MIT) for the flasher's manual install kit.
+
+Firmware image (firmware/dm32/)
+  Open25-DM32 P25/NXDN derivative by lyra XE1POC, based on RadioFoundry (MIT, The RadioFoundry Authors) and
+  Open25-DM32 by tylerwatt12 (GPL-3.0, https://github.com/tylerwatt12/Open25-DM32).
+  Combined work under GPL-3.0-or-later; RadioFoundry files remain MIT, mbelib-derived code ISC, other third-party parts
+  under their own licenses. License texts: firmware/LICENSES/.
+  Corresponding source: https://github.com/donttellmeimcute/DM32-nxdn-p25
+  The image does not contain the AMBE codec. Hardware-unverified laboratory build.
+
+Not included
+  No AMBE/AMBE+2 codec bytes (DVSI), no rfoundry_dm32.codec.bin and no Baofeng stock firmware are part of this
+  repository. The flasher reads the codec from the user's radio or from a stock firmware file the user selects, and
+  merges it in the browser.
+
+Baofeng, DVSI and AMBE are trademarks of their respective owners.
