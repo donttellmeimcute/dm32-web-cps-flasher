@@ -6,6 +6,8 @@
 // (FTDI AN232B-05 baud divisors, a 2-byte modem status at the start of every bulk IN packet). serialApi() is what
 // pages call in place of navigator.serial; SerialStream (link.js) takes either kind of port.
 
+import { nativeSerial } from "./nativeserial.js?v=33b2834650";
+
 export const FTDI = 0x0403;
 
 // CDC class requests (PSTN 1.2, 6.3)
@@ -269,7 +271,7 @@ const usbSerial = {
 	},
 };
 
-// navigator.serial, or the WebUSB stand-in where Web Serial can't reach USB devices
+// navigator.serial, or the WebUSB stand-in where Web Serial can't reach USB devices, or the Android app's own driver
 export function serialApi() {
-	return usbSerialNeeded() ? usbSerial : navigator.serial;
+	return nativeSerial || (usbSerialNeeded() ? usbSerial : navigator.serial);
 }

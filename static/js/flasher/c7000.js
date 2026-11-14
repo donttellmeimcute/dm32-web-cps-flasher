@@ -14,9 +14,9 @@
 //
 // The codec is DVSI's and Baofeng's. It only ever moves between the user's radio, files and this browser.
 
-import { concat, crc32, sha256, u32le, le32, startsWith } from "./bytes.js?v=ce400590ae";
-import { byCodeSha, checkWords } from "./codecmap.js?v=ce400590ae";
-import { ECC } from "./stub.js?v=ce400590ae";
+import { concat, crc32, sha256, u32le, le32, startsWith } from "./bytes.js?v=33b2834650";
+import { byCodeSha, checkWords } from "./codecmap.js?v=33b2834650";
+import { ECC } from "./stub.js?v=33b2834650";
 
 // code: as stockfw.js StockError's, for the page's explanation (explain.js) and the error report; "image" is a
 // RadioFoundry image the codec slot can't take (the user's own build), not a vendor file

@@ -15,7 +15,7 @@
 //   close()                    give the radio back (restart it into RadioFoundry, end the session)
 //   abort()                    the same after a failure, best effort
 
-import { F4Stub, f4Image, MEM_INTERNAL, MEM_SPI } from "./f4stub.js?v=ce400590ae";
+import { F4Stub, f4Image, MEM_INTERNAL, MEM_SPI } from "./f4stub.js?v=33b2834650";
 
 const CPS_SPI = 1, CPS_MCU = 5, MCU_BASE = 0x08000000;
 

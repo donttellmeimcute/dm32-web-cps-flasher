@@ -4,8 +4,8 @@
 // (reads, sector writes, C 5), on a data flash with the codeplug at a base address. Writes outside the codeplug's
 // room are refused as the radio refuses them (cps-protocol.md 2.3). For the tests and the page's #sim mode.
 
-import { concat } from "../flasher/bytes.js?v=ce400590ae";
-import { frame, parseFrames } from "../flasher/link.js?v=ce400590ae";
+import { concat } from "../flasher/bytes.js?v=33b2834650";
+import { frame, parseFrames } from "../flasher/link.js?v=33b2834650";
 
 export class FakeCpsRadio {
 	// foreign: the settings region still holds another firmware's data until a STORAGE CLAIM (settings-store.md 5).

@@ -8,8 +8,8 @@
 //
 // Once RadioFoundry runs, the radio is reached the way the other HR_C7000 radios are (stub.js, c7000.js).
 
-import { sleep } from "./bytes.js?v=ce400590ae";
-import { univFits } from "./stub.js?v=ce400590ae";
+import { sleep } from "./bytes.js?v=33b2834650";
+import { univFits } from "./stub.js?v=33b2834650";
 
 export class UsmartError extends Error {}
 

@@ -15,12 +15,12 @@
 //                   it was. Writing the whole SPI flash back needs a firmware command that doesn't exist yet
 //                   (docs/dev/web-flasher.md "Restore"), so the flasher reports what differs instead of guessing.
 
-import { RESTORE, makePlan } from "./plan.js?v=ce400590ae";
-import { overlapping as protectOverlap } from "./protect.js?v=ce400590ae";
-import { stockApplication } from "./stockfw.js?v=ce400590ae";
-import { CODEPLUG_SPAN } from "./backup.js?v=ce400590ae";
-import { TFTP_SIZE } from "../codeplug/image.js?v=ce400590ae";
-import { classify } from "../codeplug/detect.js?v=ce400590ae";
+import { RESTORE, makePlan } from "./plan.js?v=33b2834650";
+import { overlapping as protectOverlap } from "./protect.js?v=33b2834650";
+import { stockApplication } from "./stockfw.js?v=33b2834650";
+import { CODEPLUG_SPAN } from "./backup.js?v=33b2834650";
+import { TFTP_SIZE } from "../codeplug/image.js?v=33b2834650";
+import { classify } from "../codeplug/detect.js?v=33b2834650";
 
 export class RestoreError extends Error {}
 

@@ -4,10 +4,10 @@
 // membership editor for zones and RX group lists. Setters parse what was typed and return an error text, or
 // nothing when the value was taken.
 
-import { h, button } from "../flasher/dom.js?v=ce400590ae";
-import { parseFreq, parseTone, mhz } from "../codeplug/fields.js?v=ce400590ae";
-import { LIMITS, POWER_NAMES, NAC_ANY, NAC_DEFAULT } from "../codeplug/records.js?v=ce400590ae";
-import { refNumber, listenBand } from "../codeplug/model.js?v=ce400590ae";
+import { h, button } from "../flasher/dom.js?v=33b2834650";
+import { parseFreq, parseTone, mhz } from "../codeplug/fields.js?v=33b2834650";
+import { LIMITS, POWER_NAMES, NAC_ANY, NAC_DEFAULT } from "../codeplug/records.js?v=33b2834650";
+import { refNumber, listenBand } from "../codeplug/model.js?v=33b2834650";
 
 // --- Parsers shared by the columns and the forms ---
 

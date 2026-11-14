@@ -5,7 +5,7 @@
 // address a number). Moving a codec rewrites the words that hold addresses inside it; both ports must give the same
 // bytes (the shared vectors in tools/rfoundry/tests/codecmap_vectors.json).
 
-import { sha256, u32le, hex } from "./bytes.js?v=ce400590ae";
+import { sha256, u32le, hex } from "./bytes.js?v=33b2834650";
 
 export class MapError extends Error {}
 

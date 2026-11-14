@@ -4,8 +4,8 @@
 // with the logical block it holds. Builds the logical image from a data flash read, recognizes a codeplug in it,
 // reads its records, and fills the editing model (model.js) from it as stock_tyt.js does, with the same note codes.
 
-import { getFreq } from "./fields.js?v=ce400590ae";
-import { LIMITS, POWER_NAMES } from "./records.js?v=ce400590ae";
+import { getFreq } from "./fields.js?v=33b2834650";
+import { LIMITS, POWER_NAMES } from "./records.js?v=33b2834650";
 
 export const DM32_STOCK = "baofeng-dm32";
 

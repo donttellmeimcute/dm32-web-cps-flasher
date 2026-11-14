@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 The RadioFoundry Authors
-import { h, t, button } from "./dom.js?v=ce400590ae";
-import * as diag from "../diag.js?v=ce400590ae";
+import { h, t, button } from "./dom.js?v=33b2834650";
+import * as diag from "../diag.js?v=33b2834650";
 
 // Asked when Install is pressed on an install that leaves the radio without the DMR voice codec (no codec to write,
 // or a kept codec known to be missing): the step's notice says it once, this says it again where the click is.

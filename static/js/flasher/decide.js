@@ -7,7 +7,7 @@
 // English (the trail and the tests read them); the page shows whyKey and riskKey from its catalog, with args (a value
 // {key, args} is itself a catalog string).
 
-import { KEEP, MERGE } from "./plan.js?v=ce400590ae";
+import { KEEP, MERGE } from "./plan.js?v=33b2834650";
 
 // message: the whole sentence (rfoundry's wording); reason: why, without the advice, for a page that gives its own
 // key, args: the reason in the page's catalog; hint: the page adds that a stock file gives the codec

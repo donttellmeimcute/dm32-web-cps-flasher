@@ -6,9 +6,9 @@
 // their references cleared. A file may hold only some columns: the others keep their values. Problems come back as
 // {row, column, code, params}, and the page words them.
 
-import { parseFreq, parseTone, mhz } from "./fields.js?v=ce400590ae";
-import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf, NAC_ANY } from "./records.js?v=ce400590ae";
-import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=ce400590ae";
+import { parseFreq, parseTone, mhz } from "./fields.js?v=33b2834650";
+import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf, NAC_ANY } from "./records.js?v=33b2834650";
+import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=33b2834650";
 
 // --- RFC 4180 ---
 

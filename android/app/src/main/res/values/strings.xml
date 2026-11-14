@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DM32 CPS &amp; Flasher</string>
+    <string name="choose_cable">Elige el cable</string>
+    <string name="saved">Guardado en %1$s</string>
+</resources>

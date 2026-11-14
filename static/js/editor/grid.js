@@ -4,7 +4,7 @@
 // typing on a focused cell), sorting by a column, a filter, row selection for bulk edits, and keyboard movement
 // between cells. Only the cell being edited holds an input, so a table of 1024 channels stays light.
 
-import { h } from "../flasher/dom.js?v=ce400590ae";
+import { h } from "../flasher/dom.js?v=33b2834650";
 
 // The row's edit button icon: a pencil drawn in the text color, so it follows the theme.
 const SVG = "http://www.w3.org/2000/svg";

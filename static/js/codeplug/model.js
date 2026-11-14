@@ -7,15 +7,15 @@
 // the image it came from and touches only records whose fields changed, so an unedited codeplug round-trips byte for
 // byte.
 
-import { CodeplugImage } from "./image.js?v=ce400590ae";
+import { CodeplugImage } from "./image.js?v=33b2834650";
 import {
 	LIMITS, CH_SIZE, bankBitmap, channelAddr, decodeChannel, encodeChannel, zoneLayout, decodeZone, encodeZone,
 	ZONE_BITMAP, ZONE_DATA, ZONE_RECORD, CONTACTS, CONTACT_SIZE, decodeContact, encodeContact, LIST_COUNTS, LISTS,
 	LIST_SIZE, decodeList, encodeList, DTMF_CONTACTS, decodeDtmf, encodeDtmf, validDtmf, APRS_BASE, APRS_SIZE,
 	decodeAprs, encodeAprs, decodeGeneral, encodeGeneral, VFO, LUCZ,
-} from "./records.js?v=ce400590ae";
-import { parseTone } from "./fields.js?v=ce400590ae";
-import { readHeader } from "./iddb.js?v=ce400590ae";
+} from "./records.js?v=33b2834650";
+import { parseTone } from "./fields.js?v=33b2834650";
+import { readHeader } from "./iddb.js?v=33b2834650";
 
 const REFS = ["contact", "rxList", "aprs"];
 

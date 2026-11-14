@@ -6,9 +6,9 @@
 // stock file the user gave, and a README.txt with this radio's commands, file names filled in. The README is English,
 // as rfoundry's own output is. docs/dev/web-flasher.md "The manual install kit".
 
-import { sha256 } from "./bytes.js?v=ce400590ae";
-import { zip, unzip } from "./zip.js?v=ce400590ae";
-import { h, t, button, download, filePicker } from "./dom.js?v=ce400590ae";
+import { sha256 } from "./bytes.js?v=33b2834650";
+import { zip, unzip } from "./zip.js?v=33b2834650";
+import { h, t, button, download, filePicker } from "./dom.js?v=33b2834650";
 
 export class KitError extends Error {}
 
