@@ -42,6 +42,15 @@ original de Baofeng (`DM32.01.01.0xx.bin`, `BFUV32…`). La imagen de `firmware/
 lee de la memoria de programa de tu radio durante la copia de seguridad, o lo extrae del archivo de firmware original que
 tú elijas, y lo combina con la imagen **dentro del navegador**. Nunca se sube a ningún servidor.
 
+**Obtener el archivo original:** el paso Códec ofrece «Descargar firmware original», que abre el
+[ZIP oficial de Baofeng DM-32UV v1.01.048](https://baofeng.s3.amazonaws.com/Baofeng_DM-32UV_Firmware_v1.01.048.zip),
+publicado en la [página de descargas del fabricante](https://www.baofengradio.com/pages/download).
+Selecciona ese ZIP en el flasher; no hace falta instalar previamente el firmware de fábrica. El archivo interno
+`DM32_L01_048_20250821.bin` ya está reconocido por su SHA-256. No alojamos el ZIP ni un códec independiente.
+La [licencia pública de DVSI, sección 2.3](https://www.dvsinc.com/papers/DVSI%20End%20User%20Product%20Liceanse%20Agreement.pdf),
+requiere permiso escrito para redistribuir su software. La descarga del fabricante no concede ese permiso;
+siguen aplicándose las condiciones de licencia correspondientes.
+
 Los nombres de archivos de Baofeng que aparecen en `data/flash-boards.json` y en los scripts son solo para reconocer
 (por nombre y SHA-256) el archivo que elige el usuario; no hay bytes de esos archivos aquí.
 

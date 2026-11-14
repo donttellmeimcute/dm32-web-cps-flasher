@@ -27,6 +27,7 @@ class DM32Site(B.Site):
 	def load(self):
 		super().load()
 		self.boards = [b for b in self.boards if b["id"] == RADIO]
+		self.boards[0]["flash"]["stock_download"] = "https://baofeng.s3.amazonaws.com/Baofeng_DM-32UV_Firmware_v1.01.048.zip"
 		self.planned = []
 
 	def nav(self, lang, home, current):

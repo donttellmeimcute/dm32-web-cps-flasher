@@ -59,7 +59,8 @@
       "what": "a decoded calibration copy an earlier firmware left, the fallback when no factory page is found (hardware-dm32.md 10.1, 17)"
      }
     ],
-    "stub_tested": true
+    "stub_tested": true,
+    "stock_download": "https://baofeng.s3.amazonaws.com/Baofeng_DM-32UV_Firmware_v1.01.048.zip"
    },
    "backup": {
     "stock": "full",
