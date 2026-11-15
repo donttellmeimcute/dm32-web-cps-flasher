@@ -3,8 +3,8 @@
   "board": "dm32",
   "board_name": "Baofeng DM-32UV",
   "version": "2026.11.15-dv-monitor",
-  "git": "381d550e",
-  "git_full": "381d550ea350e4d7848cad298bb220db766960cb",
+  "git": "88ddea59",
+  "git_full": "88ddea59acb668db2418e43bb3dfc52a33befc7e",
   "image": {
     "file": "rfoundry-dm32-2026.11.15-dv-monitor.bin",
     "size": 543248,
