@@ -1,5 +1,9 @@
 # DM32 Web CPS & Flasher — Open25-DM32 (P25 / NXDN)
 
+[![Regálame un radio en Throne](https://img.shields.io/badge/Throne-Reg%C3%A1lame%20un%20radio-ff69b4?style=for-the-badge)](https://throne.com/lyraarsgoetia)
+
+**¿Quieres firmware para tu radio?** Regálamelo desde mi lista de deseos y lo porto: **<https://throne.com/lyraarsgoetia>** · *Want firmware for your radio? Gift it from my wishlist and I'll port it.*
+
 Flasher web y editor de codeplug (CPS) para la **Baofeng DM-32UV** con el firmware **Open25-DM32**, el derivado con
 P25 y NXDN de RadioFoundry. Todo corre en el navegador: la radio, las copias de seguridad y tus archivos nunca salen de
 tu computadora.
