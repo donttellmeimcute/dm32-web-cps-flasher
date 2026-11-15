@@ -78,6 +78,14 @@ RadioFoundry están desactivados. "Informar de un problema" solo descarga el inf
 
 ## Cambiar la imagen cuando haya una compilación nueva
 
+**Automático:** cada commit a `main` de DM32-nxdn-p25 publica una release con la imagen. La acción `Sync firmware`
+(`.github/workflows/sync-firmware.yml`) revisa cada 15 minutos la última release; si es nueva, comprueba sus SHA-256,
+la instala con `tools/set_firmware.py` y hace commit, y GitHub Pages la sirve. Se puede lanzar a mano en Actions › Sync
+firmware. Para que sea inmediato, guarda en DM32-nxdn-p25 un secreto `FLASHER_TOKEN` (token con permiso de Actions
+sobre este repositorio).
+
+A mano:
+
 1. En el árbol del firmware, empaqueta la imagen sin códec con la herramienta de RadioFoundry (mismas variables
    `CONFIG_*` que la compilación, para que la lista de funciones sea la real):
 

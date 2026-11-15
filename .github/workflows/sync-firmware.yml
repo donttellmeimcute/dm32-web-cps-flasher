@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: MIT
+# Installs the latest DM32-nxdn-p25 release on this site: when its version differs from data/releases.json, the
+# release's rfoundry-dm32-<version>.bin and manifest are checked against its SHA256SUMS and put in place by
+# tools/set_firmware.py (which refuses an image with the codec), and the change is committed. GitHub Pages then serves
+# it and the flasher offers it. Runs every 15 minutes, by hand (Actions > Sync firmware), or when the firmware
+# repository's Firmware workflow asks for it.
+name: Sync firmware
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+  repository_dispatch:
+    types: [firmware]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-firmware
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Latest firmware release
+        id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          TAG=$(gh api repos/donttellmeimcute/DM32-nxdn-p25/releases/latest --jq .tag_name 2>/dev/null || true)
+          if [ -z "$TAG" ]; then echo "No release yet"; echo "new=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          VERSION="${TAG#v}"
+          CURRENT=$(python3 -c 'import json; print(json.load(open("data/releases.json"))["releases"][0]["version"])')
+          echo "latest $VERSION, on the site $CURRENT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "new=$([ "$VERSION" != "$CURRENT" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Install it
+        if: steps.latest.outputs.new == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.latest.outputs.tag }}
+          VERSION: ${{ steps.latest.outputs.version }}
+        run: |
+          set -eu
+          mkdir -p "$RUNNER_TEMP/fw"
+          cd "$RUNNER_TEMP/fw"
+          gh release download "$TAG" --repo donttellmeimcute/DM32-nxdn-p25 \
+            --pattern "rfoundry-dm32-$VERSION.bin" --pattern "rfoundry-dm32-$VERSION.json" --pattern SHA256SUMS
+          sha256sum -c SHA256SUMS
+          cd "$GITHUB_WORKSPACE"
+          python3 tools/set_firmware.py "$RUNNER_TEMP/fw/rfoundry-dm32-$VERSION.json"
+          git add -A firmware/dm32 data/releases.json
+          git -c user.name=donttellmeimcute -c user.email=24362190+donttellmeimcute@users.noreply.github.com \
+            commit -m "Firmware $VERSION from DM32-nxdn-p25 $TAG"
+          git push origin HEAD:main
