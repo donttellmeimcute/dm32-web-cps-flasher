@@ -73,6 +73,8 @@ const setMode = (r, k, v) => {
 		r.nacRx = NAC_ANY;
 		r.nacTx = NAC_DEFAULT;
 	}
+	// the digital voice modes need a talkgroup (1-65535) or the form won't save: talkgroup 1, as the radio's own switch
+	if (DIGITAL.has(v) && !r.talkgroup) r.talkgroup = 1;
 	r[k] = v;
 };
 
@@ -402,8 +404,6 @@ export function formDialog(title, fields, record, t, onSave) {
 	}
 	const byKey = (k) => rows.find((r) => r.f.key === k);
 	const value = (k) => byKey(k).input.value;
-	// keys two fields share (P25 NAC and NXDN RAN): the one that appears shows the record's value as the mode left it
-	const shared = new Set(rows.map((r) => r.f.key).filter((k, i, all) => k && all.indexOf(k) !== i));
 	const sync = () => {
 		for (const { f, input, row, label, tools } of rows) {
 			if (f.type === "pair") {
@@ -431,7 +431,8 @@ export function formDialog(title, fields, record, t, onSave) {
 			if (f.type === "bool") (f.set ? f.set(work, input.checked) : (work[f.key] = input.checked));
 			if (f.show) {
 				const hide = !f.show(work);
-				if (row.hidden && !hide && shared.has(f.key)) input.value = f.format ? f.format(work[f.key]) : work[f.key];
+				// a field that appears shows the record's value as the mode left it (setMode: NAC / RAN, talkgroup)
+				if (row.hidden && !hide && f.type === "text") input.value = f.format ? f.format(work[f.key] ?? "") : work[f.key] ?? "";
 				row.hidden = hide;
 			}
 			if (typeof f.label === "function") label.textContent = f.label(work);
