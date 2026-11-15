@@ -9,7 +9,7 @@
 // goes only on direct requests, in X-API-Token: never through the proxy, which would see it. Pages come 200 users at
 // a time, one request after another, as RadioID asks of clients.
 
-import { COUNTRIES, ABBREV } from "./regions.js?v=33b2834650";
+import { COUNTRIES, ABBREV } from "./regions.js?v=081b5de899";
 
 export const ID = "radioid";
 export const API = "https://database.radioid.net/api/dmr/user/";

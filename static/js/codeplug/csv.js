@@ -6,9 +6,9 @@
 // their references cleared. A file may hold only some columns: the others keep their values. Problems come back as
 // {row, column, code, params}, and the page words them.
 
-import { parseFreq, parseTone, mhz } from "./fields.js?v=33b2834650";
-import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf, NAC_ANY } from "./records.js?v=33b2834650";
-import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=33b2834650";
+import { parseFreq, parseTone, mhz } from "./fields.js?v=081b5de899";
+import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf, NAC_ANY } from "./records.js?v=081b5de899";
+import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=081b5de899";
 
 // --- RFC 4180 ---
 
@@ -350,13 +350,16 @@ export const TABLES = {
 			c("SFR", "sfr", asBool, (r) => yesNo(r.sfr)),
 			c("SFR A", "sfrA", asInt(0, 255, 0)),
 			c("SFR B", "sfrB", asInt(0, 255, 0)),
-			keep("RX NAC", "nacRx", asHex(0xFFF, true), (r) => (isP25(r) ? (r.nacRx === NAC_ANY ? "any" : hex(3)(r.nacRx)) : ""), ["NAC RX"]),
+			keep("RX NAC", "nacRx", (s) => {
+				const n = asHex(0xFFF, true)(s);
+				return n === 0xF7F ? NAC_ANY : n;	// the repeater's any: on receive, every NAC as F7E
+			}, (r) => (isP25(r) ? (r.nacRx === NAC_ANY ? "any" : hex(3)(r.nacRx)) : ""), ["NAC RX"]),
 			keep("TX NAC", "nacTx", (s) => {
 				const n = asHex(0xFFF, false)(s);
 				if (n >= NAC_ANY) throw new Bad("range", { min: 0, max: "F7D" });
 				return n;
 			}, (r) => (isP25(r) ? hex(3)(r.nacTx) : ""), ["NAC TX", "NAC"]),
-			keep("RX RAN", "nacRx", asInt(0, 63), (r) => (r.mode === "nxdn" ? r.nacRx : ""), ["RAN RX"]),
+			keep("RX RAN", "nacRx", (s) => (/^any$/i.test(s.trim()) ? 0 : asInt(0, 63)(s)), (r) => (r.mode === "nxdn" ? r.nacRx : ""), ["RAN RX"]),
 			keep("TX RAN", "nacTx", asInt(0, 63), (r) => (r.mode === "nxdn" ? r.nacTx : ""), ["RAN TX", "RAN"]),
 			keep("Talkgroup", "talkgroup", asInt(1, 65535), (r) => (DIGITAL.has(r.mode) ? r.talkgroup || "" : ""), ["TG", "Group ID", "TGID"]),
 			keep("Hear All Groups", "hearAll", asBool, (r) => (DIGITAL.has(r.mode) ? yesNo(r.hearAll) : ""), ["Hear All", "Monitor All"]),

@@ -4,26 +4,26 @@
 // written back to the radio. Everything runs in the page; the codeplug never leaves it unless the user puts it in a
 // bug report (report.js). The working codeplug is kept in this browser (IndexedDB) so a reload doesn't lose edits.
 
-import { h, t, ROOT, HOME, button, notice, download, progressBar, num as fmtNum, date as fmtDate } from "../flasher/dom.js?v=33b2834650";
-import { equal } from "../flasher/bytes.js?v=33b2834650";
-import { SerialStream, serialSupported, serialApi, RFOUNDRY_USB, browserErrorKey, knownRadioPort } from "../flasher/link.js?v=33b2834650";
-import { CodeplugImage, IDDB_HEADER, REGIONS } from "../codeplug/image.js?v=33b2834650";
-import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=33b2834650";
-import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=33b2834650";
-import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=33b2834650";
-import { FastError } from "../codeplug/fastlink.js?v=33b2834650";
-import { convert as convertDb, readHeader as dbHeader } from "../codeplug/iddb.js?v=33b2834650";
-import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=33b2834650";
-import { FakeCpsRadio } from "../codeplug/fakecps.js?v=33b2834650";
-import { Grid } from "./grid.js?v=33b2834650";
-import { History } from "./undo.js?v=33b2834650";
-import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel } from "./views.js?v=4b0aeca544";
-import { openFile, saveBytes, tftpBytes, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=33b2834650";
-import { extensions } from "./extensions.js?v=33b2834650";
-import "./parts.js?v=33b2834650";
-import * as diag from "../diag.js?v=33b2834650";
-import { initReporting, reportedLine } from "../report.js?v=33b2834650";
-import { updateFor } from "../flasher/version.js?v=33b2834650";
+import { h, t, ROOT, HOME, button, notice, download, progressBar, num as fmtNum, date as fmtDate } from "../flasher/dom.js?v=081b5de899";
+import { equal } from "../flasher/bytes.js?v=081b5de899";
+import { SerialStream, serialSupported, serialApi, RFOUNDRY_USB, browserErrorKey, knownRadioPort } from "../flasher/link.js?v=081b5de899";
+import { CodeplugImage, IDDB_HEADER, REGIONS } from "../codeplug/image.js?v=081b5de899";
+import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=081b5de899";
+import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=081b5de899";
+import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=081b5de899";
+import { FastError } from "../codeplug/fastlink.js?v=081b5de899";
+import { convert as convertDb, readHeader as dbHeader } from "../codeplug/iddb.js?v=081b5de899";
+import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=081b5de899";
+import { FakeCpsRadio } from "../codeplug/fakecps.js?v=081b5de899";
+import { Grid } from "./grid.js?v=081b5de899";
+import { History } from "./undo.js?v=081b5de899";
+import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel } from "./views.js?v=081b5de899";
+import { openFile, saveBytes, tftpBytes, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=081b5de899";
+import { extensions } from "./extensions.js?v=081b5de899";
+import "./parts.js?v=081b5de899";
+import * as diag from "../diag.js?v=081b5de899";
+import { initReporting, reportedLine } from "../report.js?v=081b5de899";
+import { updateFor } from "../flasher/version.js?v=081b5de899";
 
 const CABLES = [0x0403, 0x1A86, 0x10C4, 0x067B].map((usbVendorId) => ({ usbVendorId }));
 const TABS = ["radio", "channels", "zones", "contacts", "rxLists", "dtmfContacts", "aprs", "iddb", "problems"];

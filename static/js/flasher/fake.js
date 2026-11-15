@@ -7,13 +7,13 @@
 // running RadioFoundry also hands over to the STM32F4 stub (debug link STUB, then the stub's protocol, its board record
 // (CONFIG) and its interlock as stub/f4stub.py's FakeF4 and docs/spec/stub-stm32f4.md 5.2 have them).
 
-import { BLOCK, FIRST_BLOCK } from "./plan.js?v=33b2834650";
-import { concat, crc32, equal, fromHex, le32, sha256, u16be, u32le } from "./bytes.js?v=33b2834650";
-import { frame, parseFrames } from "./link.js?v=33b2834650";
-import { STUB_MAGIC } from "./stub.js?v=33b2834650";
-import { APP_BASE, F4_MAGIC, f405Sectors } from "./f4stub.js?v=33b2834650";
-import { moveCode, moveBranches, putBl } from "./codecmap.js?v=33b2834650";
-import { place } from "./stockfw.js?v=33b2834650";
+import { BLOCK, FIRST_BLOCK } from "./plan.js?v=081b5de899";
+import { concat, crc32, equal, fromHex, le32, sha256, u16be, u32le } from "./bytes.js?v=081b5de899";
+import { frame, parseFrames } from "./link.js?v=081b5de899";
+import { STUB_MAGIC } from "./stub.js?v=081b5de899";
+import { APP_BASE, F4_MAGIC, f405Sectors } from "./f4stub.js?v=081b5de899";
+import { moveCode, moveBranches, putBl } from "./codecmap.js?v=081b5de899";
+import { place } from "./stockfw.js?v=081b5de899";
 
 const FLASH_BASE = 0x08000000, FLASH_SIZE = 0x100000;
 const sum8 = (b) => b.reduce((a, x) => (a + x) & 0xFF, 0);

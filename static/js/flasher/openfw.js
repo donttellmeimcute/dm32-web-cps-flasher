@@ -17,11 +17,11 @@
 // Which radios: a board with CPS radio types ([cps] in board.toml) that installs through its USB bootloader with a
 // known key (family usb-dfu, key_sha256). Everything else about the radio comes from the board data.
 
-import { hex, sha256 } from "./bytes.js?v=33b2834650";
-import { LinkError, parseRadioInfo, flashBytes, RADIO_INFO_LEN } from "./link.js?v=33b2834650";
-import { findKey } from "./bootkey.js?v=33b2834650";
-import { fromFlash, fromMoved } from "./stockfw.js?v=33b2834650";
-import { profilesFor } from "./codecsave.js?v=33b2834650";
+import { hex, sha256 } from "./bytes.js?v=081b5de899";
+import { LinkError, parseRadioInfo, flashBytes, RADIO_INFO_LEN } from "./link.js?v=081b5de899";
+import { findKey } from "./bootkey.js?v=081b5de899";
+import { fromFlash, fromMoved } from "./stockfw.js?v=081b5de899";
+import { profilesFor } from "./codecsave.js?v=081b5de899";
 
 export const CLIP = 2045;			// the most an R request asks (open-firmware-cps.md 2.1)
 export const VFO = [0x7590, 0x7600];		// area 1's live VFO overlay (2.2)

@@ -5,9 +5,9 @@
 // form qdmr 0.15 writes for this codeplug. Both return notes: what the other side can't hold, so the page can say what
 // was left out. The mapping was learned from qdmr's manual and from files qdmr writes and reads, never its source.
 
-import { parse, stringify, flow, Tag } from "./yaml.js?v=33b2834650";
-import { LIMITS } from "./records.js?v=33b2834650";
-import { parseTone } from "./fields.js?v=33b2834650";
+import { parse, stringify, flow, Tag } from "./yaml.js?v=081b5de899";
+import { LIMITS } from "./records.js?v=081b5de899";
+import { parseTone } from "./fields.js?v=081b5de899";
 
 export class QdmrError extends Error {
 	constructor(code, params = {}) {

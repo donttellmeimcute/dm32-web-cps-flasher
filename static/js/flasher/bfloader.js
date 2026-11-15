@@ -6,9 +6,9 @@
 // wire (site/tests/bfloader.test.mjs compares the two). The loader erases the whole application area, the codec slot
 // included, before it takes the first block, and never writes itself, so update mode stays whatever is written.
 
-import { sleep } from "./bytes.js?v=33b2834650";
-import { crc16 } from "./link.js?v=33b2834650";
-import * as protect from "./protect.js?v=33b2834650";
+import { sleep } from "./bytes.js?v=081b5de899";
+import { crc16 } from "./link.js?v=081b5de899";
+import * as protect from "./protect.js?v=081b5de899";
 
 export class BfError extends Error {}
 

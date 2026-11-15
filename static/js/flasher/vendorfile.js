@@ -12,10 +12,10 @@
 // The signature alone never makes a codec usable: moving the codec needs that build's map (docs/spec/codec-placement.md),
 // so a build without one is reported as "has the codec, no recipe for this build", not taken.
 
-import { sha256, u32le, startsWith } from "./bytes.js?v=33b2834650";
-import { unzip } from "./zip.js?v=33b2834650";
-import * as stockfw from "./stockfw.js?v=33b2834650";
-import * as c7 from "./c7000.js?v=33b2834650";
+import { sha256, u32le, startsWith } from "./bytes.js?v=081b5de899";
+import { unzip } from "./zip.js?v=081b5de899";
+import * as stockfw from "./stockfw.js?v=081b5de899";
+import * as c7 from "./c7000.js?v=081b5de899";
 
 const MAX_DEPTH = 3;	// zips inside zips
 const MIN_SIZE = 64 * 1024;	// smaller than any firmware image or readout

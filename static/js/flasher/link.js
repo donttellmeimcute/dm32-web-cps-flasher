@@ -5,10 +5,10 @@
 // SPI flash, 5 the MCU flash, 9 the radio info, 10 the flash security registers). Read only, apart from the CPS
 // codeplug writes restore uses (X 1-3), which the radio limits to the codeplug areas.
 
-import { be32, concat, le32, sleep, u16be, u16le, u32le, toHex } from "./bytes.js?v=33b2834650";
-import { wire, note } from "../diag.js?v=33b2834650";
-import { serialApi, usbSerialNeeded } from "./usbserial.js?v=33b2834650";
-import { nativeSerial } from "./nativeserial.js?v=33b2834650";
+import { be32, concat, le32, sleep, u16be, u16le, u32le, toHex } from "./bytes.js?v=081b5de899";
+import { wire, note } from "../diag.js?v=081b5de899";
+import { serialApi, usbSerialNeeded } from "./usbserial.js?v=081b5de899";
+import { nativeSerial } from "./nativeserial.js?v=081b5de899";
 
 export { serialApi };
 

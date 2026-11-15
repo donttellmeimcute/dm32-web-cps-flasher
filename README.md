@@ -56,10 +56,13 @@ Los nombres de archivos de Baofeng que aparecen en `data/flash-boards.json` y en
 
 ## Cómo se instala la imagen
 
-La versión `2026.11.14-p25-nac` permite escribir el NAC de un canal P25 en la radio (teclas para los dígitos hex,
-perilla o ▲▼ para pasar el último por A-F; OK sin escribir alterna RX «cualquiera») y guarda un cambio solo del NAC
-TX. Incluye la corrección del siseo P25 de `2026.11.14-p25-audiofix`. Pasa las pruebas automatizadas y compila sin
-avisos; queda pendiente probarla en una radio física.
+La versión `2026.11.15-dv-monitor` añade el **monitor digital en P25 y NXDN** como en DMR (SK1 corto: todos los
+NAC/RAN y grupos del canal, `DMon` en pantalla; otra pulsación, Atrás o cambiar de canal lo quita), «cualquier RAN»
+por canal en NXDN (OK sin escribir en la fila RAN), F7E/F7F como RX «cualquiera» en P25, y la escucha de
+**repetidores DMR con RAS** con el monitor digital (la llamada sale como grupo desconocido, TG/ID 0). El editor
+acepta `any` en RX RAN, y la conversión del codeplug original conserva los canales de banda aérea como solo RX.
+Incluye lo de `2026.11.14-p25-nac` (NAC P25 escrito en la radio) y la corrección del siseo P25. Pasa las pruebas
+automatizadas y compila sin avisos; queda pendiente probarla en una radio física.
 
 `data/releases.json` lista la imagen; el flasher descarga `firmware/dm32/<imagen>.bin` y su manifiesto
 `rfoundry-release/1` (`.json`) de este mismo sitio y comprueba tamaño, SHA-256, rangos y que no toque el códec antes de

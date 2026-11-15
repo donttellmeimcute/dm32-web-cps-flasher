@@ -6,7 +6,7 @@
 // (FTDI AN232B-05 baud divisors, a 2-byte modem status at the start of every bulk IN packet). serialApi() is what
 // pages call in place of navigator.serial; SerialStream (link.js) takes either kind of port.
 
-import { nativeSerial } from "./nativeserial.js?v=33b2834650";
+import { nativeSerial } from "./nativeserial.js?v=081b5de899";
 
 export const FTDI = 0x0403;
 

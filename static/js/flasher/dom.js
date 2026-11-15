@@ -2,9 +2,9 @@
 // Copyright (c) 2026 The RadioFoundry Authors
 // The flasher page's DOM helpers and strings, shared by app.js and the views beside it (c7000ui.js).
 
-import { note } from "../diag.js?v=33b2834650";
-import { page, LANG } from "../i18n.js?v=33b2834650";
-import { androidFiles, toBase64 } from "./nativeserial.js?v=33b2834650";
+import { note } from "../diag.js?v=081b5de899";
+import { page, LANG } from "../i18n.js?v=081b5de899";
+import { androidFiles, toBase64 } from "./nativeserial.js?v=081b5de899";
 
 // the page's strings (../i18n.js): t(key, fmt), tOr(key, repository text), num(n) and date(d, options) in its language
 export const { t, num } = page;

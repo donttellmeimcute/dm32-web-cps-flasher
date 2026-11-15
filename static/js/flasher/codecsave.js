@@ -8,8 +8,8 @@
 // where the merge placed it (stockfw.placedWindows: the DM-1701's code in sector 11). It is checked again when loaded.
 // The same rules as rfoundry/codecsave.py.
 
-import { sha256, u32le } from "./bytes.js?v=33b2834650";
-import { descriptor, place, placedWindows } from "./stockfw.js?v=33b2834650";
+import { sha256, u32le } from "./bytes.js?v=081b5de899";
+import { descriptor, place, placedWindows } from "./stockfw.js?v=081b5de899";
 
 // The stock profiles whose codec this board runs
 export const profilesFor = (board, fb) =>

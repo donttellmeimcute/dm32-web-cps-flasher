@@ -4,10 +4,10 @@
 // membership editor for zones and RX group lists. Setters parse what was typed and return an error text, or
 // nothing when the value was taken.
 
-import { h, button } from "../flasher/dom.js?v=33b2834650";
-import { parseFreq, parseTone, mhz } from "../codeplug/fields.js?v=33b2834650";
-import { LIMITS, POWER_NAMES, NAC_ANY, NAC_DEFAULT } from "../codeplug/records.js?v=33b2834650";
-import { refNumber, listenBand } from "../codeplug/model.js?v=33b2834650";
+import { h, button } from "../flasher/dom.js?v=081b5de899";
+import { parseFreq, parseTone, mhz } from "../codeplug/fields.js?v=081b5de899";
+import { LIMITS, POWER_NAMES, NAC_ANY, NAC_DEFAULT } from "../codeplug/records.js?v=081b5de899";
+import { refNumber, listenBand } from "../codeplug/model.js?v=081b5de899";
 
 // --- Parsers shared by the columns and the forms ---
 
@@ -92,9 +92,17 @@ const hexField = (max, any, err) => (t) => (r, k, v) => {
 	if (n > max) return t(err);
 	r[k] = n;
 };
+// RX takes "any": every NAC (F7E; F7F, the repeater's any, is the same on receive) or every RAN (RX RAN 0)
 const nac = (any) => (t) => (r, k, v) => {
-	if (r.mode === "nxdn") return int(0, 63)(t)(r, k, v);
+	if (r.mode === "nxdn") {
+		if (any && /^any$/i.test(String(v ?? "").trim())) {
+			r[k] = 0;
+			return;
+		}
+		return int(0, 63)(t)(r, k, v);
+	}
 	const err = hexField(any ? 0xFFF : 0xF7D, any, "editor.err.nac")(t)(r, k, v);
+	if (!err && any && r[k] === 0xF7F) r[k] = NAC_ANY;
 	return err;
 };
 const nacFormat = (v, r) => (r.mode === "nxdn" ? String(v) : nacText(v));

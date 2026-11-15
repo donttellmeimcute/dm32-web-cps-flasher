@@ -6,7 +6,7 @@
 //   currentBuild(probe, radio, releases, reported)   what runs: {kind: "preset" | "custom" | "unknown", ...}
 //   planUpdate(cur, sel, decided)                    the update's selection, and what it adds or must ask
 
-import { startCode } from "./langsuggest.js?v=33b2834650";
+import { startCode } from "./langsuggest.js?v=081b5de899";
 
 const split = (s) => String(s || "").split(",").filter(Boolean);
 

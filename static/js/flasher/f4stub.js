@@ -15,9 +15,9 @@
 // An install erases sector 3 first: from then until its first word is written at the very end, the bootloader stays
 // in DFU at power-on, so an update cut short leaves a radio the bootloader route finishes.
 
-import { be32, concat, crc32, equal, fromHex, sleep, toHex } from "./bytes.js?v=33b2834650";
-import { FrameError, OK, Stub, StubError, unpack } from "./stub.js?v=33b2834650";
-import * as protect from "./protect.js?v=33b2834650";
+import { be32, concat, crc32, equal, fromHex, sleep, toHex } from "./bytes.js?v=081b5de899";
+import { FrameError, OK, Stub, StubError, unpack } from "./stub.js?v=081b5de899";
+import * as protect from "./protect.js?v=081b5de899";
 
 export const BLOCK = 4096, FLASH_BASE = 0x08000000, APP_BASE = 0x0800C000, STUB_RUN = 0x20000000;
 export const F4_MAGIC = 0x46345342;	// 'F4SB': ERASE, XERASE and RESET carry it

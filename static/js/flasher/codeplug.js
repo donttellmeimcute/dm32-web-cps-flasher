@@ -4,12 +4,12 @@
 // recognize a file; a converter turns one format into another. Converters with status "planned" are listed so users
 // see what's coming; only "ready" ones run. Adding a conversion is adding an entry here with a convert() function.
 
-import { openBundle, CODEPLUG_SPAN } from "./backup.js?v=33b2834650";
-import { startsWith } from "./bytes.js?v=33b2834650";
-import { classify } from "../codeplug/detect.js?v=33b2834650";
-import { CodeplugImage, TFTP_SIZE } from "../codeplug/image.js?v=33b2834650";
-import { STOCK, RDT_MD380, RDT_UV380 } from "../codeplug/stock_tyt.js?v=33b2834650";
-import { DM32_STOCK } from "../codeplug/stock_baofeng.js?v=33b2834650";
+import { openBundle, CODEPLUG_SPAN } from "./backup.js?v=081b5de899";
+import { startsWith } from "./bytes.js?v=081b5de899";
+import { classify } from "../codeplug/detect.js?v=081b5de899";
+import { CodeplugImage, TFTP_SIZE } from "../codeplug/image.js?v=081b5de899";
+import { STOCK, RDT_MD380, RDT_UV380 } from "../codeplug/stock_tyt.js?v=081b5de899";
+import { DM32_STOCK } from "../codeplug/stock_baofeng.js?v=081b5de899";
 
 // A stock TYT-family codeplug in a dump or memory image (docs/spec/codeplug-stock-tyt.md): its family, or null
 const stockLayout = (b) => {

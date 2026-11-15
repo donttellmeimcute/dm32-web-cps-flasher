@@ -4,10 +4,10 @@
 // CRC-32 and moved as LZ4 streams. transport.js uses it when the radio lists CPS_FAST; the open-firmware CPS stays the
 // way for everything else. Addresses are image addresses, as in transport.js: the radio adds its base.
 
-import { frame, parseFrames } from "../flasher/link.js?v=33b2834650";
-import { decodeBlock, encodeBlock } from "../flasher/lz4.js?v=33b2834650";
-import { concat, crc32, le32, sleep, u16le, u32le } from "../flasher/bytes.js?v=33b2834650";
-import { note } from "../diag.js?v=33b2834650";
+import { frame, parseFrames } from "../flasher/link.js?v=081b5de899";
+import { decodeBlock, encodeBlock } from "../flasher/lz4.js?v=081b5de899";
+import { concat, crc32, le32, sleep, u16le, u32le } from "../flasher/bytes.js?v=081b5de899";
+import { note } from "../diag.js?v=081b5de899";
 
 export const BLOCK = 4096;
 const CMD = 0x1C;

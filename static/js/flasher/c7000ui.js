@@ -15,28 +15,28 @@
 // it is written, and a second pass checks them all; a failed or interrupted install is resumed by running it again
 // (only what still differs is written).
 
-import { h, t, notice, button, panel, progressBar, logBox, download, filePicker, localTime, partNames } from "./dom.js?v=33b2834650";
-import { hex, sha256, sleep } from "./bytes.js?v=33b2834650";
-import { SerialStream, Link, probe, serialSupported, serialApi, knownRadioPort, grantedPorts } from "./link.js?v=33b2834650";
-import { Stub, stubImages, StubError, DONE_LED, MEM, ROM_REPEAT } from "./stub.js?v=33b2834650";
-import * as c7 from "./c7000.js?v=33b2834650";
-import { openVendorFile, describe as describeVendorFile, analysisCandidate, whyNot } from "./vendorfile.js?v=33b2834650";
-import { pickProblem } from "./explain.js?v=33b2834650";
-import { upgradeSlot } from "./c7000v1.js?v=33b2834650";
-import { radioTop } from "./radiotop.js?v=33b2834650";
-import { putBlob, getBlob } from "./codecsave.js?v=33b2834650";
-import { makeBundle, describeFirmware, bundleName } from "./backup.js?v=33b2834650";
-import { register } from "./backends.js?v=33b2834650";
-import { makeStockRoutes, variantVerdict, noCodecNotice } from "./iapui.js?v=33b2834650";
-import { confirmNoCodec } from "./nocodec.js?v=33b2834650";
-import { versionText, writable } from "./variant.js?v=33b2834650";
-import { Usmart, stockVersion, stockName } from "./usmart.js?v=33b2834650";
-import { Iap, checkInstallImage } from "./iap.js?v=33b2834650";
-import { BfLoader } from "./bfloader.js?v=33b2834650";
-import { errorNotice, reportLine, reportButton } from "../report.js?v=33b2834650";
-import * as diag from "../diag.js?v=33b2834650";
-import { fromSerialInfo, isCh340 } from "./adapter.js?v=33b2834650";
-import * as crumbs from "./trail.js?v=33b2834650";
+import { h, t, notice, button, panel, progressBar, logBox, download, filePicker, localTime, partNames } from "./dom.js?v=081b5de899";
+import { hex, sha256, sleep } from "./bytes.js?v=081b5de899";
+import { SerialStream, Link, probe, serialSupported, serialApi, knownRadioPort, grantedPorts } from "./link.js?v=081b5de899";
+import { Stub, stubImages, StubError, DONE_LED, MEM, ROM_REPEAT } from "./stub.js?v=081b5de899";
+import * as c7 from "./c7000.js?v=081b5de899";
+import { openVendorFile, describe as describeVendorFile, analysisCandidate, whyNot } from "./vendorfile.js?v=081b5de899";
+import { pickProblem } from "./explain.js?v=081b5de899";
+import { upgradeSlot } from "./c7000v1.js?v=081b5de899";
+import { radioTop } from "./radiotop.js?v=081b5de899";
+import { putBlob, getBlob } from "./codecsave.js?v=081b5de899";
+import { makeBundle, describeFirmware, bundleName } from "./backup.js?v=081b5de899";
+import { register } from "./backends.js?v=081b5de899";
+import { makeStockRoutes, variantVerdict, noCodecNotice } from "./iapui.js?v=081b5de899";
+import { confirmNoCodec } from "./nocodec.js?v=081b5de899";
+import { versionText, writable } from "./variant.js?v=081b5de899";
+import { Usmart, stockVersion, stockName } from "./usmart.js?v=081b5de899";
+import { Iap, checkInstallImage } from "./iap.js?v=081b5de899";
+import { BfLoader } from "./bfloader.js?v=081b5de899";
+import { errorNotice, reportLine, reportButton } from "../report.js?v=081b5de899";
+import * as diag from "../diag.js?v=081b5de899";
+import { fromSerialInfo, isCh340 } from "./adapter.js?v=081b5de899";
+import * as crumbs from "./trail.js?v=081b5de899";
 
 // USB-serial chips found in programming cables (tools/serial_loader.py USB_SERIAL), for the port chooser
 export const CABLES = [0x0403, 0x1A86, 0x10C4, 0x067B].map((usbVendorId) => ({ usbVendorId }));

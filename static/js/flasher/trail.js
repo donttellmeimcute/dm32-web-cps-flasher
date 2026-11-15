@@ -4,7 +4,7 @@
 // the write plan, the cable radio's choices. Names, sizes, hashes and reasons; never file bytes or radio data. Each
 // returns [text, data] for diag.note. No DOM here, so the Node tests can use it.
 
-import { logId } from "./vendorfile.js?v=33b2834650";
+import { logId } from "./vendorfile.js?v=081b5de899";
 
 // A vendor file picked: picked {name, size, sha256}; got: the stock object made from it (app.js pickedStock)
 export function filePicked(picked, got) {

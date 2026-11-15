@@ -4,8 +4,8 @@
 // replaces the channels, zones, contacts, lists and APRS configurations as one undoable change; what neither side can
 // hold is listed afterwards.
 
-import { register } from "./extensions.js?v=33b2834650";
-import { importQdmr, exportQdmr, QdmrError } from "../codeplug/qdmr.js?v=33b2834650";
+import { register } from "./extensions.js?v=081b5de899";
+import { importQdmr, exportQdmr, QdmrError } from "../codeplug/qdmr.js?v=081b5de899";
 
 register({
 	saveItems(api) {
