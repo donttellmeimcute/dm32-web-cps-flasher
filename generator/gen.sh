@@ -39,13 +39,18 @@ find "static/img/screens/$gal" -type f ! -name boot.png ! -name stub_entry.png -
 cp "$W/dist/SHA256SUMS" firmware/dm32/
 
 # 4. the repository's own files: README, licenses, the firmware helper
-cp -r "$GEN/repo/." "$W/site/"	# in the published repo these live at the root
+if [ -d "$GEN/repo" ]; then cp -r "$GEN/repo/." "$W/site/"; fi	# in the published repo these live at the root
 mkdir -p firmware/LICENSES
 cp "$SRC/../../LICENSE" firmware/LICENSES/GPL-3.0-or-later.txt
 cp "$SRC/../../LICENSES/mbelib-ISC.txt" firmware/LICENSES/
 cp "$SRC"/LICENSES/*.txt firmware/LICENSES/
 cp "$SRC/COPYING-P25" "$SRC/P25-DERIVATIVE.txt" firmware/LICENSES/
 
-rm -rf "$OUT"; mkdir -p "$OUT"
+# 5. this repository's own layer: its look (static/css, kept from the repository) and the P25/NXDN feature data
+if [ -d "$OUT/static/css" ]; then cp "$OUT"/static/css/*.css "$W/site/static/css/"; fi
+python3 "$GEN/p25_data.py" "$W/site"
+
+# copied over the repository, never a rm -rf of it: .git, android/ and generator/ stay; git status shows the rest
+mkdir -p "$OUT"; rm -rf "$OUT/firmware/dm32"
 cp -r "$W/site/." "$OUT/"
 echo "site written to $OUT"

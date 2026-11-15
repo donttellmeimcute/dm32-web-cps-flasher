@@ -4,18 +4,22 @@
  * Design tokens: every color, font, size and radius the site uses. A redesign starts here; site.css only refers to
  * these variables. Light is the default; dark applies with the system setting unless the visitor picked light, and
  * always with data-theme="dark" (the header's toggle).
+ *
+ * Open25-DM32 look ("night console"): violet-tinted surfaces, a magenta-to-violet accent, round shapes and a dark
+ * hero band in both themes. System fonts only, so the site still loads nothing from other hosts.
  */
 :root {
 	color-scheme: light;
-	--font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-	--font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+	--font-sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+	--font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+	--font-mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 	--font-size: 16px;
-	--line: 1.5;
+	--line: 1.55;
 	--text-sm: 0.875rem;
-	--text-lg: 1.1rem;
+	--text-lg: 1.12rem;
 	--text-xs: 0.72rem;
-	--h1: clamp(1.6rem, 3vw, 2.2rem);
-	--h2: clamp(1.2rem, 2vw, 1.45rem);
+	--h1: clamp(1.8rem, 3.6vw, 2.7rem);
+	--h2: clamp(1.25rem, 2vw, 1.5rem);
 	--h3: 1.05rem;
 
 	--space-1: 0.25rem;
@@ -26,82 +30,96 @@
 	--space-6: 1.75rem;
 	--space-7: 2.5rem;
 	--wrap: 1200px;
-	--gutter: 16px;
-	--radius: 10px;
-	--radius-sm: 7px;
+	--gutter: 18px;
+	--radius: 18px;
+	--radius-sm: 11px;
 
-	--bg: #f7f7f5;
+	--bg: #f5f3fb;
 	--surface: #ffffff;
-	--surface-2: #efefeb;
-	--text: #15171a;
-	--muted: #555a62;
-	--faint: #a3a7ad;		/* the build stamp: there if you look for it */
-	--border: #d9dad5;
-	--accent: #c2185b;
+	--surface-2: #ece8f7;
+	--text: #1b1631;
+	--muted: #5a5472;
+	--faint: #a29cb8;		/* the build stamp: there if you look for it */
+	--border: #dcd5ee;
+	--accent: #c8175d;
+	--accent-2: #6d33e0;
 	--accent-text: #ffffff;
-	--accent-soft: #fce4ec;
-	--link: #0f5d8c;
-	--focus: #1d7bd1;
-	--code-bg: #eeeeea;
-	--ok: #1f7a3a;
-	--ok-soft: #e1f3e6;
-	--warn: #8a5a00;
-	--warn-soft: #fbf0d6;
-	--bad: #a8261b;
-	--bad-soft: #fbe3e0;
-	--info-soft: #e3eef8;
-	--shadow: 0 1px 2px rgb(0 0 0 / 6%), 0 4px 14px rgb(0 0 0 / 6%);
+	--accent-soft: #fbe6f0;
+	--link: #5b21b6;
+	--focus: #8b5cf6;
+	--code-bg: #efecf8;
+	--ok: #1d7a43;
+	--ok-soft: #dff3e7;
+	--warn: #8a5300;
+	--warn-soft: #fcefd4;
+	--bad: #b0201c;
+	--bad-soft: #fbe2e0;
+	--info-soft: #ebe6fb;
+	--grad: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 100%);
+	--glow: 0 10px 30px -12px rgb(200 23 93 / 45%);
+	--shadow: 0 1px 2px rgb(40 20 80 / 6%), 0 8px 24px -8px rgb(40 20 80 / 14%);
+	/* the hero band is dark in both themes */
+	--hero-bg: #110c22;
+	--hero-text: #f3eeff;
+	--hero-muted: #b7aed6;
+	--hero-line: rgb(255 255 255 / 9%);
 	--screen-scale: 2;
 }
 
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme="light"]) {
 		color-scheme: dark;
-		--bg: #121417;
-		--surface: #1b1e22;
-		--surface-2: #23272c;
-		--text: #eceef0;
-		--muted: #a6adb6;
-		--faint: #545b63;
-		--border: #343a41;
-		--accent: #f48fb1;
-		--accent-text: #15171a;
-		--accent-soft: #3a1a2a;
-		--link: #7cc0f0;
-		--focus: #7cc0f0;
-		--code-bg: #23272c;
-		--ok: #6fd08d;
-		--ok-soft: #173322;
-		--warn: #f0c060;
-		--warn-soft: #3a2f14;
-		--bad: #ff8a7a;
-		--bad-soft: #3d1a17;
-		--info-soft: #182a3a;
-		--shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 4px 14px rgb(0 0 0 / 30%);
+		--bg: #0c0a15;
+		--surface: #151125;
+		--surface-2: #1f1934;
+		--text: #f0ebff;
+		--muted: #aca4c8;
+		--faint: #5c5578;
+		--border: #2d2647;
+		--accent: #ff5c9d;
+		--accent-2: #a98bff;
+		--accent-text: #170a1f;
+		--accent-soft: #391431;
+		--link: #bba3ff;
+		--focus: #bba3ff;
+		--code-bg: #1f1934;
+		--ok: #6fd69a;
+		--ok-soft: #12301f;
+		--warn: #f2c35e;
+		--warn-soft: #362a10;
+		--bad: #ff8a7d;
+		--bad-soft: #3b1716;
+		--info-soft: #1c1736;
+		--glow: 0 10px 34px -10px rgb(255 92 157 / 45%);
+		--shadow: 0 1px 2px rgb(0 0 0 / 45%), 0 10px 30px -10px rgb(0 0 0 / 60%);
+		--hero-bg: #0a0714;
 	}
 }
 
 :root[data-theme="dark"] {
 	color-scheme: dark;
-	--bg: #121417;
-	--surface: #1b1e22;
-	--surface-2: #23272c;
-	--text: #eceef0;
-	--muted: #a6adb6;
-	--faint: #545b63;
-	--border: #343a41;
-	--accent: #f48fb1;
-	--accent-text: #15171a;
-	--accent-soft: #3a1a2a;
-	--link: #7cc0f0;
-	--focus: #7cc0f0;
-	--code-bg: #23272c;
-	--ok: #6fd08d;
-	--ok-soft: #173322;
-	--warn: #f0c060;
-	--warn-soft: #3a2f14;
-	--bad: #ff8a7a;
-	--bad-soft: #3d1a17;
-	--info-soft: #182a3a;
-	--shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 4px 14px rgb(0 0 0 / 30%);
+	--bg: #0c0a15;
+	--surface: #151125;
+	--surface-2: #1f1934;
+	--text: #f0ebff;
+	--muted: #aca4c8;
+	--faint: #5c5578;
+	--border: #2d2647;
+	--accent: #ff5c9d;
+	--accent-2: #a98bff;
+	--accent-text: #170a1f;
+	--accent-soft: #391431;
+	--link: #bba3ff;
+	--focus: #bba3ff;
+	--code-bg: #1f1934;
+	--ok: #6fd69a;
+	--ok-soft: #12301f;
+	--warn: #f2c35e;
+	--warn-soft: #362a10;
+	--bad: #ff8a7d;
+	--bad-soft: #3b1716;
+	--info-soft: #1c1736;
+	--glow: 0 10px 34px -10px rgb(255 92 157 / 45%);
+	--shadow: 0 1px 2px rgb(0 0 0 / 45%), 0 10px 30px -10px rgb(0 0 0 / 60%);
+	--hero-bg: #0a0714;
 }

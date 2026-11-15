@@ -630,3 +630,112 @@ abbr.gl:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; bo
 	background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm);
 	box-shadow: 0 4px 16px rgb(0 0 0 / 0.2); font-size: var(--text-sm); line-height: var(--line); }
 .gl-pop[hidden] { display: none; }
+
+/* ---------------------------------------------------------------------------------------------------------------
+   Open25-DM32 look ("night console"). Only restyles the RadioFoundry classes above; colors come from tokens.css. */
+body {
+	background:
+		radial-gradient(60rem 30rem at 100% -10%, color-mix(in srgb, var(--accent-2) 10%, transparent), transparent 70%),
+		radial-gradient(50rem 26rem at -10% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 70%),
+		var(--bg);
+	background-attachment: fixed;
+}
+h1, h2, h3 { font-family: var(--font-display); }
+h1 { font-weight: 800; letter-spacing: -0.03em; }
+h2 { font-weight: 700; }
+::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+
+/* header: frosted bar with a gradient rule under it */
+.site-header {
+	background: color-mix(in srgb, var(--surface) 78%, transparent);
+	-webkit-backdrop-filter: saturate(160%) blur(14px); backdrop-filter: saturate(160%) blur(14px);
+	border-bottom: 0; box-shadow: 0 1px 0 var(--border);
+}
+.site-header::after { content: ""; display: block; height: 2px; background: var(--grad); opacity: 0.85; }
+.header-row { min-height: 60px; }
+.brand { font-family: var(--font-mono); font-size: 1rem; letter-spacing: -0.02em; }
+.brand img { border-radius: 8px; box-shadow: var(--glow); }
+.brand b { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.site-nav a { border-radius: 999px; padding: var(--space-2) var(--space-4); }
+.site-nav a[aria-current] { background: var(--grad); color: var(--accent-text); box-shadow: var(--glow); }
+.theme-toggle, .nav-toggle, .lang-switch summary { border-radius: 999px; }
+
+/* buttons: pills, the primary one in the accent gradient */
+.btn { border-radius: 999px; padding: 0.45rem 1.15rem; min-height: 40px; transition: transform 0.12s, box-shadow 0.12s, background 0.12s; }
+.btn:hover:not(:disabled) { transform: translateY(-1px); }
+.btn-primary { background: var(--grad); border-color: transparent; box-shadow: var(--glow); }
+.btn-primary:hover { background: var(--grad); filter: brightness(1.07) saturate(1.05); }
+.btn-quiet:hover:not(:disabled) { transform: none; }
+
+/* cards, panels, choices: rounder, softer, a gradient hairline on top */
+.card, .panel { border-color: color-mix(in srgb, var(--border) 85%, transparent); position: relative; }
+.card::before, .panel:not(.panel .panel)::before {
+	content: ""; position: absolute; inset: -1px var(--radius) auto; height: 3px; border-radius: 0 0 3px 3px; background: var(--grad); opacity: 0.8; pointer-events: none;
+}
+.card h2, .panel h2 { display: flex; align-items: center; gap: var(--space-2); }
+.choice { border-width: 1.5px; transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s; }
+.choice:hover:not(:disabled) { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow); }
+.choice[aria-pressed="true"], .choice[aria-checked="true"] { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.notice { border-radius: var(--radius-sm); border-left-width: 5px; }
+.nav-bar {
+	background: color-mix(in srgb, var(--surface) 88%, transparent);
+	-webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+}
+.stepper li[aria-current]::before, .progress > span { background: var(--grad); }
+.feature-rows dt { font-family: var(--font-mono); font-size: var(--text-sm); text-transform: uppercase; letter-spacing: 0.04em; }
+.kv-list dt { font-family: var(--font-mono); font-size: 0.85em; }
+
+/* home hero: a dark "radio display" band in both themes, a faint grid and a glow behind the radio */
+.hero {
+	color: var(--hero-text); border-bottom: 0;
+	background:
+		radial-gradient(34rem 22rem at 78% 55%, color-mix(in srgb, var(--accent) 34%, transparent), transparent 70%),
+		radial-gradient(30rem 20rem at 92% 10%, color-mix(in srgb, #7c4dff 30%, transparent), transparent 70%),
+		linear-gradient(var(--hero-line) 1px, transparent 1px) 0 0 / 100% 28px,
+		linear-gradient(90deg, var(--hero-line) 1px, transparent 1px) 0 0 / 28px 100%,
+		var(--hero-bg);
+}
+.hero h1 {
+	font-size: clamp(2.1rem, 5vw, 3.4rem); line-height: 1.05;
+	background: linear-gradient(100deg, #fff 0%, #ffc2dc 45%, #c9b5ff 100%);
+	-webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero .lead, .hero .muted { color: var(--hero-muted); }
+.hero .feature-rows { border-top-color: var(--hero-line); }
+.hero .feature-rows > div { border-bottom-color: var(--hero-line); grid-template-columns: minmax(5.5rem, max-content) 1fr; }
+.hero .feature-rows dt { color: #ff8cbc; }
+.hero .btn-primary { --accent-text: #fff; background: linear-gradient(120deg, #e8217a, #7c4dff); }
+.hero .btn-primary + .btn-primary { background: rgb(255 255 255 / 8%); border: 1px solid rgb(255 255 255 / 28%); box-shadow: none; }
+.hero-grid { padding-top: var(--space-7); padding-bottom: var(--space-7); }
+.hero-device img { filter: drop-shadow(0 24px 40px rgb(0 0 0 / 55%)) drop-shadow(0 0 30px rgb(232 33 122 / 25%)); }
+.hero #fw-version { font-family: var(--font-mono); font-size: 0.82rem; }
+.hero a:not(.btn) { color: #d9c9ff; }
+
+.site-footer {
+	background: color-mix(in srgb, var(--surface) 70%, transparent); border-top: 0; box-shadow: 0 -1px 0 var(--border);
+	margin-top: var(--space-7);
+}
+.help-card { border-radius: var(--radius); background: var(--surface); }
+
+/* the Throne tab: fixed on the right edge, every page */
+.throne-tab {
+	position: fixed; right: 0; top: 50%; z-index: 6; transform: translateY(-50%);
+	writing-mode: vertical-rl; display: flex; align-items: center; gap: var(--space-2);
+	padding: var(--space-4) var(--space-2); border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+	background: linear-gradient(180deg, #e8217a, #7c4dff); color: #fff; text-decoration: none;
+	font-weight: 700; font-size: var(--text-sm); letter-spacing: 0.04em; box-shadow: var(--glow);
+	transition: padding 0.15s, filter 0.15s;
+}
+.throne-tab:hover, .throne-tab:focus-visible { padding-right: var(--space-3); filter: brightness(1.1); text-decoration: none; }
+.throne-tab span[aria-hidden] { writing-mode: horizontal-tb; }
+/* where the page reaches the right edge, keep a strip for the tab so it covers nothing */
+@media (min-width: 761px) and (max-width: 1300px) { body { padding-right: 2.75rem; } }
+@media (max-width: 760px) {
+	/* narrow screens: a pill above the footer, in the flow, so it covers nothing */
+	.throne-tab { position: static; transform: none; writing-mode: horizontal-tb; width: fit-content;
+		margin: var(--space-6) auto 0; padding: var(--space-2) var(--space-5); border-radius: 999px; }
+	.throne-tab:hover, .throne-tab:focus-visible { padding-right: var(--space-5); }
+	.hero .feature-rows > div { grid-template-columns: 1fr; gap: var(--space-1); }
+}
+@media print { .throne-tab { display: none; } }
+@media (prefers-reduced-motion: reduce) { .btn, .choice, .throne-tab { transition: none; } .btn:hover, .choice:hover { transform: none !important; } }

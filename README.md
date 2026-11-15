@@ -46,6 +46,9 @@ original de Baofeng (`DM32.01.01.0xx.bin`, `BFUV32…`). La imagen de `firmware/
 lee de la memoria de programa de tu radio durante la copia de seguridad, o lo extrae del archivo de firmware original que
 tú elijas, y lo combina con la imagen **dentro del navegador**. Nunca se sube a ningún servidor.
 
+El códec solo hace falta para la voz **DMR y NXDN** (AMBE+2). La voz **P25** usa el vocoder IMBE propio del firmware
+(GPL), así que FM y P25 funcionan aunque instales sin códec; los textos del flasher lo dicen así.
+
 **Obtener el archivo original:** el paso Códec ofrece «Descargar firmware original», que abre el
 [ZIP oficial de Baofeng DM-32UV v1.01.048](https://baofeng.s3.amazonaws.com/Baofeng_DM-32UV_Firmware_v1.01.048.zip),
 publicado en la [página de descargas del fabricante](https://www.baofengradio.com/pages/download).
@@ -105,6 +108,15 @@ A mano:
    coincide.
 3. Publica también el código fuente correspondiente en <https://github.com/donttellmeimcute/DM32-nxdn-p25> (GPL).
 
+## Aspecto del sitio
+
+El aspecto propio («night console»: superficies violetas, acento magenta-violeta, banda oscura en la portada) vive en
+`static/css/tokens.css` (paleta, tipografía, radios; modo claro y oscuro) y en el bloque final de `static/css/site.css`.
+No cambia el HTML ni la lógica del flasher. Solo usa fuentes del sistema: el sitio sigue sin cargar nada de otros
+servidores. Los créditos de RadioFoundry y las cabeceras SPDX de cada archivo se conservan. Cada página lleva en el
+borde derecho la pestaña ♥ de Throne (en pantallas estrechas, un botón sobre el pie). Al cambiar el CSS, sube el `?v=`
+de `tokens.css`/`site.css` en las páginas para que GitHub Pages no sirva la versión anterior en caché.
+
 ## Probar en local
 
 Desde la carpeta **que contiene** este repositorio (para reproducir la subruta de GitHub Pages):
@@ -150,9 +162,13 @@ RadioFoundry. Static site, everything runs in the browser; Spanish at the root, 
   hosted image has no codec; the flasher takes the codec from the radio's own flash or from a stock file the user picks
   and merges it in the browser only.
 - **Experimental firmware:** P25 and NXDN voice work both ways on the radio; APRS and some features are untested on air.
+- **Codec:** only DMR and NXDN voice need the AMBE codec; P25 voice runs on the firmware's own IMBE vocoder, so FM and
+  P25 work on an install without the codec.
 - **New firmware:** package it with `tools/release.py` in the firmware tree, then `python tools/set_firmware.py
   <manifest.json>` here (updates `firmware/dm32/` and `data/releases.json`).
 - **No telemetry:** the flash log and uploads to the RadioFoundry backend are disabled.
+- **Look:** `static/css/tokens.css` and the last block of `static/css/site.css` (system fonts only, RadioFoundry credits kept);
+  a Throne tab on the right edge of every page.
 - **Credits:** RadioFoundry Authors (MIT, original flasher/editor), Open25-DM32 by tylerwatt12 (GPL-3.0 firmware base),
   P25/NXDN derivative by lyra XE1POC. Site code MIT (`LICENSE`), firmware GPL-3.0-or-later (`firmware/LICENSES/`).
 - **Support:** want firmware for another radio? Gift one from my wishlist: <https://throne.com/lyraarsgoetia>

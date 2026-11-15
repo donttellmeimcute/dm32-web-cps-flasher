@@ -1427,11 +1427,13 @@
   },
   {
    "name": "P25",
-   "title": "P25",
-   "group": "Other",
-   "help": "",
+   "title": "P25 Phase 1 digital voice",
+   "group": "Radio and voice",
+   "help": "P25 conventional channels (C4FM, 12.5 kHz): voice both ways, with each channel's NAC and talkgroup",
    "needs": {
-    "all": [],
+    "all": [
+     "DMR"
+    ],
     "any": []
    },
    "bytes": {},
@@ -1439,11 +1441,13 @@
   },
   {
    "name": "P25_NATIVE",
-   "title": "P25_NATIVE",
-   "group": "Other",
-   "help": "",
+   "title": "P25 on the radio's own modem",
+   "group": "Radio and voice",
+   "help": "P25 frames are decoded and built in the firmware, no external modem: what P25 channels run on",
    "needs": {
-    "all": [],
+    "all": [
+     "P25"
+    ],
     "any": []
    },
    "bytes": {},
@@ -1451,11 +1455,13 @@
   },
   {
    "name": "NXDN",
-   "title": "NXDN",
-   "group": "Other",
-   "help": "",
+   "title": "NXDN48 digital voice",
+   "group": "Radio and voice",
+   "help": "NXDN 6.25 kHz channels with a software modem: voice both ways, with each channel's RAN",
    "needs": {
-    "all": [],
+    "all": [
+     "DMR"
+    ],
     "any": []
    },
    "bytes": {},
@@ -1463,11 +1469,13 @@
   },
   {
    "name": "P25_TRUNK",
-   "title": "P25_TRUNK",
-   "group": "Other",
-   "help": "",
+   "title": "P25 trunking (receive)",
+   "group": "Radio and voice",
+   "help": "follows a P25 Phase 1 trunked system's control channel and joins calls on the talkgroups you listen to",
    "needs": {
-    "all": [],
+    "all": [
+     "P25"
+    ],
     "any": []
    },
    "bytes": {},
@@ -1475,11 +1483,13 @@
   },
   {
    "name": "P25_TRUNK_TX",
-   "title": "P25_TRUNK_TX",
-   "group": "Other",
-   "help": "",
+   "title": "P25 trunking transmit",
+   "group": "Radio and voice",
+   "help": "transmit on a trunked system; off, trunked channels are receive only",
    "needs": {
-    "all": [],
+    "all": [
+     "P25_TRUNK"
+    ],
     "any": []
    },
    "bytes": {},
@@ -1487,11 +1497,13 @@
   },
   {
    "name": "P25_PHASE2",
-   "title": "P25_PHASE2",
-   "group": "Other",
-   "help": "",
+   "title": "P25 Phase 2 decoder",
+   "group": "Radio and voice",
+   "help": "the Phase 2 (TDMA) voice decoder for trunked systems; no physical layer yet, so it adds no bytes",
    "needs": {
-    "all": [],
+    "all": [
+     "P25_TRUNK"
+    ],
     "any": []
    },
    "bytes": {},
@@ -1511,11 +1523,13 @@
   },
   {
    "name": "P25_BENCH",
-   "title": "P25_BENCH",
-   "group": "Other",
-   "help": "",
+   "title": "P25 bench tools",
+   "group": "Bench",
+   "help": "replay storage and debug-link commands for testing P25 audio on the bench",
    "needs": {
-    "all": [],
+    "all": [
+     "P25"
+    ],
     "any": []
    },
    "bytes": {},
