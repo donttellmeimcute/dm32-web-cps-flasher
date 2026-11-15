@@ -108,6 +108,11 @@ y abre <http://localhost:8000/dm32-web-cps-flasher/>.
 Settings → Pages → Build and deployment → Source: **Deploy from a branch**, Branch: **main**, carpeta **/ (root)**.
 El archivo `.nojekyll` hace que Pages sirva los archivos tal cual. Todas las rutas son relativas.
 
+## Apoya el proyecto
+
+¿Quieres soporte para otro radio? Si me regalas uno desde mi lista de deseos, puedo hacer firmware para él:
+**<https://throne.com/lyraarsgoetia>**
+
 ## Créditos y licencias
 
 - **RadioFoundry** — flasher web, editor de codeplug y generador del sitio originales. MIT, © 2026 The RadioFoundry
@@ -138,3 +143,4 @@ RadioFoundry. Static site, everything runs in the browser; Spanish at the root, 
 - **No telemetry:** the flash log and uploads to the RadioFoundry backend are disabled.
 - **Credits:** RadioFoundry Authors (MIT, original flasher/editor), Open25-DM32 by tylerwatt12 (GPL-3.0 firmware base),
   P25/NXDN derivative by lyra XE1POC. Site code MIT (`LICENSE`), firmware GPL-3.0-or-later (`firmware/LICENSES/`).
+- **Support:** want firmware for another radio? Gift one from my wishlist: <https://throne.com/lyraarsgoetia>
