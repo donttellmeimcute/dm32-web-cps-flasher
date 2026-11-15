@@ -2,18 +2,18 @@
   "format": "rfoundry-release/1",
   "board": "dm32",
   "board_name": "Baofeng DM-32UV",
-  "version": "2026.11.14-p25-audiofix",
-  "git": "9c172ab2",
-  "git_full": "9c172ab2a46f905118dd29e2ca2d6f619cabb678",
+  "version": "2026.11.14-p25-nac",
+  "git": "14180928",
+  "git_full": "14180928d4b8654a0fe5d9368e285da312b908f9",
   "image": {
-    "file": "rfoundry-dm32-2026.11.14-p25-audiofix.bin",
-    "size": 542636,
-    "sha256": "4398aeecce3da436987d48b8d9530f2a1b80cd6737532c90b9b90014cb0882f0"
+    "file": "rfoundry-dm32-2026.11.14-p25-nac.bin",
+    "size": 542908,
+    "sha256": "9ddb97560c55d86200a292100c52e4101777ca9796d61ed53c871fd6952aa171"
   },
   "ranges": [
     {
       "addr": "0x0300C000",
-      "size": 542636
+      "size": 542908
     }
   ],
   "sectors": [
@@ -37,5 +37,5 @@
   "toolchain": "csky-elf-gcc (GCC) 14.3.0",
   "variant": "full",
   "off": "DMR_IP_GATEWAY,ZONE_SHARE,NET_TCP,NET_KISS,NET_HTTP,NET_HTTP_GZIP,NET_WEBCTL,NET_RIGCTL,NET_APRSIS,NET_USRP,MDNS,TFTP,TFTP_IDDB,DMR_CONTROL_STATION,SNMP,SFR,SFR_DUALPATH_RX,SFR_CWID,NET_PPP,HOTSPOT,HOTSPOT_SPLIT,LANG_IT,LANG_DEFAULT_ES,LANG_DEFAULT_IT,VIBRATE,APRS_IGATE,GPS_SKY,P25_TRUNK_TX,FIRSTBOOT,CPU_PROFILE,DEV_UPDATE,DEV_TX",
-  "git_time": 1794694413
+  "git_time": 1794701244
 }

@@ -56,9 +56,10 @@ Los nombres de archivos de Baofeng que aparecen en `data/flash-boards.json` y en
 
 ## Cómo se instala la imagen
 
-La versión `2026.11.14-p25-audiofix` silencia el amplificador entre llamadas P25, incluido el reposo tras encender
-la radio o volver de TX. Conserva la voz, la cola de audio y el tono de permiso. La corrección pasa las pruebas
-automatizadas y compila sin avisos; queda pendiente comprobar el siseo en el altavoz físico.
+La versión `2026.11.14-p25-nac` permite escribir el NAC de un canal P25 en la radio (teclas para los dígitos hex,
+perilla o ▲▼ para pasar el último por A-F; OK sin escribir alterna RX «cualquiera») y guarda un cambio solo del NAC
+TX. Incluye la corrección del siseo P25 de `2026.11.14-p25-audiofix`. Pasa las pruebas automatizadas y compila sin
+avisos; queda pendiente probarla en una radio física.
 
 `data/releases.json` lista la imagen; el flasher descarga `firmware/dm32/<imagen>.bin` y su manifiesto
 `rfoundry-release/1` (`.json`) de este mismo sitio y comprueba tamaño, SHA-256, rangos y que no toque el códec antes de
