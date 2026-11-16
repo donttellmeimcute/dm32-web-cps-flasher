@@ -2,18 +2,18 @@
   "format": "rfoundry-release/1",
   "board": "dm32",
   "board_name": "Baofeng DM-32UV",
-  "version": "2026.11.15-527f5229",
-  "git": "527f5229",
-  "git_full": "527f5229c2df410ca5c0c057ea3c91cbb23a3618",
+  "version": "2026.11.15-b736e952",
+  "git": "b736e952",
+  "git_full": "b736e952197e061bab60d000835e2537e3fc5821",
   "image": {
-    "file": "rfoundry-dm32-2026.11.15-527f5229.bin",
-    "size": 553460,
-    "sha256": "6b0acf18125a3531c6006625905c766dbe1accc061c7535ec70d882a53c28c73"
+    "file": "rfoundry-dm32-2026.11.15-b736e952.bin",
+    "size": 552724,
+    "sha256": "cdd8d3e70d1e7485a5232a28501cc882dd828b314e0d60f9bd070492af340aaa"
   },
   "ranges": [
     {
       "addr": "0x0300C000",
-      "size": 553460
+      "size": 552724
     }
   ],
   "sectors": [
