@@ -17,46 +17,46 @@
 // on its stock firmware (no hardware; for trying the flow), #sim=<board> for one that already runs RadioFoundry, #sim for the
 // first radio on stock firmware. The fake is built from the board's data.
 
-import { hex, sha256, toHex, fromHex, startsWith, sleep } from "./bytes.js?v=081b5de899";
-import { unzip } from "./zip.js?v=081b5de899";
-import * as stockfw from "./stockfw.js?v=081b5de899";
-import { openVendorFile, describe as describeVendorFile, analysisCandidate, offerFile, logId, whyNot } from "./vendorfile.js?v=081b5de899";
-import { pickProblem, errorProblem, vendorContext, supportedFiles, foldSupported, keepNote, nowFor, nowChoice, OFFER } from "./explain.js?v=081b5de899";
-import { confirmNoCodec } from "./nocodec.js?v=081b5de899";
-import { makePlan, KEEP, MERGE } from "./plan.js?v=081b5de899";
-import { radioPicture, holdKeys } from "./radiotop.js?v=081b5de899";
-import { validRef, refShort, defaultRef, firmwareName, betaLink } from "./version.js?v=081b5de899";
-import { verify, segments, forDevBuild } from "./manifest.js?v=081b5de899";
-import { Dfu, DfuError, NormalModeError, WebUsbTransport, checkKey, usbSupported } from "./dfu.js?v=081b5de899";
-import { Link, LinkError, SerialStream, RFOUNDRY_USB, RFOUNDRY_NET, probe, whyNoAnswer, noAnswerKey, serialSupported, serialApi, browserErrorKey, knownRadioPort } from "./link.js?v=081b5de899";
-import { readRadio, makeBundle, openBundle, bundleFolder, notBundle, bundleName, describeFirmware, CODEPLUG_SPAN } from "./backup.js?v=081b5de899";
-import { targets, planInternal, planStock, codeplugSectors, writeCodeplug, codeplugLayout } from "./restore.js?v=081b5de899";
-import { Selection } from "./select.js?v=081b5de899";
-import { decideCodec, DecisionError } from "./decide.js?v=081b5de899";
-import { tooBig } from "./buildfit.js?v=081b5de899";
-import { suggestPack, packCode, startCode, startLanguages, startLanguage, setStartLanguage } from "./langsuggest.js?v=081b5de899";
-import { readBootKey } from "./bootkey.js?v=081b5de899";
-import { codecSegments, loadCodec, readCodec, saveCodec } from "./codecsave.js?v=081b5de899";
-import { FakeRadio, simulation, randomBytes, rng } from "./fake.js?v=081b5de899";
-import { t, tOr, num, LANG, ROOT, h, download, filePicker, progressBar, stopBars, logBox, notice, button, spinner, panel, localTime, partNames } from "./dom.js?v=081b5de899";
-import * as c7ui from "./c7000ui.js?v=081b5de899";
-import { variantWarning, variantVerdict } from "./iapui.js?v=081b5de899";
-import { groups as variantGroups } from "./variant.js?v=081b5de899";
-import { FakeC7000, c7000Simulation, fakeC7000Options } from "./fakec7000.js?v=081b5de899";
-import { APP_ENTRY } from "./iap.js?v=081b5de899";
-import { slotBytes, locateCodec } from "./c7000.js?v=081b5de899";
-import { Stub, StubError } from "./stub.js?v=081b5de899";
-import { F4Stub, f4Image, registerShort } from "./f4stub.js?v=081b5de899";
-import { f4LoaderReader } from "./readers.js?v=081b5de899";
-import * as openfw from "./openfw.js?v=081b5de899";
-import { register, backendOf, bundleBackend, allBackends } from "./backends.js?v=081b5de899";
-import * as diag from "../diag.js?v=081b5de899";
-import { initReporting, reportLine, reportingActive, errorNotice, reportButton, setAdapter } from "../report.js?v=081b5de899";
-import * as adapter from "./adapter.js?v=081b5de899";
-import * as crumbs from "./trail.js?v=081b5de899";
-import { missingApi, kitPanel, kitLine } from "./manual.js?v=081b5de899";
-import { showBetaNotice } from "./beta.js?v=081b5de899";
-import { currentBuild, planUpdate } from "./update.js?v=081b5de899";
+import { hex, sha256, toHex, fromHex, startsWith, sleep } from "./bytes.js?v=fb0b2c065d";
+import { unzip } from "./zip.js?v=fb0b2c065d";
+import * as stockfw from "./stockfw.js?v=fb0b2c065d";
+import { openVendorFile, describe as describeVendorFile, analysisCandidate, offerFile, logId, whyNot } from "./vendorfile.js?v=fb0b2c065d";
+import { pickProblem, errorProblem, vendorContext, supportedFiles, foldSupported, keepNote, nowFor, nowChoice, OFFER } from "./explain.js?v=fb0b2c065d";
+import { confirmNoCodec } from "./nocodec.js?v=fb0b2c065d";
+import { makePlan, KEEP, MERGE } from "./plan.js?v=fb0b2c065d";
+import { radioPicture, holdKeys } from "./radiotop.js?v=fb0b2c065d";
+import { validRef, refShort, defaultRef, firmwareName, betaLink } from "./version.js?v=fb0b2c065d";
+import { verify, segments, forDevBuild } from "./manifest.js?v=fb0b2c065d";
+import { Dfu, DfuError, NormalModeError, WebUsbTransport, checkKey, usbSupported } from "./dfu.js?v=fb0b2c065d";
+import { Link, LinkError, SerialStream, RFOUNDRY_USB, RFOUNDRY_NET, probe, whyNoAnswer, noAnswerKey, serialSupported, serialApi, browserErrorKey, knownRadioPort } from "./link.js?v=fb0b2c065d";
+import { readRadio, makeBundle, openBundle, bundleFolder, notBundle, bundleName, describeFirmware, CODEPLUG_SPAN } from "./backup.js?v=fb0b2c065d";
+import { targets, planInternal, planStock, codeplugSectors, writeCodeplug, codeplugLayout } from "./restore.js?v=fb0b2c065d";
+import { Selection } from "./select.js?v=fb0b2c065d";
+import { decideCodec, DecisionError } from "./decide.js?v=fb0b2c065d";
+import { tooBig } from "./buildfit.js?v=fb0b2c065d";
+import { suggestPack, packCode, startCode, startLanguages, startLanguage, setStartLanguage } from "./langsuggest.js?v=fb0b2c065d";
+import { readBootKey } from "./bootkey.js?v=fb0b2c065d";
+import { codecSegments, loadCodec, readCodec, saveCodec } from "./codecsave.js?v=fb0b2c065d";
+import { FakeRadio, simulation, randomBytes, rng } from "./fake.js?v=fb0b2c065d";
+import { t, tOr, num, LANG, ROOT, h, download, filePicker, progressBar, stopBars, logBox, notice, button, spinner, panel, localTime, partNames } from "./dom.js?v=fb0b2c065d";
+import * as c7ui from "./c7000ui.js?v=fb0b2c065d";
+import { variantWarning, variantVerdict } from "./iapui.js?v=fb0b2c065d";
+import { groups as variantGroups } from "./variant.js?v=fb0b2c065d";
+import { FakeC7000, c7000Simulation, fakeC7000Options } from "./fakec7000.js?v=fb0b2c065d";
+import { APP_ENTRY } from "./iap.js?v=fb0b2c065d";
+import { slotBytes, locateCodec } from "./c7000.js?v=fb0b2c065d";
+import { Stub, StubError } from "./stub.js?v=fb0b2c065d";
+import { F4Stub, f4Image, registerShort } from "./f4stub.js?v=fb0b2c065d";
+import { f4LoaderReader } from "./readers.js?v=fb0b2c065d";
+import * as openfw from "./openfw.js?v=fb0b2c065d";
+import { register, backendOf, bundleBackend, allBackends } from "./backends.js?v=fb0b2c065d";
+import * as diag from "../diag.js?v=fb0b2c065d";
+import { initReporting, reportLine, reportingActive, errorNotice, reportButton, setAdapter } from "../report.js?v=fb0b2c065d";
+import * as adapter from "./adapter.js?v=fb0b2c065d";
+import * as crumbs from "./trail.js?v=fb0b2c065d";
+import { missingApi, kitPanel, kitLine } from "./manual.js?v=fb0b2c065d";
+import { showBetaNotice } from "./beta.js?v=fb0b2c065d";
+import { currentBuild, planUpdate } from "./update.js?v=fb0b2c065d";
 
 // ---------------------------------------------------------------------------------------------------------------
 // strings and DOM
@@ -381,7 +381,7 @@ function stepsFor() {
 const backend = () => backendOf(S.radio);
 
 async function loadData() {
-	const get = async (name) => (await fetch(`${ROOT}data/${name}`)).json();
+	const get = async (name) => (await fetch(`${ROOT}data/${name}${name === "releases.json" ? `?check=${Date.now()}` : ""}`, { cache: "no-store" })).json();
 	const [radios, features, variants, fb, releases, site] = await Promise.all(
 		["radios.json", "features.json", "variants.json", "flash-boards.json", "releases.json", "site.json"].map(get));
 	// repository texts in the page's language where the catalog overrides them (feature.<SWITCH>.*, variant.<id>.*)
@@ -1018,13 +1018,13 @@ function selectRadio(r) {
 // build service; or the user's own DM-32 build with its manifest
 function buildView() {
 	const wrap = h("div", { class: "flasher" });
-	const rel = S.data.releases.filter((x) => x.board === S.radio.id).at(-1);
 	const go = async () => {
 		if (!S.firmware && S.sim) await ensureFirmware();
 		if (!S.firmware && !S.sim) await requestBuild(draw);
 		if (S.firmware) next();
 	};
 	const draw = () => {
+		const rel = S.data.releases.filter((x) => x.board === S.radio.id).at(-1);
 		const busy = !!S.build && !S.build.error;
 		S.forward(button(busy ? [spinner(), t("flash.fw.loading")] : t(`flash.nav.to_${stepsFor()[S.step + 1]}`), go,
 			{ primary: true, disabled: busy || (!rel && !S.firmware && !S.sim) }));
@@ -1116,6 +1116,9 @@ async function requestBuild(redraw) {
 	S.build = { selection: key, text: t("flash.fw.loading") };
 	redraw();
 	try {
+		const catalog = await fetch(`${ROOT}data/releases.json?check=${Date.now()}`, { cache: "no-store" });
+		if (!catalog.ok) throw new Error(`releases.json: HTTP ${catalog.status}`);
+		S.data.releases = (await catalog.json()).releases || [];
 		const rel = S.data.releases.filter((x) => x.board === S.radio.id).at(-1);
 		if (!rel) throw new Error(t("flash.build.no_image"));
 		const get = async (url) => {

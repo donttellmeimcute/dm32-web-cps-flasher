@@ -2,9 +2,8 @@
 // Copyright (c) 2026 The RadioFoundry Authors
 // The flasher page's DOM helpers and strings, shared by app.js and the views beside it (c7000ui.js).
 
-import { note } from "../diag.js?v=081b5de899";
-import { page, LANG } from "../i18n.js?v=081b5de899";
-import { androidFiles, toBase64 } from "./nativeserial.js?v=081b5de899";
+import { note } from "../diag.js?v=fb0b2c065d";
+import { page, LANG } from "../i18n.js?v=fb0b2c065d";
 
 // the page's strings (../i18n.js): t(key, fmt), tOr(key, repository text), num(n) and date(d, options) in its language
 export const { t, num } = page;
@@ -36,12 +35,6 @@ export function svg(tag, attrs = {}, ...children) {
 }
 
 export function download(name, bytes, type = "application/octet-stream") {
-	if (androidFiles) {	// the Android app's WebView can't save a blob link: the app writes the file to Downloads/DM32
-		const data = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes.buffer ?? bytes, bytes.byteOffset ?? 0, bytes.byteLength);
-		const error = androidFiles.save(name, type, toBase64(data));
-		if (error) throw new Error(error);
-		return;
-	}
 	const url = URL.createObjectURL(new Blob([bytes], { type }));
 	const a = h("a", { href: url, download: name });
 	document.body.append(a);

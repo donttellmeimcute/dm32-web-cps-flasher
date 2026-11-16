@@ -7,15 +7,16 @@
 // the image it came from and touches only records whose fields changed, so an unedited codeplug round-trips byte for
 // byte.
 
-import { CodeplugImage } from "./image.js?v=081b5de899";
+import { CodeplugImage } from "./image.js?v=fb0b2c065d";
 import {
 	LIMITS, CH_SIZE, bankBitmap, channelAddr, decodeChannel, encodeChannel, zoneLayout, decodeZone, encodeZone,
 	ZONE_BITMAP, ZONE_DATA, ZONE_RECORD, CONTACTS, CONTACT_SIZE, decodeContact, encodeContact, LIST_COUNTS, LISTS,
 	LIST_SIZE, decodeList, encodeList, DTMF_CONTACTS, decodeDtmf, encodeDtmf, validDtmf, APRS_BASE, APRS_SIZE,
 	decodeAprs, encodeAprs, decodeGeneral, encodeGeneral, VFO, LUCZ,
-} from "./records.js?v=081b5de899";
-import { parseTone } from "./fields.js?v=081b5de899";
-import { readHeader } from "./iddb.js?v=081b5de899";
+} from "./records.js?v=fb0b2c065d";
+import { parseTone } from "./fields.js?v=fb0b2c065d";
+import { validateAesKeys } from "./aes_keys.js?v=fb0b2c065d";
+import { readHeader } from "./iddb.js?v=fb0b2c065d";
 
 const REFS = ["contact", "rxList", "aprs"];
 
@@ -124,6 +125,7 @@ const CHANNEL_KEYS = [
 	"name", "rxHz", "txHz", "mode", "power", "tot", "rxTone", "txTone", "bw", "rxOnly", "allSkip", "zoneSkip", "vox",
 	"squelch", "colorCode", "timeslot", "contact", "rxList", "aprs", "dmrId", "noBeep", "noEco", "dmo", "roam",
 	"aliasTs1", "aliasTs2", "useLocation", "lat", "lon", "sfr", "sfrA", "sfrB",
+	"trunkTx", "aesSlot", "nacRx", "nacTx", "talkgroup", "hearAll", "wacn", "sysid",	// P25 / NXDN / trunking (records.js decodeDigital)
 ];
 
 function flatChannel(c) {
@@ -239,7 +241,7 @@ export function newChannel(fields = {}) {
 		txTone: "", bw: 12.5, rxOnly: false, allSkip: false, zoneSkip: false, vox: false, squelch: 0, colorCode: 1,
 		timeslot: 1, contact: null, rxList: null, aprs: null, dmrId: 0, noBeep: false, noEco: false, dmo: false,
 		roam: false, aliasTs1: 0, aliasTs2: 0, useLocation: false, lat: 0, lon: 0, sfr: false, sfrA: 0, sfrB: 0,
-		nacRx: 0x293, nacTx: 0x293, talkgroup: 0, hearAll: false, wacn: 0, sysid: 0,
+		trunkTx: false, aesSlot: 0, nacRx: 0x293, nacTx: 0x293, talkgroup: 0, hearAll: false, wacn: 0, sysid: 0,
 		...fields,
 	};
 }
@@ -284,6 +286,7 @@ export function validate(m, { bands = null } = {}) {
 	const err = (table, item, field, code, params = {}) => out.push({ level: "error", table, item, field, code, params });
 	const warn = (table, item, field, code, params = {}) => out.push({ level: "warning", table, item, field, code, params });
 	const g = m.general;
+	if (validateAesKeys(g.aesKeys || [])) err("general", null, "aesKeys", "aes_keys");
 	if (!g.dmrId) warn("general", null, "dmrId", "no_dmr_id");
 	else if (g.dmrId > 0xFFFFFF) err("general", null, "dmrId", "id_range");
 	if (g.radioName.length > LIMITS.radioName) err("general", null, "radioName", "too_long", { max: LIMITS.radioName });
@@ -300,6 +303,15 @@ export function validate(m, { bands = null } = {}) {
 			else if (bands && !bands.some(([lo, hi]) => c[f] >= lo && c[f] <= hi)) warn("channels", c, f, "out_of_band");
 		}
 		for (const f of ["rxTone", "txTone"]) if (parseTone(c[f]) === null) err("channels", c, f, "bad_tone");
+		if (["p25", "nxdn", "p25trunk"].includes(c.mode)) {
+			const max = c.mode === "nxdn" ? 65519 : 65535;
+			if (!Number.isInteger(c.talkgroup) || c.talkgroup < 1 || c.talkgroup > max) err("channels", c, "talkgroup", "range", { min: 1, max });
+		}
+		if (c.trunkTx && (c.mode !== "p25trunk" || c.rxOnly || !c.wacn || !c.sysid || !(c.dmrId || g.dmrId) || c.aesSlot))
+			err("channels", c, "trunkTx", "trunk_tx");
+		if (c.aesSlot && (!["dmr", "p25"].includes(c.mode) || c.aesSlot > 4 ||
+			!g.aesKeys?.[c.aesSlot - 1]?.key || (c.mode !== "p25" && g.aesKeys[c.aesSlot - 1].kid > 255)))
+			err("channels", c, "aesSlot", "aes_slot");
 		if (c.colorCode < 0 || c.colorCode > 15) err("channels", c, "colorCode", "range", { min: 0, max: 15 });
 		if (c.mode === "dmr" && !c.contact && !c.rxOnly) warn("channels", c, "contact", "no_contact");
 		const band = listenBand(c.rxHz);

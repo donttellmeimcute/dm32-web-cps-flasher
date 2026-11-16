@@ -14,7 +14,8 @@ W=${W:-/var/tmp/dm32web}
 FW_REPO=https://github.com/donttellmeimcute/DM32-nxdn-p25
 
 read -r VERSION _ < "$BUILD/version"
-GIT_FULL=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["upstream_commit"])' "$BUILD/rfoundry_dm32.json")
+GIT_FULL=$(git -C "$SRC/../.." rev-parse HEAD)
+GIT_TIME=$(git -C "$SRC/../.." show -s --format=%ct HEAD)
 # the build's own CONFIG_*/CROSS overrides, so make print-config (tools/release.py) lists what the image really has
 CFG=$(python3 -c 'import json,sys; print(" ".join(a for a in json.load(open(sys.argv[1]))["command"] if a.startswith(("CONFIG_","CROSS="))))' "$BUILD/rfoundry_dm32.json")
 
@@ -23,7 +24,7 @@ tar -C "$SRC" --exclude=./build -cf - . | tar -C "$W/rf" -xf -
 cd "$W/rf"
 
 # 1. the release image and its rfoundry-release/1 manifest, by the upstream tool (it refuses an image with the codec)
-MAKEFLAGS="$CFG" python3 tools/release.py --board dm32 --version "$VERSION" --git "$GIT_FULL" \
+MAKEFLAGS="$CFG" python3 tools/release.py --board dm32 --version "$VERSION" --git "$GIT_FULL" --git-time "$GIT_TIME" \
 	--bin "$BUILD/rfoundry_dm32.bin" --out "$W/dist"
 
 # 2. the site: the RadioFoundry generator, patched for the DM-32UV only (patch_tree.py, build_dm32.py)

@@ -17,10 +17,10 @@
 // firmware_now.kind: "rfoundry", or "openfw" for a radio backed up on another open firmware before the install
 // (openfw.js: radio_type, git, built, flash_id from its radio info). Nothing here leaves the user's computer: the bundle is built in the page and saved as a download.
 
-import { equal, hex, sha256 } from "./bytes.js?v=081b5de899";
-import { zip, unzip } from "./zip.js?v=081b5de899";
-import { debugLinkReader } from "./readers.js?v=081b5de899";
-import { parseRadioInfo, flashBytes } from "./link.js?v=081b5de899";
+import { equal, hex, sha256 } from "./bytes.js?v=fb0b2c065d";
+import { zip, unzip } from "./zip.js?v=fb0b2c065d";
+import { debugLinkReader } from "./readers.js?v=fb0b2c065d";
+import { parseRadioInfo, flashBytes } from "./link.js?v=fb0b2c065d";
 
 export const FORMAT = "rfoundry-backup/1";
 // Bundles made before the project was renamed: same layout, the old format id and firmware kind

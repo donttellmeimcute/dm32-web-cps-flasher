@@ -3,9 +3,9 @@
 // CSV in the Codeplug Editor: Save offers the open table as a CSV file and every table as a .zip of CSV files; Open
 // File takes either back. An import is one undoable change, and its problems are listed by row and column.
 
-import { register } from "./extensions.js?v=081b5de899";
-import { exportTable, exportAll, importTable, importAll, TABLES, CsvError } from "../codeplug/csv.js?v=081b5de899";
-import { zip } from "../flasher/zip.js?v=081b5de899";
+import { register } from "./extensions.js?v=fb0b2c065d";
+import { exportTable, exportAll, importTable, importAll, TABLES, CsvError } from "../codeplug/csv.js?v=fb0b2c065d";
+import { zip } from "../flasher/zip.js?v=fb0b2c065d";
 
 const TABLE_TABS = Object.keys(TABLES);
 

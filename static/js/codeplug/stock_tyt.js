@@ -4,8 +4,8 @@
 // RT3S, MD-2017) and the MD-380 family, as they sit in the radio's SPI flash. Recognizes one, reads its records, and
 // fills the editing model (model.js) from it the way a qdmr import does (qdmr.js), with the same note codes.
 
-import { getFreq, getTone } from "./fields.js?v=081b5de899";
-import { LIMITS, POWER_NAMES } from "./records.js?v=081b5de899";
+import { getFreq, getTone } from "./fields.js?v=fb0b2c065d";
+import { LIMITS, POWER_NAMES } from "./records.js?v=fb0b2c065d";
 
 const GENERAL = { boot1: 0x2040, boot2: 0x2054, bootLen: 10, dmrId: 0x2084, name: 0x20B0, nameLen: 16 };
 

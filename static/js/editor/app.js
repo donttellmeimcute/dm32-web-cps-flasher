@@ -4,26 +4,26 @@
 // written back to the radio. Everything runs in the page; the codeplug never leaves it unless the user puts it in a
 // bug report (report.js). The working codeplug is kept in this browser (IndexedDB) so a reload doesn't lose edits.
 
-import { h, t, ROOT, HOME, button, notice, download, progressBar, num as fmtNum, date as fmtDate } from "../flasher/dom.js?v=081b5de899";
-import { equal } from "../flasher/bytes.js?v=081b5de899";
-import { SerialStream, serialSupported, serialApi, RFOUNDRY_USB, browserErrorKey, knownRadioPort } from "../flasher/link.js?v=081b5de899";
-import { CodeplugImage, IDDB_HEADER, REGIONS } from "../codeplug/image.js?v=081b5de899";
-import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=081b5de899";
-import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=081b5de899";
-import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=081b5de899";
-import { FastError } from "../codeplug/fastlink.js?v=081b5de899";
-import { convert as convertDb, readHeader as dbHeader } from "../codeplug/iddb.js?v=081b5de899";
-import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=081b5de899";
-import { FakeCpsRadio } from "../codeplug/fakecps.js?v=081b5de899";
-import { Grid } from "./grid.js?v=081b5de899";
-import { History } from "./undo.js?v=081b5de899";
-import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel } from "./views.js?v=081b5de899";
-import { openFile, saveBytes, tftpBytes, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=081b5de899";
-import { extensions } from "./extensions.js?v=081b5de899";
-import "./parts.js?v=081b5de899";
-import * as diag from "../diag.js?v=081b5de899";
-import { initReporting, reportedLine } from "../report.js?v=081b5de899";
-import { updateFor } from "../flasher/version.js?v=081b5de899";
+import { h, t, ROOT, HOME, button, notice, download, progressBar, num as fmtNum, date as fmtDate } from "../flasher/dom.js?v=fb0b2c065d";
+import { equal } from "../flasher/bytes.js?v=fb0b2c065d";
+import { SerialStream, serialSupported, serialApi, RFOUNDRY_USB, browserErrorKey, knownRadioPort } from "../flasher/link.js?v=fb0b2c065d";
+import { CodeplugImage, IDDB_HEADER, REGIONS } from "../codeplug/image.js?v=fb0b2c065d";
+import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=fb0b2c065d";
+import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=fb0b2c065d";
+import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=fb0b2c065d";
+import { FastError } from "../codeplug/fastlink.js?v=fb0b2c065d";
+import { convert as convertDb, readHeader as dbHeader } from "../codeplug/iddb.js?v=fb0b2c065d";
+import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=fb0b2c065d";
+import { FakeCpsRadio } from "../codeplug/fakecps.js?v=fb0b2c065d";
+import { Grid } from "./grid.js?v=fb0b2c065d";
+import { History } from "./undo.js?v=fb0b2c065d";
+import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel } from "./views.js?v=fb0b2c065d";
+import { openFile, saveBytes, tftpBytes, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=fb0b2c065d";
+import { extensions } from "./extensions.js?v=fb0b2c065d";
+import "./parts.js?v=fb0b2c065d";
+import * as diag from "../diag.js?v=fb0b2c065d";
+import { initReporting, reportedLine } from "../report.js?v=fb0b2c065d";
+import { updateFor } from "../flasher/version.js?v=fb0b2c065d";
 
 const CABLES = [0x0403, 0x1A86, 0x10C4, 0x067B].map((usbVendorId) => ({ usbVendorId }));
 const TABS = ["radio", "channels", "zones", "contacts", "rxLists", "dtmfContacts", "aprs", "iddb", "problems"];
@@ -359,6 +359,8 @@ function openRecord(tab, r) {
 	}
 }
 
+import { validateAesKeys, aesFirmwareAllowed } from "../codeplug/aes_keys.js?v=fb0b2c065d";
+
 // --- Radio tab: the radio-wide settings ---
 
 function radioTab() {
@@ -391,6 +393,24 @@ function radioTab() {
 			field("groupHang", t("editor.general.group_hang"), 3, t("editor.general.hang_help"), num(0, 255)),
 			field("privateHang", t("editor.general.private_hang"), 3, t("editor.general.hang_help"), num(0, 255))),
 	];
+	parts.push(h("h3", {}, "AES-256"), h("p", { class: "small muted" }, t("editor.aes.help")));
+	const keyRows = (g.aesKeys || Array.from({ length: 4 }, () => ({ kid: 0, key: "" }))).map((slot, i) => {
+		const id = h("input", { type: "number", min: 1, max: 65535, value: slot.kid || "", id: `aes-kid-${i}`, autocomplete: "off" });
+		const key = h("input", { type: "password", value: slot.key, maxlength: 64, id: `aes-key-${i}`, autocomplete: "new-password", spellcheck: "false" });
+		const error = h("span", { class: "small ed-err" });
+		const save = () => {
+			const next = (S.model.general.aesKeys || []).map((x) => ({ ...x }));
+			next[i] = { kid: Number(id.value), key: key.value.trim().toUpperCase() };
+			if (validateAesKeys(next)) { error.textContent = t("editor.problem.aes_keys"); return; }
+			error.textContent = "";
+			change(t("editor.undo.edit"), () => (S.model.general = { ...S.model.general, aesKeys: next }));
+		};
+		id.addEventListener("change", save); key.addEventListener("change", save);
+		return h("div", { class: "form-grid" },
+			h("div", { class: "form-row" }, h("label", { for: `aes-kid-${i}` }, `${i + 1} · ${t("editor.aes.kid")}`), id),
+			h("div", { class: "form-row" }, h("label", { for: `aes-key-${i}` }, t("editor.aes.key")), key, error));
+	});
+	parts.push(...keyRows);
 	if (S.conn) {
 		const p = S.conn.probe;
 		parts.push(h("h3", {}, t("editor.connected_radio")), h("dl", { class: "specs" },
@@ -755,7 +775,7 @@ async function readRadio() {
 
 // Features a newer release may add that change what the editor can do with the radio, with what each gains
 const UPDATE_GAINS = ["CPS_FAST", "IDDB_COMPACT"];
-let releaseList = null;
+
 
 // After a read: a newer release for this radio (releases.json, updateFor), offered once per tab for each radio, running
 // build and release
@@ -763,13 +783,12 @@ async function offerUpdate(c) {
 	const v = c.transport.probe?.version || {};
 	const gitTime = Number(v.git_time) || 0;
 	if (!v.release && !gitTime) return;
-	if (!releaseList) {
-		try {
-			releaseList = (await (await fetch(`${ROOT}data/releases.json`)).json()).releases || [];
-		} catch {
-			return;
-		}
-	}
+	let releaseList;
+	try {
+		const response = await fetch(`${ROOT}data/releases.json?check=${Date.now()}`, { cache: "no-store" });
+		if (!response.ok) return;
+		releaseList = (await response.json()).releases || [];
+	} catch { return; }
 	const rel = updateFor(releaseList, c.radio.id, v.release, gitTime);
 	if (!rel) return;
 	// a release by its name, any other build by its commit and that commit's date
@@ -806,6 +825,12 @@ async function planWrite() {
 	try {
 		const c = await connect();
 		if (!c) return;
+		if (!S.sim && !aesFirmwareAllowed(S.model, c.transport.probe?.features)) {
+			say(t("editor.aes.firmware"), "bad"); return;
+		}
+		if (!S.sim && S.model.channels.some((c) => c.trunkTx) && !String(c.transport.probe?.features || "").split(",").includes("P25_TRUNK_TX")) {
+			say(t("editor.problem.trunk_tx_firmware"), "bad"); return;
+		}
 		stage = "prepare radio";
 		if (!await ensureStorage(c)) return;
 		stage = "encode codeplug";

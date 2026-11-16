@@ -4,8 +4,8 @@
 // A port of tools/rfoundry/rfoundry/stockfw.py; the profiles come from that file through data/flash-boards.json, so
 // both read the same table. The codec and the key are only ever handled on the user's machine.
 
-import { u32le, sha256, startsWith, crc32, hex } from "./bytes.js?v=081b5de899";
-import { byCodeSha, moveCode, moveBranches, branchesIn, moveWindow, unmoveWindow, tableWindow, MapError } from "./codecmap.js?v=081b5de899";
+import { u32le, sha256, startsWith, crc32, hex } from "./bytes.js?v=fb0b2c065d";
+import { byCodeSha, moveCode, moveBranches, branchesIn, moveWindow, unmoveWindow, tableWindow, MapError } from "./codecmap.js?v=fb0b2c065d";
 
 // code: what kind of problem it is, for the page's explanation (explain.js) and the error report: "not-vendor" (not a
 // vendor firmware file), "damaged", "other-radio" (a file for another radio; params.board names it), "wrong-key" (it

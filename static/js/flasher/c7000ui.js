@@ -15,28 +15,28 @@
 // it is written, and a second pass checks them all; a failed or interrupted install is resumed by running it again
 // (only what still differs is written).
 
-import { h, t, notice, button, panel, progressBar, logBox, download, filePicker, localTime, partNames } from "./dom.js?v=081b5de899";
-import { hex, sha256, sleep } from "./bytes.js?v=081b5de899";
-import { SerialStream, Link, probe, serialSupported, serialApi, knownRadioPort, grantedPorts } from "./link.js?v=081b5de899";
-import { Stub, stubImages, StubError, DONE_LED, MEM, ROM_REPEAT } from "./stub.js?v=081b5de899";
-import * as c7 from "./c7000.js?v=081b5de899";
-import { openVendorFile, describe as describeVendorFile, analysisCandidate, whyNot } from "./vendorfile.js?v=081b5de899";
-import { pickProblem } from "./explain.js?v=081b5de899";
-import { upgradeSlot } from "./c7000v1.js?v=081b5de899";
-import { radioTop } from "./radiotop.js?v=081b5de899";
-import { putBlob, getBlob } from "./codecsave.js?v=081b5de899";
-import { makeBundle, describeFirmware, bundleName } from "./backup.js?v=081b5de899";
-import { register } from "./backends.js?v=081b5de899";
-import { makeStockRoutes, variantVerdict, noCodecNotice } from "./iapui.js?v=081b5de899";
-import { confirmNoCodec } from "./nocodec.js?v=081b5de899";
-import { versionText, writable } from "./variant.js?v=081b5de899";
-import { Usmart, stockVersion, stockName } from "./usmart.js?v=081b5de899";
-import { Iap, checkInstallImage } from "./iap.js?v=081b5de899";
-import { BfLoader } from "./bfloader.js?v=081b5de899";
-import { errorNotice, reportLine, reportButton } from "../report.js?v=081b5de899";
-import * as diag from "../diag.js?v=081b5de899";
-import { fromSerialInfo, isCh340 } from "./adapter.js?v=081b5de899";
-import * as crumbs from "./trail.js?v=081b5de899";
+import { h, t, notice, button, panel, progressBar, logBox, download, filePicker, localTime, partNames } from "./dom.js?v=fb0b2c065d";
+import { hex, sha256, sleep } from "./bytes.js?v=fb0b2c065d";
+import { SerialStream, Link, probe, serialSupported, serialApi, knownRadioPort, grantedPorts } from "./link.js?v=fb0b2c065d";
+import { Stub, stubImages, StubError, DONE_LED, MEM, ROM_REPEAT } from "./stub.js?v=fb0b2c065d";
+import * as c7 from "./c7000.js?v=fb0b2c065d";
+import { openVendorFile, describe as describeVendorFile, analysisCandidate, whyNot } from "./vendorfile.js?v=fb0b2c065d";
+import { pickProblem } from "./explain.js?v=fb0b2c065d";
+import { upgradeSlot } from "./c7000v1.js?v=fb0b2c065d";
+import { radioTop } from "./radiotop.js?v=fb0b2c065d";
+import { putBlob, getBlob } from "./codecsave.js?v=fb0b2c065d";
+import { makeBundle, describeFirmware, bundleName } from "./backup.js?v=fb0b2c065d";
+import { register } from "./backends.js?v=fb0b2c065d";
+import { makeStockRoutes, variantVerdict, noCodecNotice } from "./iapui.js?v=fb0b2c065d";
+import { confirmNoCodec } from "./nocodec.js?v=fb0b2c065d";
+import { versionText, writable } from "./variant.js?v=fb0b2c065d";
+import { Usmart, stockVersion, stockName } from "./usmart.js?v=fb0b2c065d";
+import { Iap, checkInstallImage } from "./iap.js?v=fb0b2c065d";
+import { BfLoader } from "./bfloader.js?v=fb0b2c065d";
+import { errorNotice, reportLine, reportButton } from "../report.js?v=fb0b2c065d";
+import * as diag from "../diag.js?v=fb0b2c065d";
+import { fromSerialInfo, isCh340 } from "./adapter.js?v=fb0b2c065d";
+import * as crumbs from "./trail.js?v=fb0b2c065d";
 
 // USB-serial chips found in programming cables (tools/serial_loader.py USB_SERIAL), for the port chooser
 export const CABLES = [0x0403, 0x1A86, 0x10C4, 0x067B].map((usbVendorId) => ({ usbVendorId }));
@@ -1216,13 +1216,13 @@ async function bringChannels(c, status, left) {
 	const box = h("div");
 	status.append(box);
 	const prog = progressBar();
-	let m, tr, conv;
+	let m, tr, conv, stock;
 	const from = c.calArea ? "backup" : "radio";
 	try {
 		m = await import("./migrate.js");
 		const { CpsSerial } = await import("../codeplug/transport.js");
 		tr = new CpsSerial(c.stream, { cable: true });
-		let stock = c.calArea;
+		stock = c.calArea;
 		if (!stock) {
 			box.append(prog.el);
 			const r = await tr.link.cpsDump(1, 0, lay.area, { chunk: tr.chunk, progress: (d, n) => prog.set(d, n, t("flash.channels.reading")) });
@@ -1237,8 +1237,15 @@ async function bringChannels(c, status, left) {
 		return;
 	}
 	prog.el.remove();
-	diag.note("channels", { from, ...(conv ? conv.counts : { layout: null }) });
-	if (!conv || left()) return;
+	diag.note("channels", { from, ...(conv ? conv.counts : { layout: null, ...m.pagedFindings(stock) }) });
+	if (left()) return;
+	// A radio installed over its stock firmware always had a codeplug: not finding it is a problem to show, not a quiet
+	// end. Until channels are written, RadioFoundry's codeplug area may still hold the stock firmware's other data there
+	if (!conv) {
+		S().reportResult = "problem";
+		box.append(notice(t(c.backupSaved ? "flash.channels.convert_failed" : "flash.channels.convert_failed_no_backup"), "bad"), reportLine());
+		return;
+	}
 	if (!conv.counts.channels) {
 		box.append(notice(t("flash.channels.none"), "info"));
 		return;

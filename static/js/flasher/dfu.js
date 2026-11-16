@@ -5,9 +5,9 @@
 // XORed with the model key (every sector starts a multiple of 1024 bytes after the application base, so each block
 // starts at key index 0). The bootloader can't read flash back (the radios are at read protection level 1).
 
-import { BLOCK, FIRST_BLOCK } from "./plan.js?v=081b5de899";
-import * as protect from "./protect.js?v=081b5de899";
-import { hex, le32, sha256, sleep } from "./bytes.js?v=081b5de899";
+import { BLOCK, FIRST_BLOCK } from "./plan.js?v=fb0b2c065d";
+import * as protect from "./protect.js?v=fb0b2c065d";
+import { hex, le32, sha256, sleep } from "./bytes.js?v=fb0b2c065d";
 
 export const KEY_LEN = 1024;
 export const EXIT_ADDR = 0x08000000;

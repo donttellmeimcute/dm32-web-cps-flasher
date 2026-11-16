@@ -24,14 +24,14 @@
 //
 // The stock firmware and codec here are random bytes shaped like the real ones: no vendor code is in RadioFoundry.
 
-import { concat, crc32, le32, sha256, sleep, u32le } from "./bytes.js?v=081b5de899";
-import { frame, parseFrames } from "./link.js?v=081b5de899";
-import { ACK, NAK, CRC_REQ, STX, EOT, BLOCK, HEADER_BLOCK, xmodem } from "./bfloader.js?v=081b5de899";
-import { encodeBlock } from "./lz4.js?v=081b5de899";
-import { CRASH_BOOT_SOFT, CRASH_SOFT_MARK, STUB_MAGIC, SSI_PROG, SYS_SOFT_RSTN, TIMER2_VALUE, WDT_EN } from "./stub.js?v=081b5de899";
-import { HIJACK, STUB_WINDOW, BUILDS, FLASH_BASE } from "./usmart.js?v=081b5de899";
-import { rng, randomBytes } from "./fake.js?v=081b5de899";
-import { sigBytes } from "./c7000.js?v=081b5de899";
+import { concat, crc32, le32, sha256, sleep, u32le } from "./bytes.js?v=fb0b2c065d";
+import { frame, parseFrames } from "./link.js?v=fb0b2c065d";
+import { ACK, NAK, CRC_REQ, STX, EOT, BLOCK, HEADER_BLOCK, xmodem } from "./bfloader.js?v=fb0b2c065d";
+import { encodeBlock } from "./lz4.js?v=fb0b2c065d";
+import { CRASH_BOOT_SOFT, CRASH_SOFT_MARK, STUB_MAGIC, SSI_PROG, SYS_SOFT_RSTN, TIMER2_VALUE, WDT_EN } from "./stub.js?v=fb0b2c065d";
+import { HIJACK, STUB_WINDOW, BUILDS, FLASH_BASE } from "./usmart.js?v=fb0b2c065d";
+import { rng, randomBytes } from "./fake.js?v=fb0b2c065d";
+import { sigBytes } from "./c7000.js?v=fb0b2c065d";
 
 const SECTOR = 4096, OK = 0x05, BADSUM = 0x0A, BADOP = 0x0B;
 const sum8 = (b) => b.reduce((a, x) => (a + x) & 0xFF, 0);

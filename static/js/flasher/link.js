@@ -5,10 +5,9 @@
 // SPI flash, 5 the MCU flash, 9 the radio info, 10 the flash security registers). Read only, apart from the CPS
 // codeplug writes restore uses (X 1-3), which the radio limits to the codeplug areas.
 
-import { be32, concat, le32, sleep, u16be, u16le, u32le, toHex } from "./bytes.js?v=081b5de899";
-import { wire, note } from "../diag.js?v=081b5de899";
-import { serialApi, usbSerialNeeded } from "./usbserial.js?v=081b5de899";
-import { nativeSerial } from "./nativeserial.js?v=081b5de899";
+import { be32, concat, le32, sleep, u16be, u16le, u32le, toHex } from "./bytes.js?v=fb0b2c065d";
+import { wire, note } from "../diag.js?v=fb0b2c065d";
+import { serialApi, usbSerialNeeded } from "./usbserial.js?v=fb0b2c065d";
 
 export { serialApi };
 
@@ -43,9 +42,8 @@ export function browserErrorKey(e) {
 	}
 }
 
-// Web Serial, or WebUSB standing in for it where Web Serial reaches no USB device (usbserial.js), or the Android app's
-// driver (nativeserial.js)
-export const serialSupported = () => !!nativeSerial || (typeof navigator !== "undefined" && ("serial" in navigator || usbSerialNeeded()));
+// Web Serial, or WebUSB standing in for it where Web Serial reaches no USB device (usbserial.js)
+export const serialSupported = () => typeof navigator !== "undefined" && ("serial" in navigator || usbSerialNeeded());
 
 // CRC-16/CCITT-FALSE
 export function crc16(data, crc = 0xFFFF) {

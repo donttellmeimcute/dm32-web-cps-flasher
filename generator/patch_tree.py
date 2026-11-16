@@ -99,13 +99,13 @@ between(APP, "function buildView() {", "// Escape closes the open ⓘ bubble", "
 // build service; or the user's own DM-32 build with its manifest
 function buildView() {
 	const wrap = h("div", { class: "flasher" });
-	const rel = S.data.releases.filter((x) => x.board === S.radio.id).at(-1);
 	const go = async () => {
 		if (!S.firmware && S.sim) await ensureFirmware();
 		if (!S.firmware && !S.sim) await requestBuild(draw);
 		if (S.firmware) next();
 	};
 	const draw = () => {
+		const rel = S.data.releases.filter((x) => x.board === S.radio.id).at(-1);
 		const busy = !!S.build && !S.build.error;
 		S.forward(button(busy ? [spinner(), t("flash.fw.loading")] : t(`flash.nav.to_${stepsFor()[S.step + 1]}`), go,
 			{ primary: true, disabled: busy || (!rel && !S.firmware && !S.sim) }));
@@ -143,6 +143,9 @@ async function requestBuild(redraw) {
 	S.build = { selection: key, text: t("flash.fw.loading") };
 	redraw();
 	try {
+		const catalog = await fetch(`${ROOT}data/releases.json?check=${Date.now()}`, { cache: "no-store" });
+		if (!catalog.ok) throw new Error(`releases.json: HTTP ${catalog.status}`);
+		S.data.releases = (await catalog.json()).releases || [];
 		const rel = S.data.releases.filter((x) => x.board === S.radio.id).at(-1);
 		if (!rel) throw new Error(t("flash.build.no_image"));
 		const get = async (url) => {

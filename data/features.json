@@ -1485,7 +1485,7 @@
    "name": "P25_TRUNK_TX",
    "title": "P25 trunking transmit",
    "group": "Radio and voice",
-   "help": "transmit on a trunked system; off, trunked channels are receive only",
+   "help": "experimental Phase 1 registration, affiliation and granted voice; each channel must explicitly enable Trunk TX; hardware interoperability untested",
    "needs": {
     "all": [
      "P25_TRUNK"
@@ -1564,6 +1564,18 @@
    "title": "DEV_TX",
    "group": "Other",
    "help": "",
+   "needs": {
+    "all": [],
+    "any": []
+   },
+   "bytes": {},
+   "notes": ""
+  },
+  {
+   "name": "DV_AES",
+   "title": "AES-256 voice",
+   "group": "Radio and voice",
+   "help": "P25 Phase 1 conventional and DMR voice with local web CPS keys; hardware interoperability untested",
    "needs": {
     "all": [],
     "any": []

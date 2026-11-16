@@ -5,10 +5,10 @@
 // is built with an error reporting address (site.json "reports"), errors are also sent automatically with the log's
 // last steps (diag.trail) but no wire log or radio data, and the dialog can send the whole report too. ?reporting=0 turns sending off.
 
-import * as diag from "./diag.js?v=081b5de899";
-import { h, t, num, ROOT, button, download, stopBars } from "./flasher/dom.js?v=081b5de899";
-import { zip } from "./flasher/zip.js?v=081b5de899";
-import { reportBody, sendProblemReport, contactOk, practiceFetch } from "./problemreport.js?v=081b5de899";
+import * as diag from "./diag.js?v=fb0b2c065d";
+import { h, t, num, ROOT, button, download, stopBars } from "./flasher/dom.js?v=fb0b2c065d";
+import { zip } from "./flasher/zip.js?v=fb0b2c065d";
+import { reportBody, sendProblemReport, contactOk, practiceFetch } from "./problemreport.js?v=fb0b2c065d";
 
 // The Sentry browser bundle, loaded only when the site has a reporting address
 const SENTRY_JS = "https://browser.sentry-cdn.com/10.75.3/bundle.min.js";

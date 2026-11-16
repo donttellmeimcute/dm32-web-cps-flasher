@@ -8,8 +8,8 @@
 // index, names coded through a dictionary; about 40 % of format N, and written against the database it replaces so
 // unchanged pages stay the same bytes. Image addresses as in image.js.
 
-import { FL } from "./image.js?v=081b5de899";
-import { foldLetters } from "./fields.js?v=081b5de899";
+import { FL } from "./image.js?v=fb0b2c065d";
+import { foldLetters } from "./fields.js?v=fb0b2c065d";
 
 export const AREA1 = FL + 0x30000;
 export const AREA1_SIZE = 0x40000;

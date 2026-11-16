@@ -55,7 +55,7 @@
 // the image the flasher installs (data/releases.json, written with the image by the site build)
 const out = document.getElementById("fw-version");
 try {
-	const r = (await (await fetch("{{root}}data/releases.json")).json()).releases.at(-1);
+	const r = (await (await fetch(`{{root}}data/releases.json?check=${Date.now()}`, { cache: "no-store" })).json()).releases.at(-1);
 	out.textContent = `${r.version} · ${Math.round(r.size / 1024)} KB · SHA-256 ${r.sha256.slice(0, 16)}…`;
 } catch (e) {
 	out.textContent = "?";

@@ -71,5 +71,7 @@
  "flash.c7.codec.none_title": "This Installation Will Not Include the AMBE Codec (DMR and NXDN Voice)",
  "flash.nocodec.title": "Install Without DMR and NXDN Voice?",
  "flash.nocodec.text": "This installation does not include the AMBE codec. The radio will not be able to send or receive DMR or NXDN voice. Analog FM and P25 will work.",
- "flash.help.s.novoice": "DMR or NXDN voice does not work"
+ "flash.help.s.novoice": "DMR or NXDN voice does not work",
+ "support.kofi": "Support me on Ko-fi",
+ "support.kofi_text": "Support development of the firmware and flasher."
 }

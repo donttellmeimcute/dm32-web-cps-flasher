@@ -10,14 +10,14 @@
 // 0x700000 on the DM-32UV) on the wire. Writes send only changed bytes inside the codeplug's regions, never whole
 // sectors: a sector the codeplug shares with the radio's own settings (0x6000) keeps them.
 
-import { CodeplugImage, REGIONS, IDDB_HEADER, CODEPLUG_SPAN } from "./image.js?v=081b5de899";
-import { readHeader, extent, AREA1, AREA1_SIZE, AREA2 } from "./iddb.js?v=081b5de899";
-import { GENERAL, BOOT_TEXT } from "./records.js?v=081b5de899";
-import { Link, probe, whyNoAnswer } from "../flasher/link.js?v=081b5de899";
-import { crc32, sleep } from "../flasher/bytes.js?v=081b5de899";
-import { encodeBlock } from "../flasher/lz4.js?v=081b5de899";
-import { FastLink, FastError, BLOCK, REASON } from "./fastlink.js?v=081b5de899";
-import { note } from "../diag.js?v=081b5de899";
+import { CodeplugImage, REGIONS, IDDB_HEADER, CODEPLUG_SPAN } from "./image.js?v=fb0b2c065d";
+import { readHeader, extent, AREA1, AREA1_SIZE, AREA2 } from "./iddb.js?v=fb0b2c065d";
+import { GENERAL, BOOT_TEXT } from "./records.js?v=fb0b2c065d";
+import { Link, probe, whyNoAnswer } from "../flasher/link.js?v=fb0b2c065d";
+import { crc32, sleep } from "../flasher/bytes.js?v=fb0b2c065d";
+import { encodeBlock } from "../flasher/lz4.js?v=fb0b2c065d";
+import { FastLink, FastError, BLOCK, REASON } from "./fastlink.js?v=fb0b2c065d";
+import { note } from "../diag.js?v=fb0b2c065d";
 
 export class TransportError extends Error {
 	constructor(code, params = {}) {

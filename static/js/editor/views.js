@@ -4,10 +4,10 @@
 // membership editor for zones and RX group lists. Setters parse what was typed and return an error text, or
 // nothing when the value was taken.
 
-import { h, button } from "../flasher/dom.js?v=081b5de899";
-import { parseFreq, parseTone, mhz } from "../codeplug/fields.js?v=081b5de899";
-import { LIMITS, POWER_NAMES, NAC_ANY, NAC_DEFAULT } from "../codeplug/records.js?v=081b5de899";
-import { refNumber, listenBand } from "../codeplug/model.js?v=081b5de899";
+import { h, button } from "../flasher/dom.js?v=fb0b2c065d";
+import { parseFreq, parseTone, mhz } from "../codeplug/fields.js?v=fb0b2c065d";
+import { LIMITS, POWER_NAMES, NAC_ANY, NAC_DEFAULT } from "../codeplug/records.js?v=fb0b2c065d";
+import { refNumber, listenBand } from "../codeplug/model.js?v=fb0b2c065d";
 
 // --- Parsers shared by the columns and the forms ---
 
@@ -66,12 +66,15 @@ const P25 = new Set(["p25", "p25trunk"]);
 // NXDN gets the decoder's RAN defaults (records.js) for a number that isn't a RAN, and one moved out of NXDN into P25
 // gets the P25 defaults: never the other family's number
 const setMode = (r, k, v) => {
+	if (r.mode !== v) { r.trunkTx = false; if (v === "p25trunk") r.rxOnly = true; }
 	if (v === "nxdn" && r.mode !== "nxdn") {
 		if (!(r.nacRx <= 63)) r.nacRx = 0;
 		if (!(r.nacTx <= 63)) r.nacTx = 1;
 	} else if (P25.has(v) && r.mode === "nxdn") {
 		r.nacRx = NAC_ANY;
 		r.nacTx = NAC_DEFAULT;
+	} else if (v === "p25trunk" && !P25.has(r.mode)) {
+		r.nacRx = NAC_ANY;	// a control channel's NAC is the system's, rarely the conventional 293: RX any hears it
 	}
 	// the digital voice modes need a talkgroup (1-65535) or the form won't save: talkgroup 1, as the radio's own switch
 	if (DIGITAL.has(v) && !r.talkgroup) r.talkgroup = 1;
@@ -299,7 +302,7 @@ export function channelForm(m, t) {
 		} },
 		txt("tot", "editor.col.tot", tot(t), (v) => (v ? String(v) : t("editor.tot.default"))),
 		// a receive-only band makes the channel RX only on save (rxFreq): the box shows it as the RX frequency is typed
-		{ ...chk("rxOnly", "editor.col.rx_only"), implied: listening },
+		{ ...chk("rxOnly", "editor.col.rx_only"), implied: listening, show: (r) => r.mode !== "p25trunk" },
 		fm({ group: t("editor.form.analog") }),
 		fm(sel("bw", "editor.col.bw", () => [[12.5, "12.5 kHz"], [25, "25 kHz"]])),
 		fm(txt("rxTone", "editor.col.rx_tone", tone(t), (v) => v)),
@@ -321,9 +324,13 @@ export function channelForm(m, t) {
 		dv({ ...txt("nacTx", "editor.col.nac_tx", nac(false)(t), (v) => nacText(v)), show: (r) => P25.has(r.mode) }),
 		dv({ ...txt("nacRx", "editor.col.ran_rx", nac(true)(t), (v) => String(v)), key: "nacRx", show: (r) => r.mode === "nxdn" }),
 		dv({ ...txt("nacTx", "editor.col.ran_tx", nac(false)(t), (v) => String(v)), key: "nacTx", show: (r) => r.mode === "nxdn" }),
+		{ ...sel("aesSlot", "editor.aes.slot", () => [[0, t("editor.aes.off")], ...[1, 2, 3, 4].map((i) => [i, `AES-256 · ${i}`]), [255, t("editor.aes.invalid")]]), show: (r) => ["dmr", "p25"].includes(r.mode) },
 		dv(txt("talkgroup", "editor.col.talkgroup", int(1, 65535)(t), (v) => (v ? String(v) : ""))),
 		dv(txt("dmrId", "editor.col.unit_id", dmrId(t), (v) => (v ? String(v) : ""))),
 		dv(chk("hearAll", "editor.col.hear_all")),
+		dv({ ...chk("trunkTx", "editor.col.trunk_tx"), show: (r) => r.mode === "p25trunk", set: (r, on) => {
+			if (r.mode === "p25trunk") { r.trunkTx = on; r.rxOnly = !on; }
+		} }),
 		dv({ ...txt("wacn", "editor.col.wacn", hexField(0xFFFFF, false, "editor.err.wacn")(t), hexText(5)), show: (r) => r.mode === "p25trunk" }),
 		dv({ ...txt("sysid", "editor.col.sysid", hexField(0xFFF, false, "editor.err.sysid")(t), hexText(3)), show: (r) => r.mode === "p25trunk" }),
 		{ group: t("editor.form.scan") },

@@ -6,9 +6,9 @@
 // their references cleared. A file may hold only some columns: the others keep their values. Problems come back as
 // {row, column, code, params}, and the page words them.
 
-import { parseFreq, parseTone, mhz } from "./fields.js?v=081b5de899";
-import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf, NAC_ANY } from "./records.js?v=081b5de899";
-import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=081b5de899";
+import { parseFreq, parseTone, mhz } from "./fields.js?v=fb0b2c065d";
+import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf, NAC_ANY } from "./records.js?v=fb0b2c065d";
+import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=fb0b2c065d";
 
 // --- RFC 4180 ---
 
@@ -363,6 +363,8 @@ export const TABLES = {
 			keep("TX RAN", "nacTx", asInt(0, 63), (r) => (r.mode === "nxdn" ? r.nacTx : ""), ["RAN TX", "RAN"]),
 			keep("Talkgroup", "talkgroup", asInt(1, 65535), (r) => (DIGITAL.has(r.mode) ? r.talkgroup || "" : ""), ["TG", "Group ID", "TGID"]),
 			keep("Hear All Groups", "hearAll", asBool, (r) => (DIGITAL.has(r.mode) ? yesNo(r.hearAll) : ""), ["Hear All", "Monitor All"]),
+			keep("AES key slot", "aesSlot", asInt(0, 4), (r) => r.aesSlot || 0),
+			keep("Trunk TX", "trunkTx", asBool, (r) => r.mode === "p25trunk" ? yesNo(r.trunkTx) : ""),
 			keep("WACN", "wacn", asHex(0xFFFFF, false), (r) => (r.mode === "p25trunk" ? hex(5)(r.wacn) : "")),
 			keep("System ID", "sysid", asHex(0xFFF, false), (r) => (r.mode === "p25trunk" ? hex(3)(r.sysid) : ""), ["SysID", "System"]),
 		],

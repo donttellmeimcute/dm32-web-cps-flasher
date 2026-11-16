@@ -8,14 +8,14 @@
 // RadioFoundry's codeplug (codeplug/stock_baofeng.js): the install converts the read its check step took and writes it
 // through the codeplug interface (writeConverted).
 
-import { CODEPLUG_SPAN } from "./backup.js?v=081b5de899";
-import { codeplugSectors } from "./restore.js?v=081b5de899";
-import { classify } from "../codeplug/detect.js?v=081b5de899";
-import { STOCK, detectStock, importStock } from "../codeplug/stock_tyt.js?v=081b5de899";
-import { empty, encode, decode } from "../codeplug/model.js?v=081b5de899";
-import { CodeplugImage } from "../codeplug/image.js?v=081b5de899";
-import { writeRanges, VFOS } from "../codeplug/transport.js?v=081b5de899";
-import { DM32_STOCK, detectStock as detectPaged, importStock as importPaged } from "../codeplug/stock_baofeng.js?v=081b5de899";
+import { CODEPLUG_SPAN } from "./backup.js?v=fb0b2c065d";
+import { codeplugSectors } from "./restore.js?v=fb0b2c065d";
+import { classify } from "../codeplug/detect.js?v=fb0b2c065d";
+import { STOCK, detectStock, importStock } from "../codeplug/stock_tyt.js?v=fb0b2c065d";
+import { empty, encode, decode } from "../codeplug/model.js?v=fb0b2c065d";
+import { CodeplugImage } from "../codeplug/image.js?v=fb0b2c065d";
+import { writeRanges, VFOS } from "../codeplug/transport.js?v=fb0b2c065d";
+import { DM32_STOCK, detectStock as detectPaged, importStock as importPaged, pageMap, stockEvidence } from "../codeplug/stock_baofeng.js?v=fb0b2c065d";
 
 // The stock family a memory chip read holds, or null (a RadioFoundry codeplug, a blank one, or one not read here)
 export function stockLayoutOf(bytes) {
@@ -106,6 +106,12 @@ export function convertPagedStock(bytes) {
 	const m = empty();
 	const { counts, notes } = importPaged(m, bytes);
 	return { image: encode(m), counts, notes };
+}
+
+// Why a data flash read gave no stock codeplug, for the report: the pages in use (null: none, or a block on two pages)
+// and the channel records' evidence (stock_baofeng.js detectStock)
+export function pagedFindings(bytes) {
+	return { pages: (bytes && pageMap(bytes)?.size) || null, ...(bytes ? stockEvidence(bytes) : {}) };
 }
 
 const countsOf = (img) => {

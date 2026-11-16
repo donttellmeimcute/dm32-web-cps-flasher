@@ -15,17 +15,17 @@
 //
 // Neither ever writes the vendor loader, so update mode always remains.
 
-import { h, t, notice, button, panel, progressBar } from "./dom.js?v=081b5de899";
-import { sleep } from "./bytes.js?v=081b5de899";
-import * as c7 from "./c7000.js?v=081b5de899";
-import { Usmart, stockName, BUILDS, UNKNOWN_BUILD } from "./usmart.js?v=081b5de899";
-import { trimTail } from "./iap.js?v=081b5de899";
-import { variantCode, verdict, writable, groups } from "./variant.js?v=081b5de899";
-import * as diag from "../diag.js?v=081b5de899";
-import { CodecError } from "./c7000.js?v=081b5de899";
-import { errorNotice, reportLine } from "../report.js?v=081b5de899";
-import { radioPicture, holdKeys } from "./radiotop.js?v=081b5de899";
-import { confirmNoCodec } from "./nocodec.js?v=081b5de899";
+import { h, t, notice, button, panel, progressBar } from "./dom.js?v=fb0b2c065d";
+import { sleep } from "./bytes.js?v=fb0b2c065d";
+import * as c7 from "./c7000.js?v=fb0b2c065d";
+import { Usmart, stockName, BUILDS, UNKNOWN_BUILD } from "./usmart.js?v=fb0b2c065d";
+import { trimTail } from "./iap.js?v=fb0b2c065d";
+import { variantCode, verdict, writable, groups } from "./variant.js?v=fb0b2c065d";
+import * as diag from "../diag.js?v=fb0b2c065d";
+import { CodecError } from "./c7000.js?v=fb0b2c065d";
+import { errorNotice, reportLine } from "../report.js?v=fb0b2c065d";
+import { radioPicture, holdKeys } from "./radiotop.js?v=fb0b2c065d";
+import { confirmNoCodec } from "./nocodec.js?v=fb0b2c065d";
 
 const LISTEN_MS = 180000;	// how long the page waits for update mode
 

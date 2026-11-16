@@ -2,14 +2,21 @@
 # Runs the RadioFoundry site's JS tests (site/tests/*.test.mjs) three ways: on an unpatched copy of the tree (baseline),
 # on the patched scratch tree gen.sh left in $W/rf, and with that tree's site/static replaced by the trimmed output.
 set -uo pipefail
+failed=0
 SRC=${SRC:-/var/tmp/codex-dm32-5abf48c-20261113/work/NXDN-Open25-DM32-kali/build/radiofoundry-p25}
 GEN=$(cd "$(dirname "$0")" && pwd)
 OUT=${OUT:-$(dirname "$GEN")/dm32-web-cps-flasher}
 W=${W:-/var/tmp/dm32web}
 run() {	# tree label
 	cd "$1"
-	python3 site/tests/fixtures.py "$W/fx-$2" > "$W/fixtures-$2.log" 2>&1 || { echo "$2: fixtures failed"; tail -5 "$W/fixtures-$2.log"; }
-	RFOUNDRY_SITE_FIXTURES="$W/fx-$2" node --test site/tests/*.test.mjs > "$W/tests-$2.log" 2>&1
+	local opts=()
+	if [ "$2" != baseline ]; then
+		python3 "$GEN/adapt_tests.py" "$1" || { failed=1; return; }
+		# This site installs a hosted image; it has no build-size/language-pack selection UI.
+		opts+=(--test-skip-pattern="the build step shows a build that doesn't fit|the build step shows the offer with a button|the build step builds a picked radio language|the build step offers the start language")
+	fi
+	python3 site/tests/fixtures.py "$W/fx-$2" > "$W/fixtures-$2.log" 2>&1 || { echo "$2: fixtures failed"; tail -5 "$W/fixtures-$2.log"; failed=1; return; }
+	RFOUNDRY_SITE_FIXTURES="$W/fx-$2" node --test "${opts[@]}" site/tests/*.test.mjs > "$W/tests-$2.log" 2>&1 || failed=1
 	echo "== $2: $(grep -E '^ℹ (tests|pass|fail|skipped)' "$W/tests-$2.log" | tr '\n' ' ')"
 	awk '/^✖ failing tests:/{f=1} f && /^✖ /' "$W/tests-$2.log" | grep -v "failing tests"
 }
@@ -23,3 +30,4 @@ fi
 rm -rf "$W/rf/site/static" && cp -r "$OUT/static" "$W/rf/site/static"
 find "$W/rf/site/static/js" -name '*.js' -exec sed -i -E 's/(\.js)\?v=[0-9a-f]+"/\1"/g' {} +
 run "$W/rf" output
+exit "$failed"

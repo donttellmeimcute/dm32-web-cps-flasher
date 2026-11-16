@@ -48,6 +48,13 @@ export function betaLink(beta, href, versionRef) {
 const RELEASE_RE = /^v(2[6-9]|[3-9][0-9])\.(1[0-2]|[1-9])(?:\.([1-9][0-9]{0,2}))?(?:b([1-9][0-9]{0,2}))?$/;
 
 export function releaseKey(name) {
+	const daily = /^v?(20[0-9]{2})\.(0[1-9]|1[0-2])\.(0[1-9]|[12][0-9]|3[01])-[0-9a-f]{7,40}$/.exec(name || "");
+	if (daily) {
+		const [year, month, day] = daily.slice(1).map(Number);
+		const d = new Date(Date.UTC(year, month - 1, day));
+		if (d.getUTCFullYear() !== year || d.getUTCMonth() !== month - 1 || d.getUTCDate() !== day) return null;
+		return [year, month, day, 1, 0];
+	}
 	const m = RELEASE_RE.exec(name || "");
 	if (!m) return null;
 	return [+m[1], +m[2], +(m[3] || 0), m[4] ? 0 : 1, +(m[4] || 0)];
@@ -70,8 +77,11 @@ export function updateFor(releases, board, running, gitTime = 0) {
 	for (const r of releases || []) {
 		const k = releaseKey(r.version);
 		if (r.board !== board || (r.variant && r.variant !== "full") || !k || (k[3] === 0 && !beta)) continue;
-		if (!bestKey || newer(k, bestKey)) [best, bestKey] = [r, k];
+		if (!bestKey || newer(k, bestKey) || (!newer(bestKey, k) && r.git_time > best.git_time)) [best, bestKey] = [r, k];
 	}
 	if (!best) return null;
-	return (now ? newer(bestKey, now) : best.git_time > gitTime) ? best : null;
+	if (now && newer(bestKey, now)) return best;
+	if (now && newer(now, bestKey)) return null;
+	// Daily releases can share a date; commit time orders them without treating hashes as version numbers.
+	return best.git_time > gitTime && gitTime > 0 ? best : null;
 }

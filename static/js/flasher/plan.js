@@ -12,8 +12,8 @@
 //
 // The tests (site/tests) check keep and merge against plan.py's output for the same inputs.
 
-import { hex } from "./bytes.js?v=081b5de899";
-import * as protect from "./protect.js?v=081b5de899";
+import { hex } from "./bytes.js?v=fb0b2c065d";
+import * as protect from "./protect.js?v=fb0b2c065d";
 
 export const KEEP = "keep", MERGE = "merge", RESTORE = "restore";
 export const BLOCK = 1024, FIRST_BLOCK = 2;

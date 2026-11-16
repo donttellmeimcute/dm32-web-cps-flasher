@@ -5,10 +5,11 @@
 // field covers survive an edit. Addresses are image addresses (image.js). References between records (a channel's
 // contact, a zone's channels) are 1-based numbers here; model.js turns them into objects.
 
-import { EE, FL } from "./image.js?v=081b5de899";
+import { decodeAesKeys, encodeAesKeys } from "./aes_keys.js?v=fb0b2c065d";
+import { EE, FL } from "./image.js?v=fb0b2c065d";
 import {
 	getFreq, putFreq, getBcdId, putBcdId, getTone, putTone, getName, putName, getCoord, coordBytes, u16, put16,
-} from "./fields.js?v=081b5de899";
+} from "./fields.js?v=fb0b2c065d";
 
 export const LIMITS = {
 	channels: 1024, zones: 68, zoneChannels: 80, contacts: 1024, rxLists: 76, rxListContacts: 32,
@@ -100,6 +101,8 @@ export function decodeChannel(r) {
 
 function decodeChannelFields(r, rxHz, txHz, l1, f1, f4, hasLoc, mode) {
 	return {
+		trunkTx: mode === "p25trunk" && (r[0x32] & 31) === 26,
+		aesSlot: mode === "p25trunk" && (r[0x32] & 31) === 26 ? 0 : (r[0x32] & 31) === 0 ? 0 : (r[0x32] & 31) >= 17 && (r[0x32] & 31) <= 20 ? (r[0x32] & 31) - 16 : 255,
 		name: getName(r, 0, 16),
 		rxHz, txHz,
 		mode,
@@ -108,7 +111,7 @@ function decodeChannelFields(r, rxHz, txHz, l1, f1, f4, hasLoc, mode) {
 		rxTone: getTone(r, 0x20),
 		txTone: getTone(r, 0x22),
 		bw: f4 & 0x02 ? 25 : 12.5,
-		rxOnly: (f4 & 0x04) !== 0,
+		rxOnly: (f4 & 0x04) !== 0 || (mode === "p25trunk" && (r[0x32] & 31) !== 26),
 		allSkip: (f4 & 0x10) !== 0,
 		zoneSkip: (f4 & 0x20) !== 0,
 		vox: (f4 & 0x40) !== 0,
@@ -137,6 +140,7 @@ function decodeChannelFields(r, rxHz, txHz, l1, f1, f4, hasLoc, mode) {
 // Write a channel's fields onto its stored record r (a blank one if r doesn't decode); r is changed in place
 export function encodeChannel(c, r) {
 	if (getFreq(r, 0x10) === null) r.set(blankChannel());
+	r[0x32] = (r[0x32] & 0xE0) | (c.aesSlot ? c.aesSlot <= 4 ? 16 + c.aesSlot : 31 : c.mode === "p25trunk" && c.trunkTx ? 26 : 0);
 	putName(r, 0, 16, c.name);
 	putFreq(r, 0x10, c.rxHz);
 	putFreq(r, 0x14, c.txHz);
@@ -362,6 +366,7 @@ export function encodeAprs(a, r) {
 export function decodeGeneral(b) {
 	const g = b.subarray(GENERAL, GENERAL + GENERAL_SIZE);
 	return {
+		aesKeys: decodeAesKeys(b),
 		radioName: getName(g, 0, 8),
 		dmrId: getBcdId(g, 8),
 		groupHang: g[0x18] === 0xFF ? 0 : g[0x18],
@@ -372,6 +377,7 @@ export function decodeGeneral(b) {
 }
 
 export function encodeGeneral(s, b) {
+	encodeAesKeys(s.aesKeys || [], b);
 	const was = decodeGeneral(b);
 	const g = b.subarray(GENERAL, GENERAL + GENERAL_SIZE);
 	if (was.radioName !== s.radioName) putName(g, 0, 8, s.radioName);

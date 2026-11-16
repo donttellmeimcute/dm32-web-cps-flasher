@@ -5,12 +5,12 @@
 // each record shows. The choices and the user's own RadioID API key are kept in this browser (localStorage), never
 // sent anywhere but RadioID itself.
 
-import { register } from "./extensions.js?v=081b5de899";
-import * as diag from "../diag.js?v=081b5de899";
-import { h, button, progressBar, num as fmtNum } from "../flasher/dom.js?v=081b5de899";
-import * as radioid from "../codeplug/sources/radioid.js?v=081b5de899";
-import { writeIddb, eraseIddb, convertIddb, addContacts, iddbEnd, iddbSize, iddbRecords } from "../codeplug/sources/output.js?v=081b5de899";
-import { TEXT_LENGTHS } from "../codeplug/iddb.js?v=081b5de899";
+import { register } from "./extensions.js?v=fb0b2c065d";
+import * as diag from "../diag.js?v=fb0b2c065d";
+import { h, button, progressBar, num as fmtNum } from "../flasher/dom.js?v=fb0b2c065d";
+import * as radioid from "../codeplug/sources/radioid.js?v=fb0b2c065d";
+import { writeIddb, eraseIddb, convertIddb, addContacts, iddbEnd, iddbSize, iddbRecords } from "../codeplug/sources/output.js?v=fb0b2c065d";
+import { TEXT_LENGTHS } from "../codeplug/iddb.js?v=fb0b2c065d";
 
 const PREFS = "rfoundry-editor-radioid";
 const KEY = "rfoundry-radioid-api-key";

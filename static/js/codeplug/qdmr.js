@@ -5,9 +5,9 @@
 // form qdmr 0.15 writes for this codeplug. Both return notes: what the other side can't hold, so the page can say what
 // was left out. The mapping was learned from qdmr's manual and from files qdmr writes and reads, never its source.
 
-import { parse, stringify, flow, Tag } from "./yaml.js?v=081b5de899";
-import { LIMITS } from "./records.js?v=081b5de899";
-import { parseTone } from "./fields.js?v=081b5de899";
+import { parse, stringify, flow, Tag } from "./yaml.js?v=fb0b2c065d";
+import { LIMITS } from "./records.js?v=fb0b2c065d";
+import { parseTone } from "./fields.js?v=fb0b2c065d";
 
 export class QdmrError extends Error {
 	constructor(code, params = {}) {
@@ -371,6 +371,7 @@ export function importQdmr(m, yamlText) {
 
 // qdmr YAML for the model: {text, notes}
 export function exportQdmr(m) {
+	if (m.channels.some((c) => c.aesSlot || c.trunkTx)) throw new Error("AES/trunk TX channels require a binary or CSV export; YAML cannot preserve these settings.");
 	const notes = new Map();
 	const note = (code, n = 1) => notes.set(code, (notes.get(code) || 0) + n);
 	const g = m.general;
