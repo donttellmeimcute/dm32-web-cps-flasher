@@ -717,25 +717,21 @@ h2 { font-weight: 700; }
 }
 .help-card { border-radius: var(--radius); background: var(--surface); }
 
-/* the Throne tab: fixed on the right edge, every page */
-.throne-tab {
-	position: fixed; right: 0; top: 50%; z-index: 6; transform: translateY(-50%);
-	writing-mode: vertical-rl; display: flex; align-items: center; gap: var(--space-2);
-	padding: var(--space-4) var(--space-2); border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-	background: linear-gradient(180deg, #e8217a, #7c4dff); color: #fff; text-decoration: none;
-	font-weight: 700; font-size: var(--text-sm); letter-spacing: 0.04em; box-shadow: var(--glow);
-	transition: padding 0.15s, filter 0.15s;
+/* the support bar (Ko-fi, Throne): the first thing on every page, in the flow (never over the content) */
+.support-bar { background: var(--surface); border-bottom: 1px solid var(--border); }
+.support-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-2) var(--space-3);
+	padding: var(--space-2) 0; font-size: var(--text-sm); }
+.support-row > span { color: var(--muted); font-weight: 600; }
+.kofi-btn, .throne-btn {
+	display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-4); border-radius: 999px;
+	color: #fff; font-weight: 700; letter-spacing: 0.02em; text-decoration: none; box-shadow: var(--glow); transition: filter 0.15s;
 }
-.throne-tab:hover, .throne-tab:focus-visible { padding-right: var(--space-3); filter: brightness(1.1); text-decoration: none; }
-.throne-tab span[aria-hidden] { writing-mode: horizontal-tb; }
-/* where the page reaches the right edge, keep a strip for the tab so it covers nothing */
-@media (min-width: 761px) and (max-width: 1300px) { body { padding-right: 2.75rem; } }
+.kofi-btn { background: linear-gradient(90deg, #ff5e5b, #e8217a); }
+.throne-btn { background: linear-gradient(90deg, #e8217a, #7c4dff); }
+.kofi-btn:hover, .kofi-btn:focus-visible, .throne-btn:hover, .throne-btn:focus-visible { filter: brightness(1.1); color: #fff; text-decoration: none; }
 @media (max-width: 760px) {
-	/* narrow screens: a pill above the footer, in the flow, so it covers nothing */
-	.throne-tab { position: static; transform: none; writing-mode: horizontal-tb; width: fit-content;
-		margin: var(--space-6) auto 0; padding: var(--space-2) var(--space-5); border-radius: 999px; }
-	.throne-tab:hover, .throne-tab:focus-visible { padding-right: var(--space-5); }
+	.support-row > span { flex-basis: 100%; text-align: center; }
 	.hero .feature-rows > div { grid-template-columns: 1fr; gap: var(--space-1); }
 }
-@media print { .throne-tab { display: none; } }
-@media (prefers-reduced-motion: reduce) { .btn, .choice, .throne-tab { transition: none; } .btn:hover, .choice:hover { transform: none !important; } }
+@media print { .support-bar { display: none; } }
+@media (prefers-reduced-motion: reduce) { .btn, .choice, .kofi-btn, .throne-btn { transition: none; } .btn:hover, .choice:hover { transform: none !important; } }

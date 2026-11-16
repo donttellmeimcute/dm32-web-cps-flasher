@@ -1,6 +1,6 @@
 # DM32 Web CPS & Flasher — Open25-DM32 (P25 / NXDN)
 
-[![Regálame un radio en Throne](https://img.shields.io/badge/Throne-Reg%C3%A1lame%20un%20radio-ff69b4?style=for-the-badge)](https://throne.com/lyraarsgoetia)
+[![Regálame un radio en Throne](https://img.shields.io/badge/Throne-Reg%C3%A1lame%20un%20radio-ff69b4?style=for-the-badge)](https://throne.com/lyraarsgoetia) [![Apóyame en Ko-fi](https://img.shields.io/badge/Ko--fi-Ap%C3%B3yame-ff5e5b?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/lyraarsgoetia)
 
 **¿Quieres firmware para tu radio?** Regálamelo desde mi lista de deseos y lo porto: **<https://throne.com/lyraarsgoetia>** · *Want firmware for your radio? Gift it from my wishlist and I'll port it.*
 
@@ -113,8 +113,8 @@ A mano:
 El aspecto propio («night console»: superficies violetas, acento magenta-violeta, banda oscura en la portada) vive en
 `static/css/tokens.css` (paleta, tipografía, radios; modo claro y oscuro) y en el bloque final de `static/css/site.css`.
 No cambia el HTML ni la lógica del flasher. Solo usa fuentes del sistema: el sitio sigue sin cargar nada de otros
-servidores. Los créditos de RadioFoundry y las cabeceras SPDX de cada archivo se conservan. Cada página lleva en el
-borde derecho la pestaña ♥ de Throne (en pantallas estrechas, un botón sobre el pie). Al cambiar el CSS, sube el `?v=`
+servidores. Los créditos de RadioFoundry y las cabeceras SPDX de cada archivo se conservan. Cada página empieza con
+una barra con los botones de Ko-fi y Throne, en el flujo de la página (no flota ni tapa nada). Al cambiar el CSS, sube el `?v=`
 de `tokens.css`/`site.css` en las páginas para que GitHub Pages no sirva la versión anterior en caché.
 
 ## Probar en local
@@ -136,6 +136,8 @@ El archivo `.nojekyll` hace que Pages sirva los archivos tal cual. Todas las rut
 
 ¿Quieres soporte para otro radio? Si me regalas uno desde mi lista de deseos, puedo hacer firmware para él:
 **<https://throne.com/lyraarsgoetia>**
+
+También puedes apoyar el desarrollo del firmware y del flasher en Ko-fi: **<https://ko-fi.com/lyraarsgoetia>**
 
 ## Créditos y licencias
 
@@ -168,7 +170,8 @@ RadioFoundry. Static site, everything runs in the browser; Spanish at the root, 
   <manifest.json>` here (updates `firmware/dm32/` and `data/releases.json`).
 - **No telemetry:** the flash log and uploads to the RadioFoundry backend are disabled.
 - **Look:** `static/css/tokens.css` and the last block of `static/css/site.css` (system fonts only, RadioFoundry credits kept);
-  a Throne tab on the right edge of every page.
+  every page starts with a Ko-fi and Throne support bar, in the page flow (it never covers the content).
 - **Credits:** RadioFoundry Authors (MIT, original flasher/editor), Open25-DM32 by tylerwatt12 (GPL-3.0 firmware base),
   P25/NXDN derivative by lyra XE1POC. Site code MIT (`LICENSE`), firmware GPL-3.0-or-later (`firmware/LICENSES/`).
-- **Support:** want firmware for another radio? Gift one from my wishlist: <https://throne.com/lyraarsgoetia>
+- **Support:** want firmware for another radio? Gift one from my wishlist: <https://throne.com/lyraarsgoetia>.
+  Support development on Ko-fi: <https://ko-fi.com/lyraarsgoetia> (also in every page's footer).

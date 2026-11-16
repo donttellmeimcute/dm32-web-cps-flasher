@@ -73,5 +73,7 @@
  "flash.nocodec.text": "Esta instalación no incluye el códec AMBE. La radio no podrá enviar ni recibir voz DMR ni NXDN. FM y P25 funcionarán.",
  "flash.help.s.novoice": "La voz DMR o NXDN no funciona",
  "support.kofi": "Apóyame en Ko-fi",
- "support.kofi_text": "Apoya el desarrollo del firmware y del flasher."
+ "support.kofi_text": "Apoya el desarrollo del firmware y del flasher.",
+ "support.bar": "¿Te sirve? Apoya el proyecto:",
+ "support.kofi_aria": "Apoya a lyra XE1POC en Ko-fi: el desarrollo del firmware y del flasher (se abre en otra pestaña)"
 }
