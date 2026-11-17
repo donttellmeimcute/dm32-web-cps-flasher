@@ -2,18 +2,18 @@
   "format": "rfoundry-release/1",
   "board": "dm32",
   "board_name": "Baofeng DM-32UV",
-  "version": "2026.11.17-8a5e9829",
-  "git": "8a5e9829",
-  "git_full": "8a5e9829402d6f5ae7da05cadc2a5f2d5261d567",
+  "version": "2026.11.17-fcabf413",
+  "git": "fcabf413",
+  "git_full": "fcabf413ca20cee9b083b2709081dc1eb5430435",
   "image": {
-    "file": "rfoundry-dm32-2026.11.17-8a5e9829.bin",
-    "size": 560140,
-    "sha256": "a7f249c103d2f49f89ae839f91f52008dcd575c3bbaf2af13059d5c6b87f82b0"
+    "file": "rfoundry-dm32-2026.11.17-fcabf413.bin",
+    "size": 560372,
+    "sha256": "945f305f7f51cafe0247abb223e3d962d8d44e59255b043090804c67a0fb9e8a"
   },
   "ranges": [
     {
       "addr": "0x0300C000",
-      "size": 560140
+      "size": 560372
     }
   ],
   "sectors": [
@@ -37,5 +37,5 @@
   "toolchain": "csky-elf-gcc (GCC) 14.3.0",
   "variant": "full",
   "off": "DMR_IP_GATEWAY,ZONE_SHARE,NET_TCP,NET_KISS,NET_HTTP,NET_HTTP_GZIP,NET_WEBCTL,NET_RIGCTL,NET_APRSIS,NET_USRP,MDNS,TFTP,TFTP_IDDB,DMR_CONTROL_STATION,SNMP,SFR,SFR_DUALPATH_RX,SFR_CWID,NET_PPP,HOTSPOT,HOTSPOT_SPLIT,LANG_IT,LANG_DEFAULT_ES,LANG_DEFAULT_IT,VIBRATE,APRS_IGATE,GPS_SKY,FIRSTBOOT,P25_BENCH,CPU_PROFILE,DEV_UPDATE,DEV_TX",
-  "git_time": 1794876369
+  "git_time": 1794877858
 }
