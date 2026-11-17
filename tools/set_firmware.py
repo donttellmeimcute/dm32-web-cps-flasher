@@ -10,13 +10,17 @@ and rewrites data/releases.json, the list the flasher installs from, and firmwar
 Refuses a manifest for another radio, one that says it includes the codec, an image that doesn't match it, and an
 image that would reach the codec's flash window: this repository must never carry the AMBE codec.
 """
+import datetime
 import hashlib
 import json
 import os
+import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIR = os.path.join(ROOT, "firmware", "dm32")
+PAGES = ("index.html", "404.html", "flash/index.html", "codeplug/index.html",
+	 "en/index.html", "en/404.html", "en/flash/index.html", "en/codeplug/index.html")
 
 
 def main(man_path):
@@ -51,7 +55,33 @@ def main(man_path):
 		 "size": len(image), "sha256": sha}
 	with open(os.path.join(ROOT, "data", "releases.json"), "w", encoding="utf-8", newline="\n") as f:
 		f.write(json.dumps({"releases": [entry]}, indent=1, ensure_ascii=False) + "\n")
-	print("firmware/dm32/%s (%d bytes, %s), data/releases.json updated" % (name, len(image), m["version"]))
+	pages = stamp_pages(m["version"], m.get("git_time"))
+	print("firmware/dm32/%s (%d bytes, %s), data/releases.json and %d page footers updated" %
+	      (name, len(image), m["version"], pages))
+
+
+# The footer's stamp ("Changelog · <site git> · <site build time>") stayed at the last site build, so after a firmware
+# sync every page still showed the old date: it names the firmware the site offers instead, with that build's time
+STAMP = re.compile(r'(<p class="build-stamp">.*?</a>) · [^<]* · <time datetime="[^"]*">[^<]*</time></p>')
+
+
+def stamp_pages(version, git_time):
+	when = datetime.datetime.fromtimestamp(git_time or 0, datetime.timezone.utc)
+	new = r'\1 · Firmware %s · <time datetime="%s">%s</time></p>' % (
+		version, when.strftime("%Y-%m-%dT%H:%MZ"), when.strftime("%Y-%m-%d %H:%M UTC"))
+	count = 0
+	for page in PAGES:
+		path = os.path.join(ROOT, page)
+		with open(path, encoding="utf-8") as f:
+			text = f.read()
+		stamped, n = STAMP.subn(new, text)
+		if n != 1:
+			sys.exit("%s: no build stamp to update" % page)
+		if stamped != text:
+			with open(path, "w", encoding="utf-8", newline="\n") as f:
+				f.write(stamped)
+			count += 1
+	return count
 
 
 if __name__ == "__main__":

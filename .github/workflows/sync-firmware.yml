@@ -57,6 +57,7 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           python3 tools/set_firmware.py "$RUNNER_TEMP/fw/rfoundry-dm32-$VERSION.json"
           git add -A firmware/dm32 data/releases.json
+          git add -u -- "*.html"
           git -c user.name=donttellmeimcute -c user.email=24362190+donttellmeimcute@users.noreply.github.com \
             commit -m "Firmware $VERSION from DM32-nxdn-p25 $TAG"
           git push origin HEAD:main
