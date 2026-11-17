@@ -28,7 +28,7 @@ class FeatureDataTest(unittest.TestCase):
                 radio = json.loads((data / "radios.json").read_text(encoding="utf-8"))["radios"][0]
                 self.assertEqual(set(radio["config"]["full"]), base | optional | {"DMR"})
                 self.assertEqual("Trunk TX is experimental" in radio["support"], "P25_TRUNK_TX" in optional)
-                self.assertEqual("no DMR" in radio["support"], "AIR_AES" in optional)
+                self.assertEqual("AES-256 on DMR" in radio["support"], "AIR_AES" in optional)
 
 
 if __name__ == "__main__":

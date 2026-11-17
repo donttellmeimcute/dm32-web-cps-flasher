@@ -15,8 +15,8 @@
 // leaves program mode only by restarting (`91 05`); the bootloader stays in it, and its 91 01 works once, so a write in
 // the same session starts at 91 31 (dfu.js run programMode).
 
-import { hex, toHex } from "./bytes.js?v=bbc2466609";
-import { runsOriginal, parseVersion } from "./origversion.js?v=bbc2466609";
+import { hex, toHex } from "./bytes.js?v=c16ffd9bbf";
+import { runsOriginal, parseVersion } from "./origversion.js?v=c16ffd9bbf";
 
 const DNLOAD = 1, UPLOAD = 2, GETSTATUS = 3, CLRSTATUS = 4, ABORT = 6;
 const ST_IDLE = 2, ST_DNBUSY = 4, ST_DNIDLE = 5, ST_ERROR = 10;

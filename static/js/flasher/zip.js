@@ -3,7 +3,7 @@
 // A small zip writer and reader for backup bundles: stored or deflated entries (the browser's CompressionStream),
 // no zip64, so a bundle stays under 4 GB (a full backup is about 17 MB before compression).
 
-import { concat, crc32 } from "./bytes.js?v=bbc2466609";
+import { concat, crc32 } from "./bytes.js?v=c16ffd9bbf";
 
 const enc = new TextEncoder();
 

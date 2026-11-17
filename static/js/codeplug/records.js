@@ -5,11 +5,11 @@
 // field covers survive an edit. Addresses are image addresses (image.js). References between records (a channel's
 // contact, a zone's channels) are 1-based numbers here; model.js turns them into objects.
 
-import { EE, FL } from "./image.js?v=bbc2466609";
+import { EE, FL } from "./image.js?v=c16ffd9bbf";
 import {
 	getFreq, putFreq, getBcdId, putBcdId, getTone, putTone, getName, putName, getCoord, coordBytes, u16, put16,
-} from "./fields.js?v=bbc2466609";
-import { decodeArea, getKey, putKeys, keyValid, KEYS } from "./kv.js?v=bbc2466609";
+} from "./fields.js?v=c16ffd9bbf";
+import { decodeArea, getKey, putKeys, keyValid, KEYS } from "./kv.js?v=c16ffd9bbf";
 
 export const LIMITS = {
 	channels: 1024, zones: 68, zoneChannels: 80, contacts: 1024, rxLists: 76, rxListContacts: 32,

@@ -19,8 +19,8 @@ Ambos tienen un modo de práctica sin radio: `flash/#sim=dm32-stock` (DM-32UV co
 (con RadioFoundry) y `codeplug/#sim`.
 
 > **17/11/2026: cambio de base.** El firmware se compila ahora sobre RadioFoundry actual (DMR Tier III, AM, NXDN96,
-> AES-256 de P25/NXDN según sus estándares). Ya no trae AES en DMR, P25 fase 2 ni TX troncal P25, y las claves AES van
-> en el llavero del codeplug: vuelve a cargarlas después de actualizar. Detalles en
+> AES-256 en DMR, P25 y NXDN, tonos de permiso estilo Motorola). Ya no trae P25 fase 2 ni TX troncal P25, y las claves
+> AES van en el llavero del codeplug: vuelve a cargarlas después de actualizar. Detalles en
 > [DM32-nxdn-p25](https://github.com/donttellmeimcute/DM32-nxdn-p25#cambio-de-base-qu%C3%A9-se-pierde-y-qu%C3%A9-hacer).
 
 > **Firmware experimental.** La voz P25 y NXDN se verificó en ambos sentidos con la base anterior; con la nueva base la

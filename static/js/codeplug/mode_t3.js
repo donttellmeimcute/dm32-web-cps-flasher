@@ -4,8 +4,8 @@
 // on the channel-mode layer (channelmodes.js). Bytes to fields and back; the fields the pages show are declared here
 // as data (modes.js says how) and drawn by the editor's generic views.
 
-import { u8, u16, u32, s8, put16, put32, grow, hex, unhex } from "./modebytes.js?v=bbc2466609";
-import { ID_MAX } from "./kv.js?v=bbc2466609";
+import { u8, u16, u32, s8, put16, put32, grow, hex, unhex } from "./modebytes.js?v=c16ffd9bbf";
+import { ID_MAX } from "./kv.js?v=c16ffd9bbf";
 
 export const T3_BLOCK = 39, T3_SITES = 8, T3_LCN = 4094, T3_CTRL = 4;
 

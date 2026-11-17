@@ -7,17 +7,17 @@
 // the image it came from and touches only records whose fields changed, so an unedited codeplug round-trips byte for
 // byte.
 
-import { CodeplugImage } from "./image.js?v=bbc2466609";
+import { CodeplugImage } from "./image.js?v=c16ffd9bbf";
 import {
 	LIMITS, CH_SIZE, bankBitmap, channelAddr, decodeChannel, encodeChannel, zoneLayout, decodeZone, encodeZone,
 	ZONE_BITMAP, ZONE_DATA, ZONE_RECORD, CONTACTS, CONTACT_SIZE, decodeContact, encodeContact, LIST_COUNTS, LISTS,
 	LIST_SIZE, decodeList, encodeList, DTMF_CONTACTS, decodeDtmf, encodeDtmf, validDtmf, APRS_BASE, APRS_SIZE,
 	decodeAprs, encodeAprs, decodeGeneral, encodeGeneral, VFO, LUCZ,
-} from "./records.js?v=bbc2466609";
-import { parseTone } from "./fields.js?v=bbc2466609";
-import { readHeader } from "./iddb.js?v=bbc2466609";
-import { decodeArea, keyValid, KEYS } from "./kv.js?v=bbc2466609";
-import { decodeModes, encodeModes, syncModes, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=bbc2466609";
+} from "./records.js?v=c16ffd9bbf";
+import { parseTone } from "./fields.js?v=c16ffd9bbf";
+import { readHeader } from "./iddb.js?v=c16ffd9bbf";
+import { decodeArea, keyValid, KEYS } from "./kv.js?v=c16ffd9bbf";
+import { decodeModes, encodeModes, syncModes, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=c16ffd9bbf";
 
 const REFS = ["contact", "rxList", "aprs"];
 

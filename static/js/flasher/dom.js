@@ -2,8 +2,8 @@
 // Copyright (c) 2026 The RadioFoundry Authors
 // The flasher page's DOM helpers and strings, shared by app.js and the views beside it (c7000ui.js).
 
-import { note } from "../diag.js?v=bbc2466609";
-import { page, LANG } from "../i18n.js?v=bbc2466609";
+import { note } from "../diag.js?v=c16ffd9bbf";
+import { page, LANG } from "../i18n.js?v=c16ffd9bbf";
 
 // the page's strings (../i18n.js): t(key, fmt), tOr(key, repository text), num(n) and date(d, options) in its language
 export const { t, num } = page;

@@ -529,7 +529,7 @@
    "variants": [],
    "variant_pattern": null,
    "variant_check": null,
-   "support": "FM, DMR, P25 and NXDN voice both ways, CTCSS/DCS, APRS both ways, GPS data, the hotspot and each split duplex half worked on air with the earlier patch-series base; this image (current RadioFoundry base) boots on the radio and is not tested on air yet. P25 trunking follows Phase 1 calls. This image has receive-only P25 trunking. AES-256 is for P25 and NXDN only (no DMR); untested with other makers' radios. Open: FM deviation at 12.5 kHz and an outdoor GPS fix.",
+   "support": "FM, DMR, P25 and NXDN voice both ways, CTCSS/DCS, APRS both ways, GPS data, the hotspot and each split duplex half worked on air with the earlier patch-series base; this image (current RadioFoundry base) boots on the radio and is not tested on air yet. P25 trunking follows Phase 1 calls. This image has receive-only P25 trunking. AES-256 on DMR (Settings > Privacy), P25 and NXDN; untested with other makers' radios. Open: FM deviation at 12.5 kHz and an outdoor GPS fix.",
    "image": "static/img/radios/dm32.svg",
    "frame_image": "static/img/radios/dm32-frame.svg",
    "frame_geometry": {

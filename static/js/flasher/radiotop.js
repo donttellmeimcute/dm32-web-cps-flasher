@@ -8,7 +8,7 @@
 // second while data moves, three green flashes when done), and a caption that says the same in words, so nobody has to
 // read the animation.
 
-import { h, svg, t, ROOT } from "./dom.js?v=bbc2466609";
+import { h, svg, t, ROOT } from "./dom.js?v=c16ffd9bbf";
 
 // The picture's address in the site, or null when the data has none
 export const pictureSrc = (radio) => radio?.frame_image || null;

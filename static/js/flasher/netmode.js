@@ -9,8 +9,8 @@
 //   - a new tab on the radio's own page, SERIAL_MODE_URL (docs/spec/tcp-services.md 5): a navigation is allowed
 //     where a fetch is not. The tab closes itself. Needs the link up (the host routes 12.0.0.0/8 through the radio).
 
-import { RFOUNDRY_NET, RFOUNDRY_USB, serialApi, serialSupported } from "./link.js?v=bbc2466609";
-import { sleep } from "./bytes.js?v=bbc2466609";
+import { RFOUNDRY_NET, RFOUNDRY_USB, serialApi, serialSupported } from "./link.js?v=c16ffd9bbf";
+import { sleep } from "./bytes.js?v=c16ffd9bbf";
 
 export const SERIAL_MODE_REQUEST = 0x53;
 // 12.255.255.254: the radio on this link, whatever its DMR ID (core/dmr/ipGateway.h IPGW_ANY_RADIO_IP). An address,

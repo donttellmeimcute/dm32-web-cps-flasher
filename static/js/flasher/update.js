@@ -10,7 +10,7 @@
 // one: a build from the build service is matched to its variant by its exact switch set (the service's record of it,
 // match: GET /v1/builds/match), and the start language comes from VERSION start= or that record.
 
-import { START_SINCE, startCode, startKnownAt } from "./langsuggest.js?v=bbc2466609";
+import { START_SINCE, startCode, startKnownAt } from "./langsuggest.js?v=c16ffd9bbf";
 
 const split = (s) => String(s || "").split(",").filter(Boolean);
 

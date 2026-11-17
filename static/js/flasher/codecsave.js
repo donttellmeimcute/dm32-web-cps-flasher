@@ -11,8 +11,8 @@
 // before it is written (codecSegments). The copy is never deleted: it is what lets an install that stopped halfway, at
 // any step, be run again (docs/spec/codec-placement.md, "Moving to a new layout"). The same rules as rfoundry/codecsave.py.
 
-import { u32le } from "./bytes.js?v=bbc2466609";
-import { checkForm, forms, fromForm, placedWindows } from "./stockfw.js?v=bbc2466609";
+import { u32le } from "./bytes.js?v=c16ffd9bbf";
+import { checkForm, forms, fromForm, placedWindows } from "./stockfw.js?v=c16ffd9bbf";
 
 // The stock profiles whose codec this board runs
 export const profilesFor = (board, fb) =>

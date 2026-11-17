@@ -39,7 +39,7 @@ dm["support"] = ("FM, DMR, P25 and NXDN voice both ways, CTCSS/DCS, APRS both wa
                  "boots on the radio and is not tested on air yet. P25 trunking follows Phase 1 calls. "
                  + ("Trunk TX is experimental and requires per-channel opt-in; hardware interoperability is untested. "
                     if "P25_TRUNK_TX" in rel else "This image has receive-only P25 trunking. ")
-                 + ("AES-256 is for P25 and NXDN only (no DMR); untested with other makers' radios. " if "AIR_AES" in rel else "")
+                 + ("AES-256 on DMR (Settings > Privacy), P25 and NXDN; untested with other makers' radios. " if "AIR_AES" in rel else "")
                  + "Open: FM deviation at 12.5 kHz and an outdoor GPS fix.")
 save("data/radios.json", r)
 missing = [n for n in ON if n not in rel]

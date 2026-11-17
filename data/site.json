@@ -1,11 +1,11 @@
 {
  "format": "rfoundry-site/1",
  "git": "e89121e9",
- "version": "e89121e-dirty",
+ "version": "e89121e9-dirty",
  "built": "2026-11-17",
  "release": "",
  "beta": "",
- "branch": "",
+ "branch": "dm32-open",
  "repo": "https://github.com/donttellmeimcute/DM32-nxdn-p25",
  "community": "https://github.com/donttellmeimcute/DM32-nxdn-p25/issues",
  "languages": [

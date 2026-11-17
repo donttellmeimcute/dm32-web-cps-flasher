@@ -16,10 +16,10 @@
 // fields, raw}], secret (the module's fields, {raw} for a type without, null for none), flagsRaw, raw}.
 // m.modeSettings: {kind id: the module's fields}.
 
-import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, KV_SIZE, KV_HDR, KEYS } from "./kv.js?v=bbc2466609";
-import { getName, putName } from "./fields.js?v=bbc2466609";
-import { KINDS, kindRow, typeRow, radioRuns } from "./modes.js?v=bbc2466609";
-import { u16, u32, put16, put32, sameBytes, sameValue, nameCheck } from "./modebytes.js?v=bbc2466609";
+import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, KV_SIZE, KV_HDR, KEYS } from "./kv.js?v=c16ffd9bbf";
+import { getName, putName } from "./fields.js?v=c16ffd9bbf";
+import { KINDS, kindRow, typeRow, radioRuns } from "./modes.js?v=c16ffd9bbf";
+import { u16, u32, put16, put32, sameBytes, sameValue, nameCheck } from "./modebytes.js?v=c16ffd9bbf";
 
 export const MODE_KEY = { system: 0x0100, entry: 0x0200, secret: 0x0300, tag: 0x0400, setting: 0x0A00 };
 export const MODE_LIMITS = { systems: 255, entries: 256, tags: 1024, name: 16 };
@@ -495,6 +495,7 @@ export const KEY_RING_SYSTEM = 0xFF;			// "no system": the radio's own keyring
 export const KEY_ALGS = [
 	{ alg: 0x84, token: "p25", idMax: 0xFFFF, hex: true },
 	{ alg: 3, token: "nxdn", idMax: 63, hex: false },
+	{ alg: 0x25, token: "dmr", idMax: 255, hex: false },	// DMR AES-256, Motorola layout (Settings > Privacy, key ID 1-255)
 ];
 export const keyAlg = (alg) => KEY_ALGS.find((a) => a.alg === alg) ?? null;
 const hexToBytes = (s) => Uint8Array.from(s.match(/../g) ?? [], (x) => parseInt(x, 16));

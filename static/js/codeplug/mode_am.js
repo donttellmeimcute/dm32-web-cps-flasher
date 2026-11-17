@@ -4,7 +4,7 @@
 // receives in AM wherever it is tuned (the receiver's AM path, not only the air band). It has no parameter block and no
 // target: the base record stands in as DMR, receive only, and the tag says AM.
 
-import { grow } from "./modebytes.js?v=bbc2466609";
+import { grow } from "./modebytes.js?v=c16ffd9bbf";
 
 export const amKind = {
 	id: 5,

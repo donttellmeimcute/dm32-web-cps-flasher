@@ -8,14 +8,14 @@
 // RadioFoundry's codeplug (codeplug/stock_baofeng.js): the install converts the read its check step took and writes it
 // through the codeplug interface (writeConverted).
 
-import { CODEPLUG_SPAN } from "./backup.js?v=bbc2466609";
-import { codeplugSectors } from "./restore.js?v=bbc2466609";
-import { classify } from "../codeplug/detect.js?v=bbc2466609";
-import { STOCK, detectStock, importStock } from "../codeplug/stock_tyt.js?v=bbc2466609";
-import { empty, encode, decode } from "../codeplug/model.js?v=bbc2466609";
-import { CodeplugImage } from "../codeplug/image.js?v=bbc2466609";
-import { writeRanges, VFOS } from "../codeplug/transport.js?v=bbc2466609";
-import { DM32_STOCK, detectStock as detectPaged, importStock as importPaged } from "../codeplug/stock_baofeng.js?v=bbc2466609";
+import { CODEPLUG_SPAN } from "./backup.js?v=c16ffd9bbf";
+import { codeplugSectors } from "./restore.js?v=c16ffd9bbf";
+import { classify } from "../codeplug/detect.js?v=c16ffd9bbf";
+import { STOCK, detectStock, importStock } from "../codeplug/stock_tyt.js?v=c16ffd9bbf";
+import { empty, encode, decode } from "../codeplug/model.js?v=c16ffd9bbf";
+import { CodeplugImage } from "../codeplug/image.js?v=c16ffd9bbf";
+import { writeRanges, VFOS } from "../codeplug/transport.js?v=c16ffd9bbf";
+import { DM32_STOCK, detectStock as detectPaged, importStock as importPaged } from "../codeplug/stock_baofeng.js?v=c16ffd9bbf";
 
 // The stock family a memory chip read holds, or null (a RadioFoundry codeplug, a blank one, or one not read here)
 export function stockLayoutOf(bytes) {

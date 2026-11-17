@@ -5,7 +5,7 @@
 // and system type 3 on the channel-mode layer (channelmodes.js). Bytes to fields and back, and the fields the pages
 // show, as data. Talk targets are the contact list's: a group contact is a talk group, a private one a unit.
 
-import { u8, u16, u24, u32, s8, put16, put24, put32, grow } from "./modebytes.js?v=bbc2466609";
+import { u8, u16, u24, u32, s8, put16, put24, put32, grow } from "./modebytes.js?v=c16ffd9bbf";
 
 export const NAC_DEFAULT = 0x293, NAC_ANY = 0xF7E, NAC_REPEAT_ANY = 0xF7F, NAC_SET = 0x8000;
 export const UNIT_MAX = 0xFFFFFE;

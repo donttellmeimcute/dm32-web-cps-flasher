@@ -3,8 +3,8 @@
 // Release manifests (rfoundry-release/1): checking one against its image and the radio. A port of verify() in
 // tools/rfoundry/rfoundry/manifest.py; the format is described in docs/dev/release.md.
 
-import { hex, sha256, startsWith } from "./bytes.js?v=bbc2466609";
-import { codecSectors } from "./plan.js?v=bbc2466609";
+import { hex, sha256, startsWith } from "./bytes.js?v=c16ffd9bbf";
+import { codecSectors } from "./plan.js?v=c16ffd9bbf";
 
 export class ManifestError extends Error {}
 

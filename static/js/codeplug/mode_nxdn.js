@@ -5,7 +5,7 @@
 // layer (channelmodes.js). Bytes to fields and back, and the fields the pages show, as data. Talk targets are the
 // contact list's: a group contact is a group, a private one a unit.
 
-import { u8, u16, put16, grow } from "./modebytes.js?v=bbc2466609";
+import { u8, u16, put16, grow } from "./modebytes.js?v=c16ffd9bbf";
 
 export const RAN_MAX = 63, TX_RAN_SET = 0x80, TX_RAN_DEFAULT = 1, RATE_4800 = 0x04;
 export const UNIT_MAX = 65519, ID_ALL = 0xFFFF;

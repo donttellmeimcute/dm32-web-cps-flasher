@@ -3,7 +3,7 @@
 // Byte helpers the channel-mode layer and its mode modules share (docs/spec/channel-modes.md): little-endian fields
 // that read 0 past a short record's end, the name check, and record comparison.
 
-import { putName } from "./fields.js?v=bbc2466609";
+import { putName } from "./fields.js?v=c16ffd9bbf";
 
 export const u8 = (b, o) => (b && o < b.length ? b[o] : 0);
 export const u16 = (b, o) => (b && o + 2 <= b.length ? b[o] | (b[o + 1] << 8) : 0);

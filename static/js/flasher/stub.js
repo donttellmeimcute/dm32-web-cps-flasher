@@ -12,10 +12,10 @@
 // program flash's application area, 0xC000 up; the bootloader below it is never written, and the boot ROM is in the
 // chip, so a radio can always be loaded again whatever is in its flash.
 
-import { be32, concat, crc32, equal, le32, sleep, u32le } from "./bytes.js?v=bbc2466609";
-import { decodeBlock } from "./lz4.js?v=bbc2466609";
-import { Link, LinkError } from "./link.js?v=bbc2466609";
-import * as protect from "./protect.js?v=bbc2466609";
+import { be32, concat, crc32, equal, le32, sleep, u32le } from "./bytes.js?v=c16ffd9bbf";
+import { decodeBlock } from "./lz4.js?v=c16ffd9bbf";
+import { Link, LinkError } from "./link.js?v=c16ffd9bbf";
+import * as protect from "./protect.js?v=c16ffd9bbf";
 
 // USB-serial chips known to take the boot ROM load well (adapter.js names a cable by these)
 const GOOD_CHIPS = ["FTDI", "CP210x", "PL2303"];

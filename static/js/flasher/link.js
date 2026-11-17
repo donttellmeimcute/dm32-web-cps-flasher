@@ -6,10 +6,10 @@
 // codeplug writes restore uses (X 1-3), which the radio limits to the codeplug areas, and HWOPT SET for a hardware
 // option an install learned (origversion.js).
 
-import { be32, concat, le32, sleep, u16be, u16le, u32le, toHex } from "./bytes.js?v=bbc2466609";
-import { wire, note } from "../diag.js?v=bbc2466609";
-import { serialApi, usbSerialNeeded, UsbSerialPort } from "./usbserial.js?v=bbc2466609";
-import { usbSerialChip } from "./adapter.js?v=bbc2466609";
+import { be32, concat, le32, sleep, u16be, u16le, u32le, toHex } from "./bytes.js?v=c16ffd9bbf";
+import { wire, note } from "../diag.js?v=c16ffd9bbf";
+import { serialApi, usbSerialNeeded, UsbSerialPort } from "./usbserial.js?v=c16ffd9bbf";
+import { usbSerialChip } from "./adapter.js?v=c16ffd9bbf";
 
 export { serialApi };
 

@@ -4,8 +4,8 @@
 // for settings the open-firmware layout has no field for. Entries are {key, value: Uint8Array}, in the area's order.
 // A writer keeps the keys it doesn't know byte for byte and never writes over an area of a version it doesn't know.
 
-import { EE } from "./image.js?v=bbc2466609";
-import { crc32 } from "../flasher/bytes.js?v=bbc2466609";
+import { EE } from "./image.js?v=c16ffd9bbf";
+import { crc32 } from "../flasher/bytes.js?v=c16ffd9bbf";
 
 export const KV_ADDR = EE + 0x0E000;
 export const KV_SIZE = 0x1000;

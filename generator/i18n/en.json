@@ -51,7 +51,7 @@
  "flash.fw.unavailable": "Could not load the firmware from this site: {error}",
  "flash.fw.self_text": "You can also install your own DM-32 build: pick rfoundry_dm32.bin (the image without the codec) and, if you have it, its manifest from tools/release.py.",
  "flash.task.install.text": "Install Open25-DM32 (P25/NXDN) on a DM-32UV running its original firmware or RadioFoundry.",
- "flash.task.update.text": "Install this site's image on a DM-32UV that already runs RadioFoundry or Open25-DM32. Its channels and calibration stay. Since 2026-11-17 the image is built on current RadioFoundry: it no longer has DMR AES, P25 Phase 2 or P25 trunking TX, and AES keys live in the codeplug keyring: load them again in the editor (Radio tab) after updating.",
+ "flash.task.update.text": "Install this site's image on a DM-32UV that already runs RadioFoundry or Open25-DM32. Its channels and calibration stay.",
  "editor.sim": "Simulation: Read from Radio and Write to Radio use a simulated DM-32UV.",
  "support.throne": "Gift me a radio on Throne",
  "support.throne_aria": "lyra XE1POC's Throne wishlist: gift a radio and get firmware for it (opens in a new tab)",

@@ -7,7 +7,7 @@
 // "freq" (MHz to Hz; zero: blank is 0), "bool", "select" (options: [value, label or i18n key]), "list" (whole numbers
 // split on spaces or commas, at most count), "hexbytes" (bytes octets in hex, or blank), "text".
 
-import { parseFreq, mhz } from "../codeplug/fields.js?v=bbc2466609";
+import { parseFreq, mhz } from "../codeplug/fields.js?v=c16ffd9bbf";
 
 const lim = (v, r) => (typeof v === "function" ? v(r) : v);
 export const label = (t, s) => (typeof s === "string" && s.startsWith("editor.") ? t(s) : s);

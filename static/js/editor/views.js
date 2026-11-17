@@ -4,14 +4,14 @@
 // membership editor for zones and RX group lists. Setters parse what was typed and return an error text, or
 // nothing when the value was taken.
 
-import { h, button } from "../flasher/dom.js?v=bbc2466609";
-import { parseFreq, parseTone, mhz } from "../codeplug/fields.js?v=bbc2466609";
-import { LIMITS, POWER_NAMES } from "../codeplug/records.js?v=bbc2466609";
-import { refNumber, listenBand } from "../codeplug/model.js?v=bbc2466609";
-import { keyValid } from "../codeplug/kv.js?v=bbc2466609";
-import { kindRow, kindName, offeredKinds } from "../codeplug/modes.js?v=bbc2466609";
-import { setKind } from "../codeplug/channelmodes.js?v=bbc2466609";
-import { specField } from "./modefields.js?v=bbc2466609";
+import { h, button } from "../flasher/dom.js?v=c16ffd9bbf";
+import { parseFreq, parseTone, mhz } from "../codeplug/fields.js?v=c16ffd9bbf";
+import { LIMITS, POWER_NAMES } from "../codeplug/records.js?v=c16ffd9bbf";
+import { refNumber, listenBand } from "../codeplug/model.js?v=c16ffd9bbf";
+import { keyValid } from "../codeplug/kv.js?v=c16ffd9bbf";
+import { kindRow, kindName, offeredKinds } from "../codeplug/modes.js?v=c16ffd9bbf";
+import { setKind } from "../codeplug/channelmodes.js?v=c16ffd9bbf";
+import { specField } from "./modefields.js?v=c16ffd9bbf";
 
 // --- Parsers shared by the columns and the forms ---
 
