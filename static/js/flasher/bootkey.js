@@ -5,7 +5,7 @@
 // 3.10) and takes the block whose SHA-256 is the board's key_sha256. No offset or layout is assumed, and a key that
 // doesn't match the hash can't come out of this. Same rules as rfoundry/bootkey.py.
 
-import { sha256 } from "./bytes.js?v=fb0b2c065d";
+import { sha256 } from "./bytes.js?v=bbc2466609";
 
 // The key-sized block of `region` whose SHA-256 is `wantSha`, or null. 4-byte aligned offsets first (the likely
 // place), then the rest.

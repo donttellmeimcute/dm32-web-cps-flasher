@@ -5,12 +5,12 @@
 // each record shows. The choices and the user's own RadioID API key are kept in this browser (localStorage), never
 // sent anywhere but RadioID itself.
 
-import { register } from "./extensions.js?v=fb0b2c065d";
-import * as diag from "../diag.js?v=fb0b2c065d";
-import { h, button, progressBar, num as fmtNum } from "../flasher/dom.js?v=fb0b2c065d";
-import * as radioid from "../codeplug/sources/radioid.js?v=fb0b2c065d";
-import { writeIddb, eraseIddb, convertIddb, addContacts, iddbEnd, iddbSize, iddbRecords } from "../codeplug/sources/output.js?v=fb0b2c065d";
-import { TEXT_LENGTHS } from "../codeplug/iddb.js?v=fb0b2c065d";
+import { register } from "./extensions.js?v=bbc2466609";
+import * as diag from "../diag.js?v=bbc2466609";
+import { h, button, progressBar, num as fmtNum } from "../flasher/dom.js?v=bbc2466609";
+import * as radioid from "../codeplug/sources/radioid.js?v=bbc2466609";
+import { writeIddb, eraseIddb, convertIddb, addContacts, iddbEnd, iddbSize, iddbRecords } from "../codeplug/sources/output.js?v=bbc2466609";
+import { TEXT_LENGTHS } from "../codeplug/iddb.js?v=bbc2466609";
 
 const PREFS = "rfoundry-editor-radioid";
 const KEY = "rfoundry-radioid-api-key";
@@ -379,7 +379,7 @@ async function fetchUsers() {
 	B.apiClient = B.apiClient || new radioid.RadioIdApi({ key: B.key });
 	const client = B.apiClient;
 	const ctrl = new AbortController();
-	const bar = progressBar();
+	const bar = progressBar({ stay: false });
 	const d = api.dialog(t("editor.rid.fetching"), [bar.el], null, null, () => ctrl.abort(), { cancel: t("editor.stop") });
 	try {
 		// sizes first, so a selection too big for the API is caught before the long part

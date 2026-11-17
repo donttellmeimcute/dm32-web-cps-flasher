@@ -6,8 +6,8 @@
 // The loader starts what it wrote at a power-on when it begins with the board's first stage signature
 // (flash.first_stage, from board.mk BOOT_SIZE and BOOT_SIGNATURE).
 
-import { be32, concat, sleep } from "./bytes.js?v=fb0b2c065d";
-import * as protect from "./protect.js?v=fb0b2c065d";
+import { be32, concat, sleep } from "./bytes.js?v=bbc2466609";
+import * as protect from "./protect.js?v=bbc2466609";
 
 export class IapError extends Error {}
 

@@ -9,7 +9,7 @@
 // goes only on direct requests, in X-API-Token: never through the proxy, which would see it. Pages come 200 users at
 // a time, one request after another, as RadioID asks of clients.
 
-import { COUNTRIES, ABBREV } from "./regions.js?v=fb0b2c065d";
+import { COUNTRIES, ABBREV } from "./regions.js?v=bbc2466609";
 
 export const ID = "radioid";
 export const API = "https://database.radioid.net/api/dmr/user/";
@@ -250,7 +250,7 @@ function values(u) {
 }
 
 // The template with each {token} replaced. An empty value drops out with the text just before it, so
-// "{call}, {city} {st}" gives "N0CALL AL" for a user without a city. The text before the first token and after the
+// "{call}, {city} {st}" gives "Q0TST OH" for a user without a city. The text before the first token and after the
 // last stay when anything is shown. upper: all capitals; then cut to max characters
 export function format(u, template, { upper = false, max = 0 } = {}) {
 	const v = values(u);

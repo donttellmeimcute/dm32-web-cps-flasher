@@ -1,8 +1,8 @@
 {
  "format": "rfoundry-site/1",
- "git": "dfbaf20c",
- "version": "dfbaf20c-dirty",
- "built": "2026-11-15",
+ "git": "e89121e9",
+ "version": "e89121e-dirty",
+ "built": "2026-11-17",
  "release": "",
  "beta": "",
  "branch": "",
@@ -28,7 +28,7 @@
  },
  "tool": {
   "zip": "downloads/rfoundry-tool.zip",
-  "sha256": "cc973b99b8acdf300c69d4a6d1042456f6141505dbe5491e5d840e4bc133cae2",
-  "size": 459857
+  "sha256": "c0bb42e4d51f4b4173eaf39e95c0f2e11e2742e1de087a1d7df3459360b19046",
+  "size": 531392
  }
 }

@@ -4,9 +4,8 @@
 // with the logical block it holds. Builds the logical image from a data flash read, recognizes a codeplug in it,
 // reads its records, and fills the editing model (model.js) from it as stock_tyt.js does, with the same note codes.
 
-import { getFreq } from "./fields.js?v=fb0b2c065d";
-import { LIMITS, POWER_NAMES } from "./records.js?v=fb0b2c065d";
-import { listenBand } from "./model.js?v=fb0b2c065d";
+import { getFreq } from "./fields.js?v=bbc2466609";
+import { LIMITS, POWER_NAMES } from "./records.js?v=bbc2466609";
 
 export const DM32_STOCK = "baofeng-dm32";
 
@@ -212,11 +211,6 @@ export function importStock(m, bytes) {
 	if (s.channelCount > CH_PER_BLOCK) note("too_many_channels", s.channelCount - CH_PER_BLOCK);
 	let stockChannels = s.channels.filter((c) => {
 		if (c.rxHz && c.txHz) return true;
-		// A receive-only channel (the air band) may have no TX frequency: TX on RX, RX only (listen bands below)
-		if (c.rxHz && listenBand(c.rxHz)) {
-			c.txHz = c.rxHz;
-			return true;
-		}
 		note("bad_frequency");
 		return false;
 	});
@@ -266,8 +260,6 @@ export function importStock(m, bytes) {
 
 	const channelOf = new Map();
 	const channels = stockChannels.map((c, i) => {
-		// The air band and broadcast FM are received only, and in FM (AM there): a DMR channel there becomes one
-		if (listenBand(c.rxHz)) c.mode = "fm";
 		const dmr = c.mode === "dmr";
 		const tone = (t) => {
 			if (dmr) return "";
@@ -278,11 +270,11 @@ export function importStock(m, bytes) {
 		const x = {
 			number: i + 1, name: shorten(c.name, LIMITS.name), rxHz: c.rxHz, txHz: c.txHz, mode: c.mode,
 			power: c.power, tot: 0, rxTone: tone(c.rxTone), txTone: tone(c.txTone),
-			bw: dmr ? 12.5 : c.bw, rxOnly: !!listenBand(c.rxHz) || !!listenBand(c.txHz), allSkip: false, zoneSkip: false, vox: false, squelch: 0,
+			bw: dmr ? 12.5 : c.bw, rxOnly: false, allSkip: false, zoneSkip: false, vox: false, squelch: 0,
 			colorCode: dmr ? c.colorCode : 0, timeslot: dmr ? c.timeslot : 1,
 			contact: dmr ? contactOf.get(c.contact) || null : null, rxList: dmr ? listOf.get(c.rxList) || null : null,
 			aprs: null, dmrId: 0, noBeep: false, noEco: false, dmo: false, roam: false, aliasTs1: 0, aliasTs2: 0,
-			useLocation: false, lat: 0, lon: 0, sfr: false, sfrA: 0, sfrB: 0,
+			useLocation: false, lat: 0, lon: 0, sfr: false, sfrA: 0, sfrB: 0, toneBurst: false,
 		};
 		channelOf.set(c.index, x);
 		return x;

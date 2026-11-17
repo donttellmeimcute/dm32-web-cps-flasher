@@ -7,16 +7,17 @@
 // the image it came from and touches only records whose fields changed, so an unedited codeplug round-trips byte for
 // byte.
 
-import { CodeplugImage } from "./image.js?v=fb0b2c065d";
+import { CodeplugImage } from "./image.js?v=bbc2466609";
 import {
 	LIMITS, CH_SIZE, bankBitmap, channelAddr, decodeChannel, encodeChannel, zoneLayout, decodeZone, encodeZone,
 	ZONE_BITMAP, ZONE_DATA, ZONE_RECORD, CONTACTS, CONTACT_SIZE, decodeContact, encodeContact, LIST_COUNTS, LISTS,
 	LIST_SIZE, decodeList, encodeList, DTMF_CONTACTS, decodeDtmf, encodeDtmf, validDtmf, APRS_BASE, APRS_SIZE,
 	decodeAprs, encodeAprs, decodeGeneral, encodeGeneral, VFO, LUCZ,
-} from "./records.js?v=fb0b2c065d";
-import { parseTone } from "./fields.js?v=fb0b2c065d";
-import { validateAesKeys } from "./aes_keys.js?v=fb0b2c065d";
-import { readHeader } from "./iddb.js?v=fb0b2c065d";
+} from "./records.js?v=bbc2466609";
+import { parseTone } from "./fields.js?v=bbc2466609";
+import { readHeader } from "./iddb.js?v=bbc2466609";
+import { decodeArea, keyValid, KEYS } from "./kv.js?v=bbc2466609";
+import { decodeModes, encodeModes, syncModes, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=bbc2466609";
 
 const REFS = ["contact", "rxList", "aprs"];
 
@@ -24,7 +25,7 @@ export function decode(image) {
 	const b = image.bytes;
 	const m = {
 		general: decodeGeneral(b),
-		channels: [], vfo: [], zones: [], contacts: [], rxLists: [], dtmfContacts: [], aprs: [],
+		channels: [], vfo: [], zones: [], contacts: [], rxLists: [], dtmfContacts: [], aprs: [], systems: [],
 		iddb: readHeader(b),
 		base: image,
 	};
@@ -51,6 +52,7 @@ export function decode(image) {
 		const c = decodeChannel(b.subarray(channelAddr(n), channelAddr(n) + CH_SIZE));
 		if (c) m.channels.push(linkRefs(m, { number: n, ...c }));
 	}
+	decodeModes(m, b);
 	for (const a of VFO) {
 		const c = decodeChannel(b.subarray(a, a + CH_SIZE));
 		m.vfo.push(c ? linkRefs(m, c) : null);
@@ -69,6 +71,17 @@ export function decode(image) {
 
 export function empty() {
 	return decode(CodeplugImage.blank());
+}
+
+// The names of the channels an image stores, by number
+function channelNames(b) {
+	const out = new Map();
+	for (let n = 1; n <= LIMITS.channels; n++) {
+		if (!channelUsed(b, n)) continue;
+		const c = decodeChannel(b.subarray(channelAddr(n), channelAddr(n) + CH_SIZE));
+		if (c) out.set(n, c.name);
+	}
+	return out;
 }
 
 function channelUsed(b, n) {
@@ -114,6 +127,7 @@ export function numberAll(m) {
 	assignNumbers(m.rxLists, LIMITS.rxLists);
 	assignNumbers(m.dtmfContacts, LIMITS.dtmfContacts);
 	assignNumbers(m.aprs, LIMITS.aprs);
+	assignNumbers(m.systems ??= [], MODE_LIMITS.systems);
 }
 
 function same(a, b, keys) {
@@ -124,8 +138,7 @@ function same(a, b, keys) {
 const CHANNEL_KEYS = [
 	"name", "rxHz", "txHz", "mode", "power", "tot", "rxTone", "txTone", "bw", "rxOnly", "allSkip", "zoneSkip", "vox",
 	"squelch", "colorCode", "timeslot", "contact", "rxList", "aprs", "dmrId", "noBeep", "noEco", "dmo", "roam",
-	"aliasTs1", "aliasTs2", "useLocation", "lat", "lon", "sfr", "sfrA", "sfrB",
-	"trunkTx", "aesSlot", "nacRx", "nacTx", "talkgroup", "hearAll", "wacn", "sysid",	// P25 / NXDN / trunking (records.js decodeDigital)
+	"aliasTs1", "aliasTs2", "useLocation", "lat", "lon", "sfr", "sfrA", "sfrB", "toneBurst",
 ];
 
 function flatChannel(c) {
@@ -145,7 +158,8 @@ export function encode(m) {
 	const img = m.base.clone();
 	const b = img.bytes;
 
-	// Channels: records first, then the in-use bitmaps
+	// Channels: records first, then the in-use bitmaps. A channel of a kind keeps its safe stand-in record
+	syncModes(m);
 	const bits = new Uint8Array(LIMITS.channels / 8);
 	for (const c of m.channels) {
 		if (!c.number) continue;
@@ -216,6 +230,8 @@ export function encode(m) {
 	}
 
 	encodeGeneral(m.general, b);
+	// the modes' records after the records they name (channel-modes.md 2.4: the record first, then its tag)
+	encodeModes(m, b, () => channelNames(m.base.bytes));
 	fixLucz(b, m);
 	return img;
 }
@@ -241,8 +257,7 @@ export function newChannel(fields = {}) {
 		txTone: "", bw: 12.5, rxOnly: false, allSkip: false, zoneSkip: false, vox: false, squelch: 0, colorCode: 1,
 		timeslot: 1, contact: null, rxList: null, aprs: null, dmrId: 0, noBeep: false, noEco: false, dmo: false,
 		roam: false, aliasTs1: 0, aliasTs2: 0, useLocation: false, lat: 0, lon: 0, sfr: false, sfrA: 0, sfrB: 0,
-		trunkTx: false, aesSlot: 0, nacRx: 0x293, nacTx: 0x293, talkgroup: 0, hearAll: false, wacn: 0, sysid: 0,
-		...fields,
+		toneBurst: false, kind: 0, ...fields,
 	};
 }
 
@@ -254,6 +269,7 @@ export function newContact(fields = {}) {
 export function remove(m, table, items) {
 	const gone = new Set(items);
 	m[table] = m[table].filter((x) => !gone.has(x));
+	removeModes(m, table, gone);
 	if (table === "channels") {
 		for (const z of m.zones) z.channels = z.channels.filter((c) => !gone.has(c));
 	} else if (table === "contacts") {
@@ -281,15 +297,21 @@ export function listenBand(hz) {
 // --- Validation ---
 
 // Problems as {level: "error" | "warning", table, item, field, code, params}; the page words them
-export function validate(m, { bands = null } = {}) {
+export function validate(m, { bands = null, features = null } = {}) {
 	const out = [];
 	const err = (table, item, field, code, params = {}) => out.push({ level: "error", table, item, field, code, params });
 	const warn = (table, item, field, code, params = {}) => out.push({ level: "warning", table, item, field, code, params });
 	const g = m.general;
-	if (validateAesKeys(g.aesKeys || [])) err("general", null, "aesKeys", "aes_keys");
 	if (!g.dmrId) warn("general", null, "dmrId", "no_dmr_id");
 	else if (g.dmrId > 0xFFFFFF) err("general", null, "dmrId", "id_range");
 	if (g.radioName.length > LIMITS.radioName) err("general", null, "radioName", "too_long", { max: LIMITS.radioName });
+	// the settings area's keys (codeplug-settings.md 3): null is an absent key
+	const areaKeys = KEYS.filter((row) => g[row.name] != null);
+	for (const row of areaKeys) {
+		if (!keyValid(row, g[row.name])) err("general", null, row.name, "range", { min: row.min, max: row.max });
+	}
+	// an area of a version the editor doesn't know reads as empty and is never written: a value set here is lost
+	if (areaKeys.length && m.base && decodeArea(m.base.bytes).state === "newer") warn("general", null, areaKeys[0].name, "settings_area_newer");
 
 	const counts = [["channels", LIMITS.channels], ["contacts", LIMITS.contacts], ["rxLists", LIMITS.rxLists],
 		["zones", LIMITS.zones], ["dtmfContacts", LIMITS.dtmfContacts], ["aprs", LIMITS.aprs]];
@@ -303,17 +325,8 @@ export function validate(m, { bands = null } = {}) {
 			else if (bands && !bands.some(([lo, hi]) => c[f] >= lo && c[f] <= hi)) warn("channels", c, f, "out_of_band");
 		}
 		for (const f of ["rxTone", "txTone"]) if (parseTone(c[f]) === null) err("channels", c, f, "bad_tone");
-		if (["p25", "nxdn", "p25trunk"].includes(c.mode)) {
-			const max = c.mode === "nxdn" ? 65519 : 65535;
-			if (!Number.isInteger(c.talkgroup) || c.talkgroup < 1 || c.talkgroup > max) err("channels", c, "talkgroup", "range", { min: 1, max });
-		}
-		if (c.trunkTx && (c.mode !== "p25trunk" || c.rxOnly || !c.wacn || !c.sysid || !(c.dmrId || g.dmrId) || c.aesSlot))
-			err("channels", c, "trunkTx", "trunk_tx");
-		if (c.aesSlot && (!["dmr", "p25"].includes(c.mode) || c.aesSlot > 4 ||
-			!g.aesKeys?.[c.aesSlot - 1]?.key || (c.mode !== "p25" && g.aesKeys[c.aesSlot - 1].kid > 255)))
-			err("channels", c, "aesSlot", "aes_slot");
 		if (c.colorCode < 0 || c.colorCode > 15) err("channels", c, "colorCode", "range", { min: 0, max: 15 });
-		if (c.mode === "dmr" && !c.contact && !c.rxOnly) warn("channels", c, "contact", "no_contact");
+		if (c.mode === "dmr" && !c.kind && !c.contact && !c.rxOnly) warn("channels", c, "contact", "no_contact");
 		const band = listenBand(c.rxHz);
 		if (band && c.mode === "dmr") warn("channels", c, "mode", `listen_dmr_${band}`);
 		const txBand = listenBand(c.txHz);
@@ -349,5 +362,6 @@ export function validate(m, { bands = null } = {}) {
 		if (a.name.length > LIMITS.aprsName) err("aprs", a, "name", "too_long", { max: LIMITS.aprsName });
 		if (a.comment.length > LIMITS.aprsComment) err("aprs", a, "comment", "too_long", { max: LIMITS.aprsComment });
 	}
+	validateModes(m, err, warn, { features, baseNames: () => (m.base ? channelNames(m.base.bytes) : new Map()) });
 	return out;
 }

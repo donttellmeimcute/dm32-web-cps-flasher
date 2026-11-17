@@ -5,11 +5,11 @@
 // field covers survive an edit. Addresses are image addresses (image.js). References between records (a channel's
 // contact, a zone's channels) are 1-based numbers here; model.js turns them into objects.
 
-import { decodeAesKeys, encodeAesKeys } from "./aes_keys.js?v=fb0b2c065d";
-import { EE, FL } from "./image.js?v=fb0b2c065d";
+import { EE, FL } from "./image.js?v=bbc2466609";
 import {
 	getFreq, putFreq, getBcdId, putBcdId, getTone, putTone, getName, putName, getCoord, coordBytes, u16, put16,
-} from "./fields.js?v=fb0b2c065d";
+} from "./fields.js?v=bbc2466609";
+import { decodeArea, getKey, putKeys, keyValid, KEYS } from "./kv.js?v=bbc2466609";
 
 export const LIMITS = {
 	channels: 1024, zones: 68, zoneChannels: 80, contacts: 1024, rxLists: 76, rxListContacts: 32,
@@ -46,31 +46,6 @@ export const LIST_SIZE = 80;
 
 // --- Channels (7.3.3) ---
 
-// Mode byte (7.3.3): 0 FM, 1 DMR; the multi-mode derivative adds P25, NXDN and P25 trunking (7.3.3.1)
-export const CHANNEL_MODES = ["fm", "dmr", "p25", "nxdn", "p25trunk"];
-export const DIGITAL_VOICE = new Set(["p25", "nxdn", "p25trunk"]);
-export const NAC_ANY = 0xF7E;		// RX NAC that hears every NAC
-export const NAC_DEFAULT = 0x293;
-
-// P25 / NXDN / trunking fields (7.3.3.1), as core/codeplug/codeplug.c reads them; blank words read as the defaults
-function decodeDigital(r, mode) {
-	const nxdn = mode === "nxdn";
-	const max = nxdn ? 63 : 0xFFF;
-	const rx = u16(r, 0x20), tx = u16(r, 0x22);
-	const out = {
-		nacRx: rx <= max ? rx : nxdn ? 0 : NAC_ANY,
-		nacTx: tx <= max && (nxdn || tx < NAC_ANY) ? tx : nxdn ? 1 : NAC_DEFAULT,
-		talkgroup: u16(r, 0x2E),
-		hearAll: (r[0x31] & 0x40) !== 0,
-		wacn: 0, sysid: 0,
-	};
-	if (mode === "p25trunk") {
-		out.wacn = (r[0x25] << 12) | (r[0x2A] << 4) | (r[0x2C] >> 4);
-		out.sysid = ((r[0x2C] & 0x0F) << 8) | r[0x2D];
-	}
-	return out;
-}
-
 // Power byte: 0 = the radio's master power, n = level n - 1. qdmr's names for the levels it writes
 export const POWER_NAMES = { 0: "Default", 1: "Min", 3: "Low", 6: "Mid", 9: "High", 10: "Max" };
 
@@ -89,29 +64,16 @@ export function decodeChannel(r) {
 	if (rxHz === null || txHz === null) return null;
 	const l1 = r[0x26], f1 = r[0x30], f4 = r[0x33];
 	const hasLoc = (l1 & 0x08) !== 0;
-	const mode = CHANNEL_MODES[r[0x18]] || "fm";
-	if (DIGITAL_VOICE.has(mode)) {
-		const c = decodeChannelFields(r, rxHz, txHz, l1, f1, f4, hasLoc, mode);
-		return { ...c, ...decodeDigital(r, mode), rxTone: "", txTone: "", contact: 0, timeslot: 1, colorCode: 0,
-			aprs: mode === "p25trunk" ? 0 : c.aprs, sfr: false, sfrA: 0, sfrB: 0 };
-	}
-	return { ...decodeChannelFields(r, rxHz, txHz, l1, f1, f4, hasLoc, mode), nacRx: NAC_DEFAULT, nacTx: NAC_DEFAULT,
-		talkgroup: 0, hearAll: false, wacn: 0, sysid: 0 };
-}
-
-function decodeChannelFields(r, rxHz, txHz, l1, f1, f4, hasLoc, mode) {
 	return {
-		trunkTx: mode === "p25trunk" && (r[0x32] & 31) === 26,
-		aesSlot: mode === "p25trunk" && (r[0x32] & 31) === 26 ? 0 : (r[0x32] & 31) === 0 ? 0 : (r[0x32] & 31) >= 17 && (r[0x32] & 31) <= 20 ? (r[0x32] & 31) - 16 : 255,
 		name: getName(r, 0, 16),
 		rxHz, txHz,
-		mode,
+		mode: r[0x18] === 1 ? "dmr" : "fm",
 		power: r[0x19],
 		tot: r[0x1B] * 15,
 		rxTone: getTone(r, 0x20),
 		txTone: getTone(r, 0x22),
 		bw: f4 & 0x02 ? 25 : 12.5,
-		rxOnly: (f4 & 0x04) !== 0 || (mode === "p25trunk" && (r[0x32] & 31) !== 26),
+		rxOnly: (f4 & 0x04) !== 0,
 		allSkip: (f4 & 0x10) !== 0,
 		zoneSkip: (f4 & 0x20) !== 0,
 		vox: (f4 & 0x40) !== 0,
@@ -133,18 +95,18 @@ function decodeChannelFields(r, rxHz, txHz, l1, f1, f4, hasLoc, mode) {
 		lon: getCoord(r[0x24], r[0x1F], r[0x1E]),
 		sfr: (l1 & 0x02) !== 0,
 		sfrA: r[0x25],
-		sfrB: r[0x2A],
+		sfrB: r[0x2A] & ~0x40,
+		toneBurst: r[0x2A] !== 0xFF && (r[0x2A] & 0x40) !== 0,	// FM: SFR byte B bit 6, read without the SFR flag (7.3.3); 0xFF = not set
 	};
 }
 
 // Write a channel's fields onto its stored record r (a blank one if r doesn't decode); r is changed in place
 export function encodeChannel(c, r) {
 	if (getFreq(r, 0x10) === null) r.set(blankChannel());
-	r[0x32] = (r[0x32] & 0xE0) | (c.aesSlot ? c.aesSlot <= 4 ? 16 + c.aesSlot : 31 : c.mode === "p25trunk" && c.trunkTx ? 26 : 0);
 	putName(r, 0, 16, c.name);
 	putFreq(r, 0x10, c.rxHz);
 	putFreq(r, 0x14, c.txHz);
-	r[0x18] = Math.max(0, CHANNEL_MODES.indexOf(c.mode));
+	r[0x18] = c.mode === "dmr" ? 1 : 0;
 	r[0x19] = clamp(c.power, 0, 255);
 	r[0x1B] = clamp(Math.ceil((c.tot || 0) / 15), 0, 255);
 	putTone(r, 0x20, c.rxTone);
@@ -178,21 +140,8 @@ export function encodeChannel(c, r) {
 		r[0x24] = oh; r[0x1F] = om; r[0x1E] = ol;
 	}
 	r[0x25] = c.sfrA & 0xFF;
-	r[0x2A] = c.sfrB & 0xFF;
-	if (DIGITAL_VOICE.has(c.mode)) {
-		put16(r, 0x20, c.nacRx ?? NAC_ANY);
-		put16(r, 0x22, c.nacTx ?? NAC_DEFAULT);
-		put16(r, 0x2E, c.talkgroup || 0);
-		r[0x31] = (r[0x31] & ~0x40) | (c.hearAll ? 0x40 : 0);
-		r[0x2C] = 0;
-		if (c.mode === "p25trunk") {
-			r[0x25] = (c.wacn >> 12) & 0xFF;
-			r[0x2A] = (c.wacn >> 4) & 0xFF;
-			r[0x2C] = ((c.wacn & 0x0F) << 4) | ((c.sysid >> 8) & 0x0F);
-			r[0x2D] = c.sysid & 0xFF;
-			r[0x26] &= ~0x02;
-		}
-	}
+	r[0x2A] = (c.sfrB & 0xBF) | (c.toneBurst ? 0x40 : 0);
+	if (r[0x2A] === 0xFF) r[0x2A] = 0xCF;	// 0xFF reads as not set: the unused bits 5-4 cleared (as the firmware)
 	return r;
 }
 
@@ -361,23 +310,25 @@ export function encodeAprs(a, r) {
 	return r;
 }
 
-// --- General settings, boot text (7.3.2, 7.2) ---
+// --- General settings, boot text (7.3.2, 7.2), the settings area's keys (codeplug-settings.md) ---
 
+// The settings area's keys (kv.js KEYS; arsServer, ipGateway: DMR IDs, 0 = off; the Settings > Sound tones: true on,
+// false off) are fields too: null when the key is absent (the radio keeps its own setting)
 export function decodeGeneral(b) {
 	const g = b.subarray(GENERAL, GENERAL + GENERAL_SIZE);
+	const kv = decodeArea(b).entries;
 	return {
-		aesKeys: decodeAesKeys(b),
 		radioName: getName(g, 0, 8),
 		dmrId: getBcdId(g, 8),
 		groupHang: g[0x18] === 0xFF ? 0 : g[0x18],
 		privateHang: g[0x19] === 0xFF ? 0 : g[0x19],
 		bootLine1: getName(b, BOOT_TEXT, 16),
 		bootLine2: getName(b, BOOT_TEXT + 16, 16),
+		...Object.fromEntries(KEYS.map((row) => [row.name, getKey(kv, row)])),
 	};
 }
 
 export function encodeGeneral(s, b) {
-	encodeAesKeys(s.aesKeys || [], b);
 	const was = decodeGeneral(b);
 	const g = b.subarray(GENERAL, GENERAL + GENERAL_SIZE);
 	if (was.radioName !== s.radioName) putName(g, 0, 8, s.radioName);
@@ -389,4 +340,12 @@ export function encodeGeneral(s, b) {
 	if (was.privateHang !== s.privateHang) g[0x19] = s.privateHang & 0xFF;
 	if (was.bootLine1 !== s.bootLine1) putName(b, BOOT_TEXT, 16, s.bootLine1);
 	if (was.bootLine2 !== s.bootLine2) putName(b, BOOT_TEXT + 16, 16, s.bootLine2);
+	// the settings area only when one of its keys changed; an area of a newer version is never written (model.js
+	// validate() warns), nor is a value out of range (validate()'s error)
+	const vals = {};
+	for (const row of KEYS) {
+		const v = s[row.name] ?? null;
+		if (was[row.name] !== v && (v === null || keyValid(row, v))) vals[row.name] = v;
+	}
+	if (Object.keys(vals).length) putKeys(b, vals);
 }

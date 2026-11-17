@@ -12,10 +12,10 @@
 // The signature alone never makes a codec usable: moving the codec needs that build's map (docs/spec/codec-placement.md),
 // so a build without one is reported as "has the codec, no recipe for this build", not taken.
 
-import { sha256, u32le, startsWith } from "./bytes.js?v=fb0b2c065d";
-import { unzip } from "./zip.js?v=fb0b2c065d";
-import * as stockfw from "./stockfw.js?v=fb0b2c065d";
-import * as c7 from "./c7000.js?v=fb0b2c065d";
+import { sha256, u32le, startsWith } from "./bytes.js?v=bbc2466609";
+import { unzip } from "./zip.js?v=bbc2466609";
+import * as stockfw from "./stockfw.js?v=bbc2466609";
+import * as c7 from "./c7000.js?v=bbc2466609";
 
 const MAX_DEPTH = 3;	// zips inside zips
 const MIN_SIZE = 64 * 1024;	// smaller than any firmware image or readout
@@ -75,7 +75,7 @@ const keyedBoards = (fb, first) => Object.values(fb.boards).filter((b) => b.key_
 // boards), "internal" (a known file failing its own check) or "not-vendor"
 export async function identifyFile(data, fb, boardId = null) {
 	const sha = await sha256(data);
-	const prof = fb.profiles[sha];
+	const prof = stockfw.profileFor(fb.profiles, sha, boardId);
 	if (prof) return { sha, board: prof.board, kind: "codec", how: "sha256", profile: prof, known: fb.known_files[sha] || prof.name };
 	// a file known to hold no codec (stockfw NO_CODEC_FILES): named, and like any other non-vendor file, never a source
 	const bare = fb.no_codec_files?.[sha];

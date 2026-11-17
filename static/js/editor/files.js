@@ -5,15 +5,15 @@
 // stock TYT-family codeplug, docs/spec/codeplug-stock-tyt.md, or a stock DM-32UV one, dm32-stock-codeplug.md) is
 // converted, or reported as foreign.
 
-import { CodeplugImage, CODEPLUG_SPAN, TFTP_SIZE } from "../codeplug/image.js?v=fb0b2c065d";
-import { recordSize, extent, convert, readHeader } from "../codeplug/iddb.js?v=fb0b2c065d";
-import { openBundle, bundleFolder } from "../flasher/backup.js?v=fb0b2c065d";
-import { unzip } from "../flasher/zip.js?v=fb0b2c065d";
-import { startsWith, toHex } from "../flasher/bytes.js?v=fb0b2c065d";
-import { classify } from "../codeplug/detect.js?v=fb0b2c065d";
-import { importStock, STOCK, RDT_MD380 } from "../codeplug/stock_tyt.js?v=fb0b2c065d";
-import { DM32_STOCK, importStock as importDm32 } from "../codeplug/stock_baofeng.js?v=fb0b2c065d";
-import { empty, encode } from "../codeplug/model.js?v=fb0b2c065d";
+import { CodeplugImage, CODEPLUG_SPAN, TFTP_SIZE } from "../codeplug/image.js?v=bbc2466609";
+import { recordSize, extent, convert, readHeader } from "../codeplug/iddb.js?v=bbc2466609";
+import { openBundle, bundleFolder } from "../flasher/backup.js?v=bbc2466609";
+import { unzip } from "../flasher/zip.js?v=bbc2466609";
+import { startsWith, toHex } from "../flasher/bytes.js?v=bbc2466609";
+import { classify } from "../codeplug/detect.js?v=bbc2466609";
+import { importStock, STOCK, RDT_MD380 } from "../codeplug/stock_tyt.js?v=bbc2466609";
+import { DM32_STOCK, importStock as importDm32 } from "../codeplug/stock_baofeng.js?v=bbc2466609";
+import { empty, encode } from "../codeplug/model.js?v=bbc2466609";
 
 // code: the editor.err.* text; params: what the file was, for the error report (never its contents)
 export class FileError extends Error {
@@ -96,6 +96,16 @@ export async function openFile(name, bytes) {
 // The bytes Save writes: the image up to the end of its ID database
 export function saveBytes(image) {
 	return image.bytes.subarray(0, Math.max(CODEPLUG_SPAN, idDbTop(image.bytes)));
+}
+
+// A saved file's name without its extension: the codeplug's name and the local date and time, name-YYYY-MM-DD-HHMM, so
+// saves taken over time sort and never collide. A name that already ends in one (a dated file, loaded again) gets
+// the new one in its place
+const DATED = /-\d{4}-\d{2}-\d{2}-\d{4}$/;
+export function datedName(name, when = new Date()) {
+	const p = (n) => String(n).padStart(2, "0");
+	const stamp = `${when.getFullYear()}-${p(when.getMonth() + 1)}-${p(when.getDate())}-${p(when.getHours())}${p(when.getMinutes())}`;
+	return `${(name || "codeplug").replace(DATED, "") || "codeplug"}-${stamp}`;
 }
 
 // codeplug.bin for the radio's TFTP server (USB network mode, docs/spec/tftp.md 5.2): the codeplug, and the ID database

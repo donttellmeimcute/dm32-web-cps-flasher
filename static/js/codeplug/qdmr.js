@@ -5,9 +5,9 @@
 // form qdmr 0.15 writes for this codeplug. Both return notes: what the other side can't hold, so the page can say what
 // was left out. The mapping was learned from qdmr's manual and from files qdmr writes and reads, never its source.
 
-import { parse, stringify, flow, Tag } from "./yaml.js?v=fb0b2c065d";
-import { LIMITS } from "./records.js?v=fb0b2c065d";
-import { parseTone } from "./fields.js?v=fb0b2c065d";
+import { parse, stringify, flow, Tag } from "./yaml.js?v=bbc2466609";
+import { LIMITS } from "./records.js?v=bbc2466609";
+import { parseTone } from "./fields.js?v=bbc2466609";
 
 export class QdmrError extends Error {
 	constructor(code, params = {}) {
@@ -135,7 +135,7 @@ function subTone(t) {
 	return flow({ ctcss: `${Number(t)} Hz` });
 }
 
-// A call sign and SSID: "N0CALL-7" to {call, ssid}
+// A call sign and SSID: "Q0TST-7" to {call, ssid}
 function callSsid(v) {
 	const [call, ssid] = text(v).toUpperCase().split("-");
 	const n = Number(ssid);
@@ -277,7 +277,7 @@ export function importQdmr(m, yamlText) {
 			rxList: null, aprs: null, dmrId: 0, noBeep: o.beep === false, noEco: o.powerSave === false, dmo: false,
 			roam: false, aliasTs1: Math.max(0, ALIAS.indexOf(text(o.talkerAliasTS1))),
 			aliasTs2: Math.max(0, ALIAS.indexOf(text(o.talkerAliasTS2))), useLocation: !!loc, lat: loc ? loc.lat : 0,
-			lon: loc ? loc.lon : 0, sfr: false, sfrA: 0, sfrB: 0,
+			lon: loc ? loc.lon : 0, sfr: false, sfrA: 0, sfrB: 0, toneBurst: false,
 		};
 		if (v.scanList != null) note("scan_lists");
 		if (dmr) {
@@ -371,7 +371,6 @@ export function importQdmr(m, yamlText) {
 
 // qdmr YAML for the model: {text, notes}
 export function exportQdmr(m) {
-	if (m.channels.some((c) => c.aesSlot || c.trunkTx)) throw new Error("AES/trunk TX channels require a binary or CSV export; YAML cannot preserve these settings.");
 	const notes = new Map();
 	const note = (code, n = 1) => notes.set(code, (notes.get(code) || 0) + n);
 	const g = m.general;
@@ -414,6 +413,7 @@ export function exportQdmr(m) {
 		};
 		if (c.useLocation) note("location_rounded");
 		if (c.sfr || c.sfrA || c.sfrB) note("sfr");
+		if (c.toneBurst && c.mode !== "dmr") note("tone_burst");
 		const powerName = Object.keys(POWER).find((k) => POWER[k] === c.power);
 		if (c.power && !powerName) note("power_level");
 		const common = {

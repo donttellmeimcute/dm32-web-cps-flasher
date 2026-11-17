@@ -6,6 +6,8 @@ generador de RadioFoundry. Se ejecutan en Linux/WSL con el árbol ya compilado:
 
 - `gen.sh`: empaqueta la imagen con `tools/release.py` (rechaza imágenes con códec), adapta el generador a la DM-32UV
   (`patch_tree.py`, `build_dm32.py`, `templates/`, `i18n/`) y escribe el sitio. Variables: `SRC`, `BUILD`, `OUT`, `W`.
+  Con `DIST` (la carpeta de una release del CI de DM32-nxdn-p25: `.bin`, `.json`, `SHA256SUMS`) no empaqueta nada y
+  usa esa imagen tal cual; así se genera desde la base actual (`SRC` = su árbol `build/current`).
 - `test.sh`: tests JS del sitio (`site/tests`) sobre el árbol original, el adaptado y la salida recortada.
 - `adapt_tests.py`: adapta en la copia de prueba los textos del aviso AMBE (DMR/NXDN) y los dos idiomas del sitio. Solo se omiten cuatro comprobaciones de la interfaz de compilación personalizada que este flasher no ofrece; el árbol original las ejecuta. `test.sh` devuelve error si falla cualquier prueba aplicable.
 - `test_p25_data.py` y `test_updates.mjs`: verifican que las funciones anunciadas coincidan con la imagen y que una instalación posterior en la misma pestaña consulte y verifique la versión nueva.

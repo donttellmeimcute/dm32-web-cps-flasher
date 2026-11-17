@@ -4,11 +4,11 @@
 // editing model (model.js); the database is written into a new image that replaces the model's base, so undo can put
 // the old one back.
 
-import * as iddb from "../iddb.js?v=fb0b2c065d";
-import { LIMITS } from "../records.js?v=fb0b2c065d";
-import { newContact } from "../model.js?v=fb0b2c065d";
-import { format } from "./radioid.js?v=fb0b2c065d";
-import { foldLetters } from "../fields.js?v=fb0b2c065d";
+import * as iddb from "../iddb.js?v=bbc2466609";
+import { LIMITS } from "../records.js?v=bbc2466609";
+import { newContact } from "../model.js?v=bbc2466609";
+import { format } from "./radioid.js?v=bbc2466609";
+import { foldLetters } from "../fields.js?v=bbc2466609";
 
 // The room for the ID database: a radio's codeplug end as an image address (radios.json codeplug {base, end})
 export function iddbEnd(radio) {

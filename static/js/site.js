@@ -3,7 +3,7 @@
 // Shared page behavior: the language hint (langhint.js), theme toggle, the narrow-screen menu, the features filter, the home page's carousel, the
 // screenshots page's radio picker.
 
-import { initLanguageHint } from "./langhint.js?v=fb0b2c065d";
+import { initLanguageHint } from "./langhint.js?v=bbc2466609";
 
 const root = document.documentElement;
 

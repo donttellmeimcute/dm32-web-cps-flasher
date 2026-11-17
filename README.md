@@ -12,14 +12,19 @@ Sitio: <https://donttellmeimcute.github.io/dm32-web-cps-flasher/> (español; ing
 
 - **Flasher** (`flash/`): copia de seguridad, instalación, actualización y restauración del firmware por el cable de
   programación.
-- **Editor de codeplug** (`codeplug/`): canales FM, DMR, P25, NXDN y P25 troncal, zonas, contactos y base de datos de ID;
+- **Editor de codeplug** (`codeplug/`): canales FM, AM, DMR, P25, NXDN y P25 troncal, claves AES-256, zonas, contactos y base de datos de ID;
   lee y escribe la radio o guarda archivos (.bin, CSV, YAML de qdmr).
 
 Ambos tienen un modo de práctica sin radio: `flash/#sim=dm32-stock` (DM-32UV con firmware original), `flash/#sim=dm32`
 (con RadioFoundry) y `codeplug/#sim`.
 
-> **Firmware experimental.** La voz P25 y NXDN funciona en ambos sentidos en la radio, pero APRS y algunas funciones
-> aún no se han probado en el aire. Guarda siempre la copia de seguridad que ofrece el flasher. Úsala bajo tu propia
+> **17/11/2026: cambio de base.** El firmware se compila ahora sobre RadioFoundry actual (DMR Tier III, AM, NXDN96,
+> AES-256 de P25/NXDN según sus estándares). Ya no trae AES en DMR, P25 fase 2 ni TX troncal P25, y las claves AES van
+> en el llavero del codeplug: vuelve a cargarlas después de actualizar. Detalles en
+> [DM32-nxdn-p25](https://github.com/donttellmeimcute/DM32-nxdn-p25#cambio-de-base-qu%C3%A9-se-pierde-y-qu%C3%A9-hacer).
+
+> **Firmware experimental.** La voz P25 y NXDN se verificó en ambos sentidos con la base anterior; con la nueva base la
+> imagen arranca en la radio, pero la voz y el cifrado aún no se han probado en el aire. Guarda siempre la copia de seguridad que ofrece el flasher. Úsala bajo tu propia
 > responsabilidad, en frecuencias en las que tengas licencia.
 
 ## Requisitos

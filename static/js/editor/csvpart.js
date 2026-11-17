@@ -3,9 +3,10 @@
 // CSV in the Codeplug Editor: Save offers the open table as a CSV file and every table as a .zip of CSV files; Open
 // File takes either back. An import is one undoable change, and its problems are listed by row and column.
 
-import { register } from "./extensions.js?v=fb0b2c065d";
-import { exportTable, exportAll, importTable, importAll, TABLES, CsvError } from "../codeplug/csv.js?v=fb0b2c065d";
-import { zip } from "../flasher/zip.js?v=fb0b2c065d";
+import { register } from "./extensions.js?v=bbc2466609";
+import { exportTable, exportAll, importTable, importAll, TABLES, CsvError } from "../codeplug/csv.js?v=bbc2466609";
+import { zip } from "../flasher/zip.js?v=bbc2466609";
+import { datedName } from "./files.js?v=bbc2466609";
 
 const TABLE_TABS = Object.keys(TABLES);
 
@@ -37,7 +38,7 @@ register({
 	},
 });
 
-const base = (api) => api.fileName || "codeplug";
+const base = (api) => datedName(api.fileName);
 
 function saveTable(api, table) {
 	// a byte order mark, so spreadsheet programs read the names as UTF-8

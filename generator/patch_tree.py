@@ -87,10 +87,13 @@ edit(APP, [
 	# the update installs the hosted image as it is: no build to keep, edit or extend
 	('S.editBuild = S.current.kind === "unknown";', 'S.editBuild = false;	// Open25-DM32 site: one hosted image, no build to edit'),
 	(',\n\t\t\t\th("dt", {}, t("flash.update.build")), h("dd", {}, buildText, " ", cur.kind === "unknown" ? null : edit))', ")"),
+	# (no feature plan either: what a new image drops is told in flash.task.update.text, i18n/*.json)
 	('\t\t\tcur.kind === "unknown" ? notice(t("flash.update.unknown_text", { variant: vtitle(cur.guess) }), "info") : null,\n'
-	 "\t\t\tS.editBuild ? null : asks, S.editBuild ? null : added, backup,", "\t\t\tbackup,"),
+	 "\t\t\tS.editBuild ? null : startAsk, S.editBuild ? null : dropped, S.editBuild ? null : asks, S.editBuild ? null : added, "
+	 "S.editBuild ? null : needed, backup,", "\t\t\tbackup,"),
 	("disabled: busy || (!S.editBuild && !plan.ready) || (S.updateBackup && !!backupPanel) }),\n"
-	 '\t\t\t!S.editBuild && !plan.ready ? t("flash.update.decide_first") : null);',
+	 '\t\t\tS.editBuild || plan.ready ? null : t(plan.dropped.length && !S.decided[DROP_OK] ? "flash.update.drop_first"\n'
+	 '\t\t\t\t: plan.startAsk.length && !(START_KEEP in S.decided) ? "flash.update.start_first" : "flash.update.decide_first"));',
 	 "disabled: busy || (S.updateBackup && !!backupPanel) }));"),
 ])
 

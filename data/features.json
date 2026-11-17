@@ -1,15 +1,32 @@
 {
  "groups": [
+  "Network (USB network adapter and IP over DMR)",
   "Radio and voice",
   "DMR data",
-  "Network (USB network adapter and IP over DMR)",
+  "Bench",
   "Host link and USB",
   "User interface",
-  "Bench",
-  "Storage",
-  "Other"
+  "Other",
+  "Storage"
  ],
  "features": [
+  {
+   "name": "USB_SERIAL_REQUEST",
+   "title": "Leave network mode from a web page",
+   "group": "Network (USB network adapter and IP over DMR)",
+   "help": "",
+   "needs": {
+    "all": [
+     "USB_NETWORK"
+    ],
+    "any": []
+   },
+   "bytes": {
+    "DM-1701": "644",
+    "MD-380": "696"
+   },
+   "notes": "The web flasher and editor take a radio in USB network mode back to serial mode, with no key press on the radio (endpoint 0 request, /api/usb, TCP at 12.255.255.254). Follows USB_NETWORK"
+  },
   {
    "name": "FM",
    "title": "Analog FM receive and transmit",
@@ -95,7 +112,7 @@
    "name": "DMR_GPS",
    "title": "ETSI GPS Info in the embedded LC",
    "group": "Radio and voice",
-   "help": "ETSI GPS Info in the embedded LC (FLCO 8): the caller's position decoded and shown, ours sent from the APRS position source when the radio-wide setting is on (needs DMR)",
+   "help": "ETSI GPS Info in the embedded LC (FLCO 8): the caller's position decoded and shown, ours sent from the position service (core/position) when Settings > Location > Position in DMR calls is on (needs DMR)",
    "needs": {
     "all": [
      "DMR"
@@ -228,6 +245,91 @@
    "notes": ""
   },
   {
+   "name": "DMR_TRUNK",
+   "title": "Tier III trunked systems: control channel, registration, following calls",
+   "group": "Radio and voice",
+   "help": "DMR Tier III trunking, the mobile station side: camp on a trunked system's control channel and follow its grants (needs DMR; core/dmr/trunk, docs/spec/dmr-trunking.md)",
+   "needs": {
+    "all": [
+     "DMR"
+    ],
+    "any": []
+   },
+   "bytes": {
+    "DM-1701": "37,540",
+    "MD-380": "38,176"
+   },
+   "notes": "Includes its children. Off, a trunked channel is shown as a mode not in this build (dmr-trunking). The four trunking figures are from the default builds they were added to"
+  },
+  {
+   "name": "DMR_TRUNK_TX",
+   "title": "Trunked calls and services: voice, status, short data, packet data, authentication",
+   "group": "Radio and voice",
+   "help": "Tier III access: registration, call requests, answers to the control channel, ending calls. Off: a listen-only trunking receiver (needs DMR_TRUNK)",
+   "needs": {
+    "all": [
+     "DMR_TRUNK"
+    ],
+    "any": []
+   },
+   "bytes": {
+    "DM-1701": "11,548",
+    "MD-380": "11,876"
+   },
+   "notes": "Needs DMR_TRUNK. Includes its children. Off, the radio follows a system and never transmits there"
+  },
+  {
+   "name": "DMR_TRUNK_SUPL",
+   "title": "Trunked supplementary data and the short data poll",
+   "group": "Radio and voice",
+   "help": "Tier III supplementary user data: data offered with a call request, and the last heard from the system kept for the debug link (needs DMR_TRUNK_TX; docs/spec/dmr-trunking.md 7.6)",
+   "needs": {
+    "all": [
+     "DMR_TRUNK_TX"
+    ],
+    "any": []
+   },
+   "bytes": {
+    "DM-1701": "724",
+    "MD-380": "684"
+   },
+   "notes": "Needs DMR_TRUNK_TX"
+  },
+  {
+   "name": "DMR_TRUNK_GW",
+   "title": "Trunked calls through a system's telephone, line and dispatcher gateways: dialed digits sent with the call",
+   "group": "Radio and voice",
+   "help": "Tier III calls through the PSTN, PABX, line and dispatcher gateways: dialed digits uploaded with the call, and the caller's number a gateway sends kept for the debug link (needs DMR_TRUNK_TX; docs/spec/dmr-trunking.md 7.6)",
+   "needs": {
+    "all": [
+     "DMR_TRUNK_TX"
+    ],
+    "any": []
+   },
+   "bytes": {
+    "DM-1701": "1,552",
+    "MD-380": "1,732"
+   },
+   "notes": "Needs DMR_TRUNK_TX"
+  },
+  {
+   "name": "VOICE_CAPTURE",
+   "title": "Voice capture for receive tests: the next 32 voice frames received, read over the debug link",
+   "group": "Bench",
+   "help": "Voice capture for receive tests: the next 32 voice frames received, raw as on air, read over the debug link (needs DMR; core/dmr/ambe/ambeVoice.c, debug link RADIO op 41 and the voice_cap view)",
+   "needs": {
+    "all": [
+     "DMR"
+    ],
+    "any": []
+   },
+   "bytes": {
+    "DM-1701": "256*",
+    "MD-380": "344*"
+   },
+   "notes": "Bench only, never in a release (debuglink)"
+  },
+  {
    "name": "DMR_IP_GATEWAY",
    "title": "IP over DMR gateway",
    "group": "Network (USB network adapter and IP over DMR)",
@@ -282,23 +384,6 @@
    "notes": "Auto: not for ports 4000-4099 or ETSI IP text"
   },
   {
-   "name": "DMR_CONFIRMED",
-   "title": "Confirmed packet data",
-   "group": "DMR data",
-   "help": "confirmed packet data (ETSI TS 102 361-1 8.2 / -3 5.4): our IP packets confirmed per destination or UDP port (N(S), responses, selective retry, retry limit), and the selective retry asked for when confirmed data to us has bad blocks (needs DMR; docs/spec/dmr-data.md 12)",
-   "needs": {
-    "all": [
-     "DMR"
-    ],
-    "any": []
-   },
-   "bytes": {
-    "DM-1701": "2,880",
-    "MD-380": "2,920"
-   },
-   "notes": ""
-  },
-  {
    "name": "NET_TCP",
    "title": "Minimal TCP",
    "group": "Network (USB network adapter and IP over DMR)",
@@ -320,12 +405,12 @@
    "name": "NET_KISS",
    "title": "KISS over TCP, port 8001",
    "group": "Network (USB network adapter and IP over DMR)",
-   "help": "KISS over TCP on port 8001, bridged to the APRS KISS TNC (needs NET_TCP and APRS; core/net/kiss_tcp.c)",
+   "help": "KISS over TCP on port 8001, bridged to the APRS KISS TNC (needs NET_TCP and APRS_AFSK; core/net/kiss_tcp.c)",
    "needs": {
     "all": [
      "DMR",
      "NET_TCP",
-     "APRS"
+     "APRS_AFSK"
     ],
     "any": []
    },
@@ -366,10 +451,10 @@
     "any": []
    },
    "bytes": {
-    "DM-1701": "-64",
-    "MD-380": "-96"
+    "DM-1701": "-19,456",
+    "MD-380": "-18,572"
    },
-   "notes": "Negative: saves flash"
+   "notes": "Negative: saves flash, nearly all of it on web control's files. MD-380: web control follows this switch (hardware-md380.md 19)"
   },
   {
    "name": "NET_WEBCTL",
@@ -410,12 +495,12 @@
    "name": "NET_APRSIS",
    "title": "APRS-IS client",
    "group": "Network (USB network adapter and IP over DMR)",
-   "help": "the radio's own APRS-IS client through the host: our beacons and the iGate's lines, off until a server is set (needs NET_TCP and APRS; core/net/aprsis.c)",
+   "help": "the radio's own APRS-IS client through the host: our beacons and the iGate's lines, off until a server is set (needs NET_TCP and APRS_AFSK; core/net/aprsis.c)",
    "needs": {
     "all": [
      "DMR",
      "NET_TCP",
-     "APRS"
+     "APRS_AFSK"
     ],
     "any": []
    },
@@ -833,6 +918,21 @@
    "notes": ""
   },
   {
+   "name": "BACKLIGHT_TEST",
+   "title": "Backlight test pages",
+   "group": "User interface",
+   "help": "Settings > Advanced > Backlight tests: a bench tool that sets the backlight's PWM compare value, brightness and rate by hand, to measure a radio's backlight drive (docs/testing/backlight-curve.md). Untranslated; off in every release",
+   "needs": {
+    "all": [],
+    "any": []
+   },
+   "bytes": {
+    "DM-1701": "1,536",
+    "MD-380": "1,552"
+   },
+   "notes": "Off by default; bench work (backlight-curve.md)"
+  },
+  {
    "name": "FONT_XL",
    "title": "16x32 font",
    "group": "User interface",
@@ -905,6 +1005,36 @@
    "notes": "Off by default; measured with Spanish on (its text, and the hashes of strings Spanish leaves untranslated). Alone it costs about as much as Spanish"
   },
   {
+   "name": "LANG_FR",
+   "title": "French on the radio",
+   "group": "User interface",
+   "help": "French on the radio (core/ui/lang/fr.po): off by default, listed dimmed; the web flasher offers it to French browsers. About 15.5 KB with Spanish on",
+   "needs": {
+    "all": [],
+    "any": []
+   },
+   "bytes": {
+    "DM-1701": "15,540",
+    "MD-380": "15,528"
+   },
+   "notes": "Off by default; measured with Spanish on, as Italian"
+  },
+  {
+   "name": "LANG_ZH",
+   "title": "Chinese on the radio",
+   "group": "User interface",
+   "help": "Chinese on the radio (core/ui/lang/zh.po): the Latin fonts have no glyph for it, so it brings a 16x16 CJK font of the characters its catalog uses (core/ui/cjk_font_data.c, built by tools/cjkfont.py) and text the text layer decodes. Off by default: about 16 KB of glyphs and 12 KB of text. Each radio with another display font needs its glyphs checked against that font's height (docs/dev/translating.md)",
+   "needs": {
+    "all": [],
+    "any": []
+   },
+   "bytes": {
+    "DM-1701": "32,856",
+    "MD-380": "32,856"
+   },
+   "notes": "Off by default. Not the text alone: 15,360 B of 16x16 glyphs (480 characters, core/ui/cjk_font_data.c) and about 17 KB of UTF-8 text, with the text layer's decoder. Needs a 16 px line height: a 240 px color radio draws its words in 8x16 and shows Chinese on every screen, while a layout whose words use the 5x8 or 6x12 font (128x64, 160x128) has no room for it and must not build it. Measured with Spanish on, 2026-11-04"
+  },
+  {
    "name": "LANG_DEFAULT_ES",
    "title": "Start in Spanish",
    "group": "User interface",
@@ -937,6 +1067,40 @@
     "MD-380": "0"
    },
    "notes": "As LANG_DEFAULT_ES (needs LANG_IT)"
+  },
+  {
+   "name": "LANG_DEFAULT_FR",
+   "title": "Start in French",
+   "group": "User interface",
+   "help": "",
+   "needs": {
+    "all": [
+     "LANG_FR"
+    ],
+    "any": []
+   },
+   "bytes": {
+    "DM-1701": "0",
+    "MD-380": "0"
+   },
+   "notes": "As LANG_DEFAULT_ES (needs LANG_FR)"
+  },
+  {
+   "name": "LANG_DEFAULT_ZH",
+   "title": "Start in Chinese",
+   "group": "User interface",
+   "help": "",
+   "needs": {
+    "all": [
+     "LANG_ZH"
+    ],
+    "any": []
+   },
+   "bytes": {
+    "DM-1701": "0",
+    "MD-380": "0"
+   },
+   "notes": "As LANG_DEFAULT_ES (needs LANG_ZH)"
   },
   {
    "name": "UI_COLOR",
@@ -1048,6 +1212,47 @@
    "notes": "MD-380: TX tone path not written"
   },
   {
+   "name": "RX_EXT",
+   "title": "Receive past the rated bands, Settings > Advanced",
+   "group": "Radio and voice",
+   "help": "receive past the band table: a range in board.bands (rx_ext_count) that receives only while Settings > Advanced says so, off by default, never transmit (docs/spec/radio-features.md). Off where the chip documents give no range",
+   "needs": {
+    "all": [],
+    "any": []
+   },
+   "bytes": {
+    "DM-1701": "484"
+   },
+   "notes": "Receive only, FM, off by default; ranges from each receiver chip's documents. MD-380: no receiver range in its chip documents"
+  },
+  {
+   "name": "RX_EXT_ON",
+   "title": "RX_EXT_ON",
+   "group": "Other",
+   "help": "the Settings > Advanced > RX past bands switch starts on (a first start, a factory reset): this fork's choice; RadioFoundry's is off. Needs RX_EXT",
+   "needs": {
+    "all": [],
+    "any": []
+   },
+   "bytes": {},
+   "notes": ""
+  },
+  {
+   "name": "AIR_AES",
+   "title": "AES-256 voice (P25, NXDN)",
+   "group": "Radio and voice",
+   "help": "P25 (TIA-102.AAAD-A) and NXDN (TS 1-D) conventional voice with keys from the codeplug keyring; interoperability with other makers' radios untested",
+   "needs": {
+    "all": [],
+    "any": [
+     "P25",
+     "NXDN"
+    ]
+   },
+   "bytes": {},
+   "notes": ""
+  },
+  {
    "name": "VOX",
    "title": "FM VOX",
    "group": "Radio and voice",
@@ -1114,7 +1319,7 @@
    "name": "GPS",
    "title": "GPS receiver: the module driver and its NMEA input (Settings > Location > GPS)",
    "group": "Radio and voice",
-   "help": "the GPS receiver: the board's module driver and its NMEA parsing (drivers/gps, platform/*/gps*, CAP_GPS). Off, the radio has no GPS: DMR_GPS, LRRP and APRS keep a fixed position and answer \"no fix\". Off where the radio has none",
+   "help": "the GPS receiver: the board's module driver and its NMEA parsing (drivers/gps, platform/*/gps*, CAP_GPS). Off, the radio has no GPS: DMR_GPS, LRRP and APRS send the fixed position when one is set (core/position), else none. Off where the radio has none",
    "needs": {
     "all": [],
     "any": []
@@ -1122,7 +1327,7 @@
    "bytes": {
     "MD-380": "1,196"
    },
-   "notes": "Needs a GPS receiver. Off, DMR GPS, LRRP and APRS keep the fixed position and report no fix. MD-380 measured 2026-10-22 (LTO, 58f2cebe). The DM-1701 has none from the factory but listens for an owner-fitted one (1,308 B, LTO)"
+   "notes": "Needs a GPS receiver. Off, DMR GPS Info, LRRP and APRS send the fixed position when one is set (position). MD-380 measured 2026-10-22 (LTO, 58f2cebe). The DM-1701 has none from the factory but listens for an owner-fitted one (1,308 B, LTO)"
   },
   {
    "name": "AUDIO_PROBE",
@@ -1280,10 +1485,10 @@
    "name": "APRS",
    "title": "APRS: AFSK positions, status, messages; DMR positions; KISS TNC",
    "group": "DMR data",
-   "help": "APRS (core/aprs, docs/spec/aprs.md): position, status and message packets as AX.25 / 1200 baud AFSK on FM, positions over DMR (LRRP / UDT), a KISS TNC on the host port. Transmit stays off until the user turns it on (needs FM)",
+   "help": "APRS (core/aprs, docs/spec/aprs.md): our position sent by the beacon triggers, its settings and its page. The engine only: it sends through the two backends below, and needs at least one. Transmit stays off until the user turns it on",
    "needs": {
     "all": [
-     "FM"
+     "APRS_AFSK"
     ],
     "any": []
    },
@@ -1294,13 +1499,49 @@
    "notes": "Includes APRS receive, KISS over TCP and APRS-IS where built. MD-380: AFSK TX needs the tone path (not written), DMR positions work"
   },
   {
+   "name": "APRS_AFSK",
+   "title": "APRS on FM: AX.25 / AFSK packets, messages, KISS TNC",
+   "group": "DMR data",
+   "help": "APRS on FM: position, status and message packets as AX.25 / 1200 baud AFSK through board.afsk, a KISS TNC on the host port (needs APRS and FM). Off, APRS goes over DMR only and nothing of AX.25 is built",
+   "needs": {
+    "all": [
+     "FM",
+     "APRS"
+    ],
+    "any": []
+   },
+   "bytes": {
+    "DM-1701": "21,876",
+    "MD-380": "11,872"
+   },
+   "notes": "Needs APRS and FM. Includes APRS receive, KISS over TCP and APRS-IS where built. Off, APRS sends positions over DMR only. Measured with LTO"
+  },
+  {
+   "name": "APRS_DMR",
+   "title": "APRS over DMR: LRRP or UDT positions to a gateway ID",
+   "group": "DMR data",
+   "help": "APRS over DMR: positions as LRRP or UDT reports to a gateway ID (core/aprs/aprs_dmr.c; needs APRS and DMR). It builds the DMR data service by itself",
+   "needs": {
+    "all": [
+     "DMR",
+     "APRS"
+    ],
+    "any": []
+   },
+   "bytes": {
+    "DM-1701": "692",
+    "MD-380": "1,380"
+   },
+   "notes": "Needs APRS and DMR. Off, APRS is FM only. Measured with LTO"
+  },
+  {
    "name": "APRS_RX",
    "title": "APRS receive: demodulator, station list, digipeater",
    "group": "DMR data",
-   "help": "APRS receive: the AFSK demodulator, station list, messages to us, digipeater (needs APRS; useful only on boards whose board.afsk can sample received audio)",
+   "help": "APRS receive: the AFSK demodulator, station list, messages to us, digipeater (needs APRS_AFSK; useful only on boards whose board.afsk can sample received audio)",
    "needs": {
     "all": [
-     "APRS"
+     "APRS_AFSK"
     ],
     "any": []
    },
@@ -1330,18 +1571,17 @@
    "name": "GPS_SKY",
    "title": "GPS screen: sky plot, signal bars, grid locator (Tools > Position)",
    "group": "DMR data",
-   "help": "the GPS status screen: satellites on a sky plot and signal bars, fix quality, grid locator (core/aprs/nmea_sky.c, core/ui/ui_gps.c, docs/spec/aprs.md 7.1). Needs GPS and APRS; off, Tools > Position is a page of text",
+   "help": "the GPS status screen: satellites on a sky plot and signal bars, fix quality, grid locator (core/position/nmea_sky.c, core/ui/ui_gps.c, docs/spec/position.md 3). Needs GPS; off, Tools > Position is a page of text",
    "needs": {
     "all": [
-     "GPS",
-     "APRS"
+     "GPS"
     ],
     "any": []
    },
    "bytes": {
     "MD-380": "5,244"
    },
-   "notes": "Needs GPS and APRS. 176 B of RAM. MD-380 measured 2026-10-29 (LTO)"
+   "notes": "Needs GPS. 176 B of RAM. MD-380 measured 2026-10-29 (LTO)"
   },
   {
    "name": "KEY_ASSIGN",
@@ -1426,6 +1666,21 @@
    "notes": "Needs CHANNEL_EDIT and DMR. Measured 2026-10-30 on the default builds"
   },
   {
+   "name": "VOLUME_BAR",
+   "title": "Volume bar when a knob the MCU reads turns (#354)",
+   "group": "Radio and voice",
+   "help": "the volume bar over the screen when a knob the MCU reads turns (docs/spec/radio-features.md 4.2)",
+   "needs": {
+    "all": [],
+    "any": []
+   },
+   "bytes": {
+    "DM-1701": "496",
+    "MD-380": "428"
+   },
+   "notes": "Measured 2026-11-08 on the default builds; shows only on a radio with such a knob. Off, the volume screen keeps the segment drawing it now shares (about 90 bytes)"
+  },
+  {
    "name": "P25",
    "title": "P25 Phase 1 digital voice",
    "group": "Radio and voice",
@@ -1436,36 +1691,10 @@
     ],
     "any": []
    },
-   "bytes": {},
-   "notes": ""
-  },
-  {
-   "name": "P25_NATIVE",
-   "title": "P25 on the radio's own modem",
-   "group": "Radio and voice",
-   "help": "P25 frames are decoded and built in the firmware, no external modem: what P25 channels run on",
-   "needs": {
-    "all": [
-     "P25"
-    ],
-    "any": []
+   "bytes": {
+    "DM-1701": "56"
    },
-   "bytes": {},
-   "notes": ""
-  },
-  {
-   "name": "NXDN",
-   "title": "NXDN48 digital voice",
-   "group": "Radio and voice",
-   "help": "NXDN 6.25 kHz channels with a software modem: voice both ways, with each channel's RAN",
-   "needs": {
-    "all": [
-     "DMR"
-    ],
-    "any": []
-   },
-   "bytes": {},
-   "notes": ""
+   "notes": "The codec only: a P25 channel is shown as a mode not in this build (p25-codeplug.md). A stored P25 channel runs on its own parameters (p25.md 7)"
   },
   {
    "name": "P25_TRUNK",
@@ -1478,163 +1707,46 @@
     ],
     "any": []
    },
-   "bytes": {},
-   "notes": ""
+   "bytes": {
+    "DM-1701": "13,300*"
+   },
+   "notes": "Needs P25; on top of it. MD-380: no air interface, nothing runs. A trunked channel hunts its system's control channel and follows voice grants for its talk group; where the system allows transmit it registers, affiliates, asks for a voice channel on PTT and transmits on the grant (p25-trunking.md). Run on the DM-1701 and the DM-32UV against a control channel the SDR bench plays, not on a live system. RAM: 1,232 B on the DM-1701"
   },
   {
-   "name": "P25_TRUNK_TX",
-   "title": "P25 trunking transmit",
+   "name": "NXDN",
+   "title": "NXDN digital voice",
    "group": "Radio and voice",
-   "help": "experimental Phase 1 registration, affiliation and granted voice; each channel must explicitly enable Trunk TX; hardware interoperability untested",
+   "help": "NXDN 4800 (6.25 kHz) and 9600 (12.5 kHz) channels with a software modem: voice both ways, with each channel's RAN",
    "needs": {
     "all": [
-     "P25_TRUNK"
+     "DMR"
     ],
     "any": []
    },
-   "bytes": {},
-   "notes": ""
-  },
-  {
-   "name": "P25_PHASE2",
-   "title": "P25 Phase 2 decoder",
-   "group": "Radio and voice",
-   "help": "the Phase 2 (TDMA) voice decoder for trunked systems; no physical layer yet, so it adds no bytes",
-   "needs": {
-    "all": [
-     "P25_TRUNK"
-    ],
-    "any": []
+   "bytes": {
+    "DM-1701": "27,300*"
    },
-   "bytes": {},
-   "notes": ""
+   "notes": "Needs DMR (its voice goes through the DMR vocoder path) and a board with an air interface provider (board.air); where the provider only receives a rate, PTT is refused at that rate. The VFO's mode tile, the debug link or a stored NXDN channel sets it (nxdn.md 6, nxdn-codeplug.md). On the DM-1701 and the DM-32UV transmit is checked off air at both rates and receive with a bench transmitter, speech frames through the vocoder included (DM-1701); the sound at the speaker is untested (modem-hrc6000.md 10.6). RAM: 2,184 B on the DM-1701; with P25 also on it shares P25's engine memory (9,464 B flash, 256 B RAM on top of P25)"
   },
   {
-   "name": "FIRSTBOOT",
-   "title": "FIRSTBOOT",
-   "group": "Other",
-   "help": "",
-   "needs": {
-    "all": [],
-    "any": []
-   },
-   "bytes": {},
-   "notes": ""
-  },
-  {
-   "name": "P25_BENCH",
-   "title": "P25 bench tools",
+   "name": "AIR_RAW",
+   "title": "Air interface bench: raw symbols and tap samples (debug link 0x24)",
    "group": "Bench",
-   "help": "replay storage and debug-link commands for testing P25 audio on the bench",
+   "help": "diagnostics: debug link commands that open an air interface session and move raw symbols, for bench tests (needs an air-framed mode such as P25 or NXDN, and DEBUGLINK; docs/spec/debuglink.md)",
    "needs": {
     "all": [
-     "P25"
+     "DEBUGLINK"
     ],
-    "any": []
+    "any": [
+     "P25",
+     "NXDN"
+    ]
    },
-   "bytes": {},
-   "notes": ""
-  },
-  {
-   "name": "CPU_PROFILE",
-   "title": "CPU_PROFILE",
-   "group": "Other",
-   "help": "",
-   "needs": {
-    "all": [],
-    "any": []
+   "bytes": {
+    "DM-1701": "2,780*"
    },
-   "bytes": {},
-   "notes": ""
-  },
-  {
-   "name": "DEV_UPDATE",
-   "title": "DEV_UPDATE",
-   "group": "Other",
-   "help": "",
-   "needs": {
-    "all": [],
-    "any": []
-   },
-   "bytes": {},
-   "notes": ""
-  },
-  {
-   "name": "DEV_TX",
-   "title": "DEV_TX",
-   "group": "Other",
-   "help": "",
-   "needs": {
-    "all": [],
-    "any": []
-   },
-   "bytes": {},
-   "notes": ""
-  },
-  {
-   "name": "DV_AES",
-   "title": "AES-256 voice",
-   "group": "Radio and voice",
-   "help": "P25 Phase 1 conventional and DMR voice with local web CPS keys; hardware interoperability untested",
-   "needs": {
-    "all": [],
-    "any": []
-   },
-   "bytes": {},
-   "notes": ""
+   "notes": "Bench only, never in a release (debuglink.md 3.28)"
   }
  ],
- "reported": [
-  "AM_RX",
-  "APRS",
-  "APRS_IGATE",
-  "APRS_RX",
-  "BATTERY_SAVE",
-  "BCAST_FM",
-  "BEEP",
-  "CPS_FAST",
-  "CRASH_LOG",
-  "DEBUGLINK",
-  "DIAG",
-  "DMR",
-  "DMR_ARS",
-  "DMR_CONFIRMED",
-  "DMR_GPS",
-  "DMR_IP_GATEWAY",
-  "DMR_LRRP",
-  "DMR_PRIVACY",
-  "DMR_ROAMING",
-  "DMR_SIGNALING",
-  "DMR_SMS",
-  "DMR_TALKER_ALIAS",
-  "DMR_UDP_COMPRESS",
-  "DTMF",
-  "FM",
-  "FM_TX_TONES",
-  "HOSTLINK",
-  "HOTSPOT",
-  "HOTSPOT_SPLIT",
-  "IDDB_COMPACT",
-  "MDNS",
-  "NET_APRSIS",
-  "NET_HTTP",
-  "NET_HTTP_GZIP",
-  "NET_KISS",
-  "NET_PPP",
-  "NET_RIGCTL",
-  "NET_TCP",
-  "NET_USRP",
-  "SCAN",
-  "SFR",
-  "SNMP",
-  "SUBTONE",
-  "TFTP",
-  "TFTP_IDDB",
-  "USB",
-  "USB_NETWORK",
-  "VFO",
-  "VFO_DMR",
-  "VFO_FM",
-  "VOX"
- ]
+ "reported": []
 }

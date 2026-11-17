@@ -6,9 +6,9 @@
 // their references cleared. A file may hold only some columns: the others keep their values. Problems come back as
 // {row, column, code, params}, and the page words them.
 
-import { parseFreq, parseTone, mhz } from "./fields.js?v=fb0b2c065d";
-import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf, NAC_ANY } from "./records.js?v=fb0b2c065d";
-import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=fb0b2c065d";
+import { parseFreq, parseTone, mhz } from "./fields.js?v=bbc2466609";
+import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=bbc2466609";
+import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=bbc2466609";
 
 // --- RFC 4180 ---
 
@@ -145,27 +145,7 @@ const asWord = (words, dflt, lo, hi) => (s) => {
 
 const POWER = { ...POWER_NAMES };
 const powerText = (n) => POWER_NAMES[n] || String(n);
-const MODES = { fm: "FM", dmr: "DMR", p25: "P25", nxdn: "NXDN", p25trunk: "P25 Trunk" };
-
-// P25 and NXDN fields (open-firmware-cps.md 7.3.3.1): a cell left blank keeps the value, so a P25 column on an FM
-// row and the other way round change nothing
-const DIGITAL = new Set(["p25", "nxdn", "p25trunk"]);
-const isP25 = (r) => r.mode === "p25" || r.mode === "p25trunk";
-const hex = (digits) => (v) => v.toString(16).toUpperCase().padStart(digits, "0");
-const asHex = (max, any) => (s) => {
-	s = s.trim();
-	if (any && /^any$/i.test(s)) return NAC_ANY;
-	if (!/^(0x)?[0-9a-f]+$/i.test(s)) throw new Bad("bad_value", { value: s, allowed: any ? "000-FFF, any" : `0-${max.toString(16).toUpperCase()}` });
-	const n = parseInt(s.replace(/^0x/i, ""), 16);
-	if (n > max) throw new Bad("range", { min: 0, max: max.toString(16).toUpperCase() });
-	return n;
-};
-const keep = (header, key, put, get, aliases = []) => ({
-	header, aliases, key, get,
-	set: (r, s) => {
-		if (s.trim() !== "") r[key] = put(s);
-	},
-});
+const MODES = { fm: "FM", dmr: "DMR" };
 const TYPES = Object.fromEntries(CALL_TYPES.map((k) => [k, k[0].toUpperCase() + k.slice(1)]));
 
 // --- References by name ---
@@ -333,11 +313,12 @@ export const TABLES = {
 			ref("TX Contact", "contact", "contacts", ["Contact"]),
 			ref("RX Group List", "rxList", "rxLists", ["Group List", "RX List"]),
 			ref("APRS", "aprs", "aprs", ["APRS Configuration"]),
-			c("DMR ID", "dmrId", asId, (r) => r.dmrId || "", ["Channel DMR ID", "Unit ID", "Radio ID"]),
+			c("DMR ID", "dmrId", asId, (r) => r.dmrId || "", ["Channel DMR ID"]),
 			c("RX Only", "rxOnly", asBool, (r) => yesNo(r.rxOnly)),
 			c("All Skip", "allSkip", asBool, (r) => yesNo(r.allSkip), ["Scan Skip"]),
 			c("Zone Skip", "zoneSkip", asBool, (r) => yesNo(r.zoneSkip)),
 			c("VOX", "vox", asBool, (r) => yesNo(r.vox)),
+			c("Tone Burst", "toneBurst", asBool, (r) => yesNo(r.toneBurst), ["1750 Hz"]),
 			c("No Beep", "noBeep", asBool, (r) => yesNo(r.noBeep)),
 			c("No Eco", "noEco", asBool, (r) => yesNo(r.noEco)),
 			c("DMO", "dmo", asBool, (r) => yesNo(r.dmo)),
@@ -350,23 +331,6 @@ export const TABLES = {
 			c("SFR", "sfr", asBool, (r) => yesNo(r.sfr)),
 			c("SFR A", "sfrA", asInt(0, 255, 0)),
 			c("SFR B", "sfrB", asInt(0, 255, 0)),
-			keep("RX NAC", "nacRx", (s) => {
-				const n = asHex(0xFFF, true)(s);
-				return n === 0xF7F ? NAC_ANY : n;	// the repeater's any: on receive, every NAC as F7E
-			}, (r) => (isP25(r) ? (r.nacRx === NAC_ANY ? "any" : hex(3)(r.nacRx)) : ""), ["NAC RX"]),
-			keep("TX NAC", "nacTx", (s) => {
-				const n = asHex(0xFFF, false)(s);
-				if (n >= NAC_ANY) throw new Bad("range", { min: 0, max: "F7D" });
-				return n;
-			}, (r) => (isP25(r) ? hex(3)(r.nacTx) : ""), ["NAC TX", "NAC"]),
-			keep("RX RAN", "nacRx", (s) => (/^any$/i.test(s.trim()) ? 0 : asInt(0, 63)(s)), (r) => (r.mode === "nxdn" ? r.nacRx : ""), ["RAN RX"]),
-			keep("TX RAN", "nacTx", asInt(0, 63), (r) => (r.mode === "nxdn" ? r.nacTx : ""), ["RAN TX", "RAN"]),
-			keep("Talkgroup", "talkgroup", asInt(1, 65535), (r) => (DIGITAL.has(r.mode) ? r.talkgroup || "" : ""), ["TG", "Group ID", "TGID"]),
-			keep("Hear All Groups", "hearAll", asBool, (r) => (DIGITAL.has(r.mode) ? yesNo(r.hearAll) : ""), ["Hear All", "Monitor All"]),
-			keep("AES key slot", "aesSlot", asInt(0, 4), (r) => r.aesSlot || 0),
-			keep("Trunk TX", "trunkTx", asBool, (r) => r.mode === "p25trunk" ? yesNo(r.trunkTx) : ""),
-			keep("WACN", "wacn", asHex(0xFFFFF, false), (r) => (r.mode === "p25trunk" ? hex(5)(r.wacn) : "")),
-			keep("System ID", "sysid", asHex(0xFFF, false), (r) => (r.mode === "p25trunk" ? hex(3)(r.sysid) : ""), ["SysID", "System"]),
 		],
 		create: () => newChannel(),
 		required: ["name", "rxHz"],

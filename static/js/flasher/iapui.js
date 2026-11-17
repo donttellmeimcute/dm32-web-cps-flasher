@@ -15,17 +15,17 @@
 //
 // Neither ever writes the vendor loader, so update mode always remains.
 
-import { h, t, notice, button, panel, progressBar } from "./dom.js?v=fb0b2c065d";
-import { sleep } from "./bytes.js?v=fb0b2c065d";
-import * as c7 from "./c7000.js?v=fb0b2c065d";
-import { Usmart, stockName, BUILDS, UNKNOWN_BUILD } from "./usmart.js?v=fb0b2c065d";
-import { trimTail } from "./iap.js?v=fb0b2c065d";
-import { variantCode, verdict, writable, groups } from "./variant.js?v=fb0b2c065d";
-import * as diag from "../diag.js?v=fb0b2c065d";
-import { CodecError } from "./c7000.js?v=fb0b2c065d";
-import { errorNotice, reportLine } from "../report.js?v=fb0b2c065d";
-import { radioPicture, holdKeys } from "./radiotop.js?v=fb0b2c065d";
-import { confirmNoCodec } from "./nocodec.js?v=fb0b2c065d";
+import { h, t, notice, button, panel, progressBar } from "./dom.js?v=bbc2466609";
+import { sleep } from "./bytes.js?v=bbc2466609";
+import * as c7 from "./c7000.js?v=bbc2466609";
+import { Usmart, stockName, BUILDS, UNKNOWN_BUILD } from "./usmart.js?v=bbc2466609";
+import { trimTail } from "./iap.js?v=bbc2466609";
+import { variantCode, verdict, writable, groups } from "./variant.js?v=bbc2466609";
+import * as diag from "../diag.js?v=bbc2466609";
+import { CodecError } from "./c7000.js?v=bbc2466609";
+import { errorNotice, reportLine } from "../report.js?v=bbc2466609";
+import { radioPicture, holdKeys } from "./radiotop.js?v=bbc2466609";
+import { confirmNoCodec } from "./nocodec.js?v=bbc2466609";
 
 const LISTEN_MS = 180000;	// how long the page waits for update mode
 

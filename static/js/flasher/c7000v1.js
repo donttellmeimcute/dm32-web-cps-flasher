@@ -6,8 +6,8 @@
 // slot as version 2 from its own code and tables, so their update needs no stock file. Temporary: everything else in
 // the flasher is version 2 only. To remove it, delete this file, its test and its one use in c7000ui.js.
 
-import { crc32, sha256, u32le } from "./bytes.js?v=fb0b2c065d";
-import { codecMap, slotBytes } from "./c7000.js?v=fb0b2c065d";
+import { crc32, sha256, u32le } from "./bytes.js?v=bbc2466609";
+import { codecMap, slotBytes } from "./c7000.js?v=bbc2466609";
 
 const V1 = 1, ENTRIES = 7;
 
