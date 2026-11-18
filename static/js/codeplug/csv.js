@@ -223,6 +223,36 @@ const NUMBER = (max) => ({ header: "Number", aliases: ["No", "#", "Index"], key:
 	r.number = asInt(1, max, null)(s);
 } });
 
+// NXDN RANs (mode_nxdn.js): kind 4 (modes.js). CSV cannot make a channel NXDN — Mode takes FM/DMR only — so these
+// columns update a channel that already is NXDN. A blank RX RAN keeps the value; a blank TX RAN sends the RX RAN,
+// RAN 1 when that is every RAN (0), as the editor's blank TX RAN does.
+const NXDN_KIND = 4, RAN_MAX = 63;
+const txRanDefault = (rx) => (rx !== 0 ? rx : 1);
+const ranCol = (header, key, aliases) => ({
+	header, aliases, key,
+	get: (r) => {
+		if (r.kind !== NXDN_KIND || !r.params) return "";
+		const v = r.params[key];
+		if (v === undefined || v === null) return "";
+		if (key === "txRan" && v === txRanDefault(r.params.rxRan ?? 0)) return "";
+		return String(v);
+	},
+	set: (r, s) => {
+		s = s.trim();
+		if (r.kind !== NXDN_KIND || !r.params) {
+			if (s === "") return;
+			throw new Bad("bad_value", { value: s, allowed: "NXDN channels" });
+		}
+		if (s === "") {
+			if (key === "txRan") r.params = { ...r.params, txRan: txRanDefault(r.params.rxRan ?? 0) };
+			return;
+		}
+		const n = Number(s);
+		if (!Number.isInteger(n) || n < 0 || n > RAN_MAX) throw new Bad("range", { min: 0, max: RAN_MAX });
+		r.params = { ...r.params, [key]: n };
+	},
+});
+
 export const TABLES = {
 	contacts: {
 		file: "contacts.csv",
@@ -310,6 +340,8 @@ export const TABLES = {
 			c("Squelch", "squelch", asInt(0, 21, 0)),
 			c("Color Code", "colorCode", asInt(0, 15, 1), undefined, ["CC", "Colour Code"]),
 			c("Timeslot", "timeslot", asInt(1, 2, 1), undefined, ["TS", "Time Slot", "Slot"]),
+			ranCol("RX RAN", "rxRan", ["Receive RAN"]),
+			ranCol("TX RAN", "txRan", ["Transmit RAN"]),
 			ref("TX Contact", "contact", "contacts", ["Contact"]),
 			ref("RX Group List", "rxList", "rxLists", ["Group List", "RX List"]),
 			ref("APRS", "aprs", "aprs", ["APRS Configuration"]),
