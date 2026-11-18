@@ -75,5 +75,21 @@
  "support.kofi": "Support me on Ko-fi",
  "support.kofi_text": "Support development of the firmware and flasher.",
  "support.bar": "Find this useful? Support the project:",
- "support.kofi_aria": "Support lyra XE1POC on Ko-fi: development of the firmware and flasher (opens in a new tab)"
+ "support.kofi_aria": "Support lyra XE1POC on Ko-fi: development of the firmware and flasher (opens in a new tab)",
+ "home.eyebrow": "Baofeng DM-32UV · Open25-DM32",
+ "home.steps_title": "From the box to the air in three steps",
+ "home.step1_title": "Connect",
+ "home.step1_text": "Programming cable and update mode: PTT + SK1 while switching on.",
+ "home.step2_title": "Back up",
+ "home.step2_text": "The flasher saves a backup of your radio before touching anything.",
+ "home.step3_title": "Flash",
+ "home.step3_text": "Install Open25-DM32 with DMR, NXDN and P25, and restore your backup any time.",
+ "page.meta_browser": "Chrome or Edge · Web Serial",
+ "page.meta_local": "Everything on your computer",
+ "page.meta_sim": "Practice mode, no radio needed",
+ "page.meta_files": ".bin · CSV · YAML files",
+ "nav.home": "Home",
+ "home.modes_title": "Modes on the air",
+ "home.mode_voice": "Voice",
+ "home.mode_data": "Data"
 }

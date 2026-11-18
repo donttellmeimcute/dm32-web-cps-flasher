@@ -115,12 +115,29 @@ A mano:
 
 ## Aspecto del sitio
 
-El aspecto propio («night console»: superficies violetas, acento magenta-violeta, banda oscura en la portada) vive en
-`static/css/tokens.css` (paleta, tipografía, radios; modo claro y oscuro) y en el bloque final de `static/css/site.css`.
-No cambia el HTML ni la lógica del flasher. Solo usa fuentes del sistema: el sitio sigue sin cargar nada de otros
-servidores. Los créditos de RadioFoundry y las cabeceras SPDX de cada archivo se conservan. Cada página empieza con
-una barra con los botones de Ko-fi y Throne, en el flujo de la página (no flota ni tapa nada). Al cambiar el CSS, sube el `?v=`
-de `tokens.css`/`site.css` en las páginas para que GitHub Pages no sirva la versión anterior en caché.
+El aspecto propio («console rail»: un rail lateral oscuro con el retrato de Lyra como marca, rosa intenso con cian
+de señal y un dorado tomado de los ojos del retrato, esquinas cuadradas, mono para etiquetas y lecturas, y la
+portada como una rejilla bento en vez de una banda hero) vive en `static/css/tokens.css` (paleta, tipografía, radios;
+modo claro y oscuro) y en el bloque final de `static/css/site.css`. El shell (`generator/templates/base.html`) ya no
+es una cabecera superior: es un rail fijo a la izquierda con el avatar, la navegación numerada (Inicio, Flasher,
+Editor), el cambio de idioma y de tema y los botones de Ko-fi y Throne al pie; en móvil el rail se vuelve una barra
+superior compacta con el menú desplegable de siempre (`#site-nav` con `.open`). La identidad es la de Lyra, no la
+de RadioFoundry: su retrato (`static/img/lyra.png`) es un mosaico de la portada —con barra superior «XE1ARS · Lyra»
+y la lectura del firmware (`#fw-version`)—, el avatar de la marca y el favicon (`static/img/favicon-lyra.png`,
+nombres propios para que una regeneración no los pise con los iconos de RadioFoundry). La portada
+(`generator/templates/home.html`) es un masthead con el nombre gigante y, debajo, un bento: retrato, modos
+(DMR/NXDN/P25/FM), los tres pasos como un riel con regla, los dos paneles grandes de acción (Flasher y Editor), el
+modo de actualización, la nota del códec y los créditos como pie de página. Las páginas internas llevan el
+titular en dos columnas (título a la izquierda, texto a la derecha, chips a todo lo ancho) y el flasher y el editor
+solo se reestilan con CSS (paneles con borde grueso rosa, stepper con el paso actual en rosa y los hechos en
+dorado, botones cuadrados, pestañas del editor como control segmentado). No cambia la lógica del flasher ni del
+editor: solo se reestilan las clases que su DOM ya usa, y las páginas conservan sus ids (`#flasher`, `#editor`,
+`#beta-notice`, `#fw-version`, `#site-nav`). Solo usa fuentes del sistema: el sitio sigue sin cargar nada de otros
+servidores. Los créditos de RadioFoundry y las cabeceras SPDX de cada archivo se conservan. Al cambiar el CSS, sube
+el `?v=` de `tokens.css`/`site.css` en las páginas para que GitHub Pages no sirva la versión anterior en caché.
+`generator/build_dm32.py` inyecta además en cada regeneración la fila de chips bajo el titular de Flasher y Editor
+(`page.meta_*` en `generator/i18n/`) y el «404» grande de la página de error; el resto del aspecto de esas páginas es
+CSS puro.
 
 ## Probar en local
 

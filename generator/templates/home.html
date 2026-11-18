@@ -1,47 +1,72 @@
-<section class="hero">
-	<div class="wrap hero-grid">
-		<div class="hero-text">
-			<h1>{{t home.headline}}</h1>
-			<p class="lead">{{t home.lead}}</p>
-			<div class="actions">
-				<a class="btn btn-primary" href="{{home}}flash/index.html">{{t home.cta_flash}}</a>
-				<a class="btn btn-primary" href="{{home}}codeplug/index.html">{{t home.cta_editor}}</a>
-			</div>
-			<p class="small muted">{{t home.browser}}</p>
-			<dl class="feature-rows">
-				<div><dt>{{t home.f_flash}}</dt><dd>{{t home.f_flash_text}}</dd></div>
-				<div><dt>{{t home.f_editor}}</dt><dd>{{t home.f_editor_text}}</dd></div>
-				<div><dt>{{t home.f_firmware}}</dt><dd><span id="fw-version">…</span></dd></div>
-			</dl>
-		</div>
-		<figure class="hero-device">
-			<img src="{{root}}static/img/radios/{{ radio_id }}.svg" alt="{{ radio_name }}">
-		</figure>
+<section class="wrap section masthead">
+	<p class="eyebrow">{{t home.eyebrow}}</p>
+	<h1>{{t home.headline}}</h1>
+	<p class="lead">{{t home.lead}}</p>
+	<div class="actions">
+		<a class="btn btn-primary" href="{{home}}flash/index.html">{{t home.cta_flash}}</a>
+		<a class="btn btn-ghost" href="{{home}}codeplug/index.html">{{t home.cta_editor}}</a>
 	</div>
+	<p class="small muted">{{t home.browser}}</p>
 </section>
 
-<section class="wrap section">
-	<div class="notice warn"><p><strong>{{t home.experimental_title}}</strong> {{t home.experimental_text}}</p></div>
-	<div class="card">
+<section class="wrap section bento">
+	<figure class="tile tile-portrait">
+		<div class="display-bar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>XE1ARS · Lyra</span><span class="sig" aria-hidden="true">▂▄▆█</span></div>
+		<div class="portrait-frame">
+			<img src="{{root}}static/img/lyra.png?v={{ assets }}" alt="Lyra XE1ARS">
+		</div>
+		<div class="fw-readout"><span class="led" aria-hidden="true"></span><span id="fw-version">…</span><span class="fw-tag">{{t home.f_firmware}}</span></div>
+	</figure>
+
+	<div class="tile tile-modes">
+		<h2>{{t home.modes_title}}</h2>
+		<ul class="mode-tiles">
+			<li class="mode-tile-voice"><b>DMR</b><span>{{t home.mode_voice}}</span></li>
+			<li class="mode-tile-data"><b>NXDN</b><span>{{t home.mode_data}}</span></li>
+			<li class="mode-tile-data"><b>P25</b><span>{{t home.mode_data}}</span></li>
+			<li class="mode-tile-voice"><b>FM</b><span>{{t home.mode_voice}}</span></li>
+		</ul>
+	</div>
+
+	<div class="tile tile-steps">
+		<h2>{{t home.steps_title}}</h2>
+		<ol class="step-rail">
+			<li><b>01</b><h3>{{t home.step1_title}}</h3><p>{{t home.step1_text}}</p></li>
+			<li><b>02</b><h3>{{t home.step2_title}}</h3><p>{{t home.step2_text}}</p></li>
+			<li><b>03</b><h3>{{t home.step3_title}}</h3><p>{{t home.step3_text}}</p></li>
+		</ol>
+	</div>
+
+	<a class="tile tile-act" href="{{home}}flash/index.html">
+		<span class="tile-index">01</span>
+		<h2>{{t home.f_flash}}</h2>
+		<p>{{t home.f_flash_text}}</p>
+		<span class="tile-arrow" aria-hidden="true">→</span>
+	</a>
+	<a class="tile tile-act" href="{{home}}codeplug/index.html">
+		<span class="tile-index">02</span>
+		<h2>{{t home.f_editor}}</h2>
+		<p>{{t home.f_editor_text}}</p>
+		<span class="tile-arrow" aria-hidden="true">→</span>
+	</a>
+
+	<div class="tile tile-update">
+		<div class="notice warn"><p><strong>{{t home.experimental_title}}</strong> {{t home.experimental_text}}</p></div>
 		<h2>{{t home.update_mode_title}}</h2>
-		<ol>
+		<ol class="steps-check">
 			<li>{{t home.update_mode_1}}</li>
 			<li>{{t home.update_mode_2}}</li>
 			<li>{{t home.update_mode_3}}</li>
 		</ol>
 		<p class="small muted">{{t home.update_mode_note}}</p>
 	</div>
-</section>
 
-<section class="wrap section">
-	<div class="card">
+	<div class="tile tile-codec">
 		<h2>{{t home.codec_title}}</h2>
 		<p>{{t home.codec_text}}</p>
 	</div>
-</section>
 
-<section class="wrap section">
-	<div class="card">
+	<div class="tile tile-credits">
 		<h2>{{t home.credits_title}}</h2>
 		<ul>
 			<li><a href="https://github.com/radiofoundry/radiofoundry">RadioFoundry</a>: {{t home.credit_rf}}</li>

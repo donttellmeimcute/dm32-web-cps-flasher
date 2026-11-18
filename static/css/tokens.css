@@ -5,8 +5,11 @@
  * these variables. Light is the default; dark applies with the system setting unless the visitor picked light, and
  * always with data-theme="dark" (the header's toggle).
  *
- * Open25-DM32 look ("night console"): violet-tinted surfaces, a magenta-to-violet accent, round shapes and a dark
- * hero band in both themes. System fonts only, so the site still loads nothing from other hosts.
+ * Open25-DM32 look ("console rail"): a dark side rail with Lyra's portrait as the brand, a hot-pink accent (the
+ * firmware's kawaii pink, deepened so it reads on light and dark), a signal-cyan second accent for the digital
+ * modes and a gold accent taken from the portrait's eyes; square corners, mono type for labels, readouts and the
+ * brand, and the home page as a bento grid instead of a hero band. System fonts only, so the site still loads
+ * nothing from other hosts.
  */
 :root {
 	color-scheme: light;
@@ -29,60 +32,74 @@
 	--space-5: 1.25rem;
 	--space-6: 1.75rem;
 	--space-7: 2.5rem;
-	--wrap: 1200px;
+	--wrap: 1180px;
 	--gutter: 18px;
-	--radius: 18px;
-	--radius-sm: 11px;
+	--radius: 9px;
+	--radius-sm: 7px;
+	--rail-w: 264px;
+	--rail-bg: #171325;
+	--rail-text: #f3e8f2;
+	--rail-muted: #b3a8c9;
 
-	--bg: #f5f3fb;
-	--surface: #ffffff;
-	--surface-2: #ece8f7;
-	--text: #1b1631;
-	--muted: #5a5472;
-	--faint: #a29cb8;		/* the build stamp: there if you look for it */
-	--border: #dcd5ee;
-	--accent: #c8175d;
-	--accent-2: #6d33e0;
+	--bg: #f2f0ea;
+	--surface: #fffdf8;
+	--surface-2: #e9e6dd;
+	--text: #17161c;
+	--muted: #5b5866;
+	--faint: #a39eaf;		/* the build stamp: there if you look for it */
+	--border: #d8d3c6;
+	--accent: #d81b74;
+	--accent-2: #6d28d9;
 	--accent-text: #ffffff;
-	--accent-soft: #fbe6f0;
+	--accent-soft: #fde7f1;
+	--signal: #0e7490;
+	--signal-soft: #dff3f8;
+	--gold: #b97f24;
 	--link: #5b21b6;
-	--focus: #8b5cf6;
-	--code-bg: #efecf8;
-	--ok: #1d7a43;
-	--ok-soft: #dff3e7;
+	--focus: #d81b74;
+	--code-bg: #ece9e0;
+	--ok: #177245;
+	--ok-soft: #dcf2e4;
 	--warn: #8a5300;
 	--warn-soft: #fcefd4;
 	--bad: #b0201c;
 	--bad-soft: #fbe2e0;
-	--info-soft: #ebe6fb;
+	--info-soft: #e7e2f8;
 	--grad: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 100%);
-	--glow: 0 10px 30px -12px rgb(200 23 93 / 45%);
-	--shadow: 0 1px 2px rgb(40 20 80 / 6%), 0 8px 24px -8px rgb(40 20 80 / 14%);
-	/* the hero band is dark in both themes */
-	--hero-bg: #110c22;
-	--hero-text: #f3eeff;
-	--hero-muted: #b7aed6;
-	--hero-line: rgb(255 255 255 / 9%);
+	--grad-signal: linear-gradient(120deg, var(--accent) 0%, var(--gold) 100%);
+	--glow: 0 10px 30px -12px rgb(216 27 116 / 45%);
+	--shadow: 0 1px 2px rgb(30 20 40 / 6%), 0 10px 28px -12px rgb(30 20 40 / 18%);
+	/* the hero band and the footer are dark consoles in both themes */
+	--hero-bg: #0c0a18;
+	--hero-text: #f4eefc;
+	--hero-muted: #b3a9d1;
+	--hero-line: rgb(255 255 255 / 8%);
+	--footer-bg: #0c0a18;
+	--footer-text: #e9e4f8;
+	--footer-muted: #a89ec7;
 	--screen-scale: 2;
 }
 
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme="light"]) {
 		color-scheme: dark;
-		--bg: #0c0a15;
-		--surface: #151125;
-		--surface-2: #1f1934;
-		--text: #f0ebff;
-		--muted: #aca4c8;
-		--faint: #5c5578;
-		--border: #2d2647;
+		--bg: #0a0c12;
+		--surface: #12151f;
+		--surface-2: #1a1f2e;
+		--text: #eef0f7;
+		--muted: #9aa3b5;
+		--faint: #5b6376;
+		--border: #272e40;
 		--accent: #ff5c9d;
-		--accent-2: #a98bff;
-		--accent-text: #170a1f;
-		--accent-soft: #391431;
-		--link: #bba3ff;
-		--focus: #bba3ff;
-		--code-bg: #1f1934;
+		--accent-2: #a78bfa;
+		--accent-text: #1c0713;
+		--accent-soft: #331327;
+		--signal: #22d3ee;
+		--signal-soft: #0e2a33;
+		--gold: #e8b64c;
+		--link: #c4b5fd;
+		--focus: #ff8cbc;
+		--code-bg: #1a1f2e;
 		--ok: #6fd69a;
 		--ok-soft: #12301f;
 		--warn: #f2c35e;
@@ -91,27 +108,35 @@
 		--bad-soft: #3b1716;
 		--info-soft: #1c1736;
 		--glow: 0 10px 34px -10px rgb(255 92 157 / 45%);
-		--shadow: 0 1px 2px rgb(0 0 0 / 45%), 0 10px 30px -10px rgb(0 0 0 / 60%);
-		--hero-bg: #0a0714;
+		--shadow: 0 1px 2px rgb(0 0 0 / 45%), 0 12px 32px -12px rgb(0 0 0 / 65%);
+		--rail-bg: #0d0a18;
+		--rail-text: #f3e8f2;
+		--rail-muted: #b3a8c9;
+		--hero-bg: #08060f;
+		--footer-bg: #08060f;
+		--footer-text: #e9e4f8;
+		--footer-muted: #a89ec7;
 	}
 }
 
 :root[data-theme="dark"] {
 	color-scheme: dark;
-	--bg: #0c0a15;
-	--surface: #151125;
-	--surface-2: #1f1934;
-	--text: #f0ebff;
-	--muted: #aca4c8;
-	--faint: #5c5578;
-	--border: #2d2647;
+	--bg: #0a0c12;
+	--surface: #12151f;
+	--surface-2: #1a1f2e;
+	--text: #eef0f7;
+	--muted: #9aa3b5;
+	--faint: #5b6376;
+	--border: #272e40;
 	--accent: #ff5c9d;
-	--accent-2: #a98bff;
-	--accent-text: #170a1f;
-	--accent-soft: #391431;
-	--link: #bba3ff;
-	--focus: #bba3ff;
-	--code-bg: #1f1934;
+	--accent-2: #a78bfa;
+	--accent-text: #1c0713;
+	--accent-soft: #331327;
+	--signal: #22d3ee;
+	--signal-soft: #0e2a33;
+	--link: #c4b5fd;
+	--focus: #ff8cbc;
+	--code-bg: #1a1f2e;
 	--ok: #6fd69a;
 	--ok-soft: #12301f;
 	--warn: #f2c35e;
@@ -120,6 +145,12 @@
 	--bad-soft: #3b1716;
 	--info-soft: #1c1736;
 	--glow: 0 10px 34px -10px rgb(255 92 157 / 45%);
-	--shadow: 0 1px 2px rgb(0 0 0 / 45%), 0 10px 30px -10px rgb(0 0 0 / 60%);
-	--hero-bg: #0a0714;
+	--shadow: 0 1px 2px rgb(0 0 0 / 45%), 0 12px 32px -12px rgb(0 0 0 / 65%);
+	--rail-bg: #0d0a18;
+	--rail-text: #f3e8f2;
+	--rail-muted: #b3a8c9;
+	--hero-bg: #08060f;
+	--footer-bg: #08060f;
+	--footer-text: #e9e4f8;
+	--footer-muted: #a89ec7;
 }
