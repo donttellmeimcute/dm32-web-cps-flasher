@@ -47,7 +47,7 @@
  "flash.fw.lead": "This site installs one prebuilt Open25-DM32 image with P25 and NXDN (no feature choice). It is downloaded from this same site and checked against its manifest (size and SHA-256) before anything is written.",
  "flash.fw.codec": "The image has no AMBE codec: the next steps take it from your radio or from the original firmware file you pick, and merge it here, in the browser.",
  "flash.fw.loading": "Downloading the firmware…",
- "flash.fw.source": "Open25-DM32 {version}",
+ "flash.fw.source": "NXDN-P25-DM32 {version}",
  "flash.fw.unavailable": "Could not load the firmware from this site: {error}",
  "flash.fw.self_text": "You can also install your own DM-32 build: pick rfoundry_dm32.bin (the image without the codec) and, if you have it, its manifest from tools/release.py.",
  "flash.task.install.text": "Install Open25-DM32 (P25/NXDN) on a DM-32UV running its original firmware or RadioFoundry.",

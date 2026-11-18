@@ -49,7 +49,7 @@ def main(man_path):
 	with open(os.path.join(DIR, "SHA256SUMS"), "w", encoding="ascii", newline="\n") as f:
 		f.write("%s  %s\n%s  %s.json\n" % (sha, name, hashlib.sha256(text.encode()).hexdigest(), base))
 	# the entry site/rfoundrysite/build.py release_list() writes
-	entry = {"board": "dm32", "variant": m.get("variant", "full"), "version": m["version"], "git": m.get("git"),
+	entry = {"board": "dm32", "variant": m.get("variant", "full"), "version": m["version"], "name": "NXDN-P25-DM32 " + m["version"], "git": m.get("git"),
 		 "git_time": m.get("git_time"), "features": m.get("features", ""), "off": m.get("off"),
 		 "image": "firmware/dm32/" + name, "manifest": "firmware/dm32/%s.json" % base,
 		 "size": len(image), "sha256": sha}
@@ -67,7 +67,7 @@ STAMP = re.compile(r'(<p class="build-stamp">.*?</a>) · [^<]* · <time datetime
 
 def stamp_pages(version, git_time):
 	when = datetime.datetime.fromtimestamp(git_time or 0, datetime.timezone.utc)
-	new = r'\1 · Firmware %s · <time datetime="%s">%s</time></p>' % (
+	new = r'\1 · NXDN-P25-DM32 %s · <time datetime="%s">%s</time></p>' % (
 		version, when.strftime("%Y-%m-%dT%H:%MZ"), when.strftime("%Y-%m-%d %H:%M UTC"))
 	count = 0
 	for page in PAGES:

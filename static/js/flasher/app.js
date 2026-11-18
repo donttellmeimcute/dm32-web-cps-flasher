@@ -1189,7 +1189,7 @@ function buildView() {
 			: S.sim ? h("p", { class: "small muted" }, t("flash.sim.image")) : null;
 		wrap.replaceChildren(panel(t("flash.fw.title"),
 			rel ? h("dl", { class: "kv-list" },
-				h("dt", {}, t("flash.fw.version")), h("dd", {}, rel.version),
+				h("dt", {}, t("flash.fw.version")), h("dd", {}, (rel.name || rel.version)),
 				h("dt", {}, t("flash.fw.size")), h("dd", {}, t("flash.fw.kb", { n: Math.round(rel.size / 1024) })),
 				h("dt", {}, "SHA-256"), h("dd", {}, h("code", { class: "small" }, rel.sha256)))
 				: notice(t("flash.build.no_image"), "bad"),
