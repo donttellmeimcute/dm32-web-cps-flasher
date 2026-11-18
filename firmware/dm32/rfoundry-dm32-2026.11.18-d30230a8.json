@@ -2,13 +2,13 @@
   "format": "rfoundry-release/1",
   "board": "dm32",
   "board_name": "Baofeng DM-32UV",
-  "version": "2026.11.17-7c972f0b",
-  "git": "7c972f0b",
-  "git_full": "7c972f0b4d2f568f818fabb828db1b7992f2ef34",
+  "version": "2026.11.18-d30230a8",
+  "git": "d30230a8",
+  "git_full": "d30230a8a32b73d14701395a310874f5f0ed1bcf",
   "image": {
-    "file": "rfoundry-dm32-2026.11.17-7c972f0b.bin",
+    "file": "rfoundry-dm32-2026.11.18-d30230a8.bin",
     "size": 726132,
-    "sha256": "48066af8cdf8499874ccf5d066e6345786e06817f41051ac7b49f2ee176dadb7"
+    "sha256": "362eb5b02a166d5b845944863f338b3f3994ff01d93d6d1f4b1625f741c2df71"
   },
   "ranges": [
     {
@@ -37,5 +37,5 @@
   "toolchain": "csky-elf-gcc (GCC) 14.3.0",
   "variant": "full",
   "off": "USB_SERIAL_REQUEST,VOICE_CAPTURE,BACKLIGHT_TEST,LANG_IT,LANG_FR,LANG_ZH,LANG_DEFAULT_ES,LANG_DEFAULT_IT,LANG_DEFAULT_FR,LANG_DEFAULT_ZH,VIBRATE,AIR_RAW",
-  "git_time": 1794958990
+  "git_time": 1795027866
 }
