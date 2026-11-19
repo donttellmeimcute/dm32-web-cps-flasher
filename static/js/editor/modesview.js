@@ -283,7 +283,9 @@ export function keyringPart(api, features) {
 	const { model: m, t, h, button } = api;
 	const ring = m.keyring ?? [];
 	const offered = offeredKinds(m, features).map((k) => k.token);
-	const algs = KEY_ALGS.filter((a) => offered.includes(a.token.toUpperCase()));
+	const have = Array.isArray(features) ? features : String(features ?? "").split(",");
+	const algs = KEY_ALGS.filter((a) => offered.includes(a.token.toUpperCase()) ||
+		(a.token === "dmr" && (have.includes("DMR") || m.channels.some((c) => c.mode === "dmr" && !c.kind))));
 	if (!algs.length && !ring.length) return [];
 	const set = (k, patch) => api.change(t("editor.undo.edit"), () => (m.keyring = (m.keyring ?? []).map((x) => (x === k ? { ...x, ...patch } : x))));
 	const rows = ring.map((k, i) => {
@@ -295,7 +297,7 @@ export function keyringPart(api, features) {
 		show.addEventListener("change", () => (key.type = show.checked ? "text" : "password"));
 		id.addEventListener("change", () => {
 			const n = a.hex ? parseInt(id.value, 16) : Number(id.value);
-			if (!/^[0-9A-Fa-f]+$/.test(id.value.trim()) || !(n >= 0 && n <= a.idMax)) return void (err.textContent = t("editor.err.range", { min: 0, max: a.idMax }));
+			if (!/^[0-9A-Fa-f]+$/.test(id.value.trim()) || !(Number.isInteger(n) && n >= (a.idMin ?? 0) && n <= a.idMax)) return void (err.textContent = t("editor.err.range", { min: a.idMin ?? 0, max: a.idMax }));
 			err.textContent = "";
 			set(k, { id: n });
 		});

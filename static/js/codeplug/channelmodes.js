@@ -470,7 +470,7 @@ export function validateModes(m, err, warn, { features = null, baseNames } = {})
 		const a = keyAlg(k.alg);
 		if (!a) continue;
 		if (!KEY_HEX.test(k.key)) err("general", null, "key", "key_bad");
-		if (!(k.id >= 0 && k.id <= a.idMax)) err("general", null, "id", "key_id_range", { max: a.idMax });
+		if (!(Number.isInteger(k.id) && k.id >= (a.idMin ?? 0) && k.id <= a.idMax)) err("general", null, "id", "key_id_range", { max: a.idMax });
 		const tag = `${k.alg}:${k.id}`;
 		if (seen.has(tag)) err("general", null, "id", "key_duplicate");
 		seen.add(tag);
@@ -495,7 +495,7 @@ export const KEY_RING_SYSTEM = 0xFF;			// "no system": the radio's own keyring
 export const KEY_ALGS = [
 	{ alg: 0x84, token: "p25", idMax: 0xFFFF, hex: true },
 	{ alg: 3, token: "nxdn", idMax: 63, hex: false },
-	{ alg: 0x25, token: "dmr", idMax: 255, hex: false },	// DMR AES-256, Motorola layout (Settings > Privacy, key ID 1-255)
+	{ alg: 0x25, token: "dmr", idMin: 1, idMax: 255, hex: false },	// DMR AES-256, Motorola layout
 ];
 export const keyAlg = (alg) => KEY_ALGS.find((a) => a.alg === alg) ?? null;
 const hexToBytes = (s) => Uint8Array.from(s.match(/../g) ?? [], (x) => parseInt(x, 16));

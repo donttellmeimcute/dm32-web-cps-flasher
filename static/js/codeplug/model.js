@@ -49,7 +49,7 @@ export function decode(image) {
 	}
 	for (let n = 1; n <= LIMITS.channels; n++) {
 		if (!channelUsed(b, n)) continue;
-		const c = decodeChannel(b.subarray(channelAddr(n), channelAddr(n) + CH_SIZE));
+		const c = decodeChannel(b.subarray(channelAddr(n), channelAddr(n) + CH_SIZE), true);
 		if (c) m.channels.push(linkRefs(m, { number: n, ...c }));
 	}
 	decodeModes(m, b);
@@ -78,7 +78,7 @@ function channelNames(b) {
 	const out = new Map();
 	for (let n = 1; n <= LIMITS.channels; n++) {
 		if (!channelUsed(b, n)) continue;
-		const c = decodeChannel(b.subarray(channelAddr(n), channelAddr(n) + CH_SIZE));
+		const c = decodeChannel(b.subarray(channelAddr(n), channelAddr(n) + CH_SIZE), true);
 		if (c) out.set(n, c.name);
 	}
 	return out;
@@ -137,19 +137,19 @@ function same(a, b, keys) {
 
 const CHANNEL_KEYS = [
 	"name", "rxHz", "txHz", "mode", "power", "tot", "rxTone", "txTone", "bw", "rxOnly", "allSkip", "zoneSkip", "vox",
-	"squelch", "colorCode", "timeslot", "contact", "rxList", "aprs", "dmrId", "noBeep", "noEco", "dmo", "roam",
+	"squelch", "colorCode", "timeslot", "contact", "rxList", "aprs", "dmrId", "dmrAesKid", "noBeep", "noEco", "dmo", "roam",
 	"aliasTs1", "aliasTs2", "useLocation", "lat", "lon", "sfr", "sfrA", "sfrB", "toneBurst",
 ];
 
 function flatChannel(c) {
-	const out = { ...c };
+	const out = { ...c, dmrAesKid: c.mode === "dmr" && !c.kind ? c.dmrAesKid || undefined : undefined };
 	for (const k of REFS) out[k] = refNumber(c[k]);
 	return out;
 }
 
-function putChannel(r, c) {
+function putChannel(r, c, memory = false) {
 	const flat = flatChannel(c);
-	if (!same(decodeChannel(r), flat, CHANNEL_KEYS)) encodeChannel(flat, r);
+	if (!same(decodeChannel(r, memory), flat, CHANNEL_KEYS)) encodeChannel(flat, r, memory);
 }
 
 // The model written onto a copy of the image it was decoded from: the new image
@@ -164,7 +164,7 @@ export function encode(m) {
 	for (const c of m.channels) {
 		if (!c.number) continue;
 		bits[(c.number - 1) >> 3] |= 1 << ((c.number - 1) & 7);
-		putChannel(b.subarray(channelAddr(c.number), channelAddr(c.number) + CH_SIZE), c);
+		putChannel(b.subarray(channelAddr(c.number), channelAddr(c.number) + CH_SIZE), c, true);
 	}
 	for (let bank = 0; bank < 8; bank++) b.set(bits.subarray(bank * 16, bank * 16 + 16), bankBitmap(bank));
 	m.vfo.forEach((c, i) => c && putChannel(b.subarray(VFO[i], VFO[i] + CH_SIZE), c));

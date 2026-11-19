@@ -10,7 +10,7 @@ import { LIMITS, POWER_NAMES } from "../codeplug/records.js?v=c16ffd9bbf";
 import { refNumber, listenBand } from "../codeplug/model.js?v=c16ffd9bbf";
 import { keyValid } from "../codeplug/kv.js?v=c16ffd9bbf";
 import { kindRow, kindName, offeredKinds } from "../codeplug/modes.js?v=c16ffd9bbf";
-import { setKind } from "../codeplug/channelmodes.js?v=c16ffd9bbf";
+import { KEY_ALGS, KEY_HEX, setKind } from "../codeplug/channelmodes.js?v=c16ffd9bbf";
 import { specField } from "./modefields.js?v=c16ffd9bbf";
 
 // --- Parsers shared by the columns and the forms ---
@@ -283,6 +283,16 @@ export function systemOptions(m, t, type, current) {
 	return out;
 }
 
+// The installed IDs are selectable without rendering key material. Keep an existing
+// reference where the image was deliberately exported without keys.
+function aesOptions(m, t, alg, current, fallback) {
+	const format = (id) => alg.hex ? id.toString(16).toUpperCase().padStart(4, "0") : String(id);
+	const ids = new Set((m.keyring ?? []).filter((k) => k.alg === alg.alg && KEY_HEX.test(k.key) &&
+		Number.isInteger(k.id) && k.id >= (alg.idMin ?? 0) && k.id <= alg.idMax).map((k) => k.id));
+	if (current != null) ids.add(current);
+	return [[null, t(fallback)], ...[...ids].sort((a, b) => a - b).map((id) => [id, format(id)])];
+}
+
 // features: the connected radio's (null: none), which says the kinds a channel may be made
 export function channelForm(m, t, { features = null } = {}) {
 	const sel = (key, label, options, extra = {}) => ({ key, label: t(label), type: "select", options, ...extra });
@@ -304,8 +314,22 @@ export function channelForm(m, t, { features = null } = {}) {
 		if (mod.fallback) {
 			kindFields.push({ ...sel(`k${k.id}.fallback`, "editor.modes.fallback", (r) => fallbackOptions(m, t, r.fallback, r)), get: (r) => r.fallback, set: (r, v) => on(r) && (r.fallback = v), show: (r) => on(r) && !r.noFallback });
 		}
-		for (const spec of mod.fields()) kindFields.push(specField(spec, t, holder, `k${k.id}`));
+		const alg = KEY_ALGS.find((a) => a.token.toUpperCase() === k.token);
+		for (const spec of mod.fields()) {
+			if (alg && spec.key === "keyId") continue;
+			if (alg && spec.key === "aes") {
+				const get = (r) => on(r) && r.params?.aes ? r.params.keyId : null;
+				kindFields.push(sel(`k${k.id}.aes`, `editor.keys.alg.${alg.token}`,
+					(r) => aesOptions(m, t, alg, get(r), "editor.alias.off"), {
+						show: on, get, help: t(spec.help),
+						set: (r, id) => on(r) && (r.params = { ...r.params, aes: id != null, keyId: id ?? 0 }),
+					}));
+			} else {
+				kindFields.push(specField(spec, t, holder, `k${k.id}`));
+			}
+		}
 	}
+	const dmrAlg = KEY_ALGS.find((a) => a.token === "dmr");
 	return [
 		{ group: t("editor.form.basic") },
 		txt("name", "editor.col.name", name(LIMITS.name)(t)),
@@ -342,6 +366,12 @@ export function channelForm(m, t, { features = null } = {}) {
 		dmr(sel("rxList", "editor.col.rx_list", () => refOptions(m.rxLists, t))),
 		dmr(txt("dmrId", "editor.col.channel_id", dmrId(t), (v) => (v ? String(v) : ""))),
 		dmr(chk("dmo", "editor.col.dmo")),
+		sel("dmrAesKid", "editor.keys.alg.dmr",
+			(r) => aesOptions(m, t, dmrAlg, r.dmrAesKid || null, "editor.tot.default"), {
+				show: (r) => r.mode === "dmr" && !r.kind,
+				get: (r) => r.dmrAesKid || null,
+				set: (r, id) => { if (r.mode === "dmr" && !r.kind) r.dmrAesKid = id ?? 0; },
+			}),
 		dmr(sel("aliasTs1", "editor.col.alias_ts1", () => aliasOptions(t))),
 		dmr(sel("aliasTs2", "editor.col.alias_ts2", () => aliasOptions(t))),
 		dmr(chk("noBeep", "editor.col.no_beep")),

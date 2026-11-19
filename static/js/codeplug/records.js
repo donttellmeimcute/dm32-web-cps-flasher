@@ -59,7 +59,7 @@ export function blankChannel() {
 }
 
 // A record, or null if its frequencies don't decode (an erased or broken record)
-export function decodeChannel(r) {
+export function decodeChannel(r, memory = false) {
 	const rxHz = getFreq(r, 0x10), txHz = getFreq(r, 0x14);
 	if (rxHz === null || txHz === null) return null;
 	const l1 = r[0x26], f1 = r[0x30], f4 = r[0x33];
@@ -83,6 +83,7 @@ export function decodeChannel(r) {
 		contact: u16(r, 0x2E),
 		rxList: r[0x2B],
 		aprs: r[0x2D],
+		...(memory && r[0x18] === 1 && u16(r, 0x34) === 0x5AA5 && r[0x36] ? { dmrAesKid: r[0x36] } : {}),
 		dmrId: l1 & 0x80 ? (r[0x27] << 16) | (r[0x28] << 8) | r[0x29] : 0,
 		noBeep: (l1 & 0x40) !== 0,
 		noEco: (l1 & 0x20) !== 0,
@@ -101,12 +102,19 @@ export function decodeChannel(r) {
 }
 
 // Write a channel's fields onto its stored record r (a blank one if r doesn't decode); r is changed in place
-export function encodeChannel(c, r) {
+export function encodeChannel(c, r, memory = false) {
 	if (getFreq(r, 0x10) === null) r.set(blankChannel());
 	putName(r, 0, 16, c.name);
 	putFreq(r, 0x10, c.rxHz);
 	putFreq(r, 0x14, c.txHz);
 	r[0x18] = c.mode === "dmr" ? 1 : 0;
+	// Named DMR memory extension used by the DM32 firmware; the VFO uses these bytes for offset/step.
+	if (memory && !c.kind && c.mode === "dmr" && c.dmrAesKid >= 1 && c.dmrAesKid <= 255) {
+		put16(r, 0x34, 0x5AA5);
+		r[0x36] = c.dmrAesKid;
+	} else if (memory && u16(r, 0x34) === 0x5AA5) {
+		r.fill(0, 0x34, 0x37);
+	}
 	r[0x19] = clamp(c.power, 0, 255);
 	r[0x1B] = clamp(Math.ceil((c.tot || 0) / 15), 0, 255);
 	putTone(r, 0x20, c.rxTone);
