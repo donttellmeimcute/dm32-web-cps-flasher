@@ -5,8 +5,8 @@
 // the old one back.
 
 import * as iddb from "../iddb.js?v=c16ffd9bbf";
-import { LIMITS } from "../records.js?v=c16ffd9bbf";
-import { newContact } from "../model.js?v=c16ffd9bbf";
+import { LIMITS } from "../records.js?v=89bf988ad1";
+import { newContact } from "../model.js?v=89bf988ad1";
 import { format } from "./radioid.js?v=c16ffd9bbf";
 import { foldLetters } from "../fields.js?v=c16ffd9bbf";
 

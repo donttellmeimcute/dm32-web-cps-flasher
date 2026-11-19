@@ -19,6 +19,8 @@ export const LIMITS = {
 // --- Layout ---
 
 export const CH_SIZE = 56;
+export const DMR_PRIV = { default: 0, aes: 1, basic: 2, enhanced: 3, off: 4 };
+const DMR_PRIV_BASE = 0x5AA4;
 const CH_PER_BANK = 128;
 const BANK0 = EE + 0x3780;
 const BANK1 = FL + 0x7B1B0;
@@ -83,7 +85,8 @@ export function decodeChannel(r, memory = false) {
 		contact: u16(r, 0x2E),
 		rxList: r[0x2B],
 		aprs: r[0x2D],
-		...(memory && r[0x18] === 1 && u16(r, 0x34) === 0x5AA5 && r[0x36] ? { dmrAesKid: r[0x36] } : {}),
+		...(memory && r[0x18] === 1 && dmrPrivacy(r) ?
+			{ dmrPrivacy: dmrPrivacy(r), dmrPrivacyKey: r[0x36] } : {}),
 		dmrId: l1 & 0x80 ? (r[0x27] << 16) | (r[0x28] << 8) | r[0x29] : 0,
 		noBeep: (l1 & 0x40) !== 0,
 		noEco: (l1 & 0x20) !== 0,
@@ -109,10 +112,11 @@ export function encodeChannel(c, r, memory = false) {
 	putFreq(r, 0x14, c.txHz);
 	r[0x18] = c.mode === "dmr" ? 1 : 0;
 	// Named DMR memory extension used by the DM32 firmware; the VFO uses these bytes for offset/step.
-	if (memory && !c.kind && c.mode === "dmr" && c.dmrAesKid >= 1 && c.dmrAesKid <= 255) {
-		put16(r, 0x34, 0x5AA5);
-		r[0x36] = c.dmrAesKid;
-	} else if (memory && u16(r, 0x34) === 0x5AA5) {
+	const priv = c.dmrPrivacy ?? (c.dmrAesKid ? DMR_PRIV.aes : DMR_PRIV.default);
+	if (memory && !c.kind && c.mode === "dmr" && priv > DMR_PRIV.default && priv <= DMR_PRIV.off) {
+		put16(r, 0x34, DMR_PRIV_BASE + priv);
+		r[0x36] = priv === DMR_PRIV.off ? 0 : clamp(c.dmrPrivacyKey ?? c.dmrAesKid ?? 0, 0, 255);
+	} else if (memory && dmrPrivacy(r)) {
 		r.fill(0, 0x34, 0x37);
 	}
 	r[0x19] = clamp(c.power, 0, 255);
@@ -151,6 +155,20 @@ export function encodeChannel(c, r, memory = false) {
 	r[0x2A] = (c.sfrB & 0xBF) | (c.toneBurst ? 0x40 : 0);
 	if (r[0x2A] === 0xFF) r[0x2A] = 0xCF;	// 0xFF reads as not set: the unused bits 5-4 cleared (as the firmware)
 	return r;
+}
+
+function dmrPrivacy(r) {
+	const priv = u16(r, 0x34) - DMR_PRIV_BASE;
+	return priv > DMR_PRIV.default && priv <= DMR_PRIV.off ? priv : DMR_PRIV.default;
+}
+
+// Includes deleted channels, whose underlying record can still hold a Basic Privacy key number.
+export function redactDmrBasicKeys(b) {
+	for (let n = 1; n <= LIMITS.channels; n++) {
+		const at = channelAddr(n);
+		const r = b.subarray(at, at + CH_SIZE);
+		if (r.length === CH_SIZE && r[0x18] === 1 && dmrPrivacy(r) === DMR_PRIV.basic) r[0x36] = 0;
+	}
 }
 
 function clamp(v, lo, hi) {

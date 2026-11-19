@@ -9,15 +9,15 @@
 
 import { CodeplugImage } from "./image.js?v=c16ffd9bbf";
 import {
-	LIMITS, CH_SIZE, bankBitmap, channelAddr, decodeChannel, encodeChannel, zoneLayout, decodeZone, encodeZone,
+	LIMITS, CH_SIZE, DMR_PRIV, bankBitmap, channelAddr, decodeChannel, encodeChannel, zoneLayout, decodeZone, encodeZone,
 	ZONE_BITMAP, ZONE_DATA, ZONE_RECORD, CONTACTS, CONTACT_SIZE, decodeContact, encodeContact, LIST_COUNTS, LISTS,
 	LIST_SIZE, decodeList, encodeList, DTMF_CONTACTS, decodeDtmf, encodeDtmf, validDtmf, APRS_BASE, APRS_SIZE,
 	decodeAprs, encodeAprs, decodeGeneral, encodeGeneral, VFO, LUCZ,
-} from "./records.js?v=c16ffd9bbf";
+} from "./records.js?v=89bf988ad1";
 import { parseTone } from "./fields.js?v=c16ffd9bbf";
 import { readHeader } from "./iddb.js?v=c16ffd9bbf";
 import { decodeArea, keyValid, KEYS } from "./kv.js?v=c16ffd9bbf";
-import { decodeModes, encodeModes, syncModes, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=c16ffd9bbf";
+import { decodeModes, encodeModes, syncModes, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=89bf988ad1";
 
 const REFS = ["contact", "rxList", "aprs"];
 
@@ -137,12 +137,15 @@ function same(a, b, keys) {
 
 const CHANNEL_KEYS = [
 	"name", "rxHz", "txHz", "mode", "power", "tot", "rxTone", "txTone", "bw", "rxOnly", "allSkip", "zoneSkip", "vox",
-	"squelch", "colorCode", "timeslot", "contact", "rxList", "aprs", "dmrId", "dmrAesKid", "noBeep", "noEco", "dmo", "roam",
+	"squelch", "colorCode", "timeslot", "contact", "rxList", "aprs", "dmrId", "dmrPrivacy", "dmrPrivacyKey", "noBeep", "noEco", "dmo", "roam",
 	"aliasTs1", "aliasTs2", "useLocation", "lat", "lon", "sfr", "sfrA", "sfrB", "toneBurst",
 ];
 
 function flatChannel(c) {
-	const out = { ...c, dmrAesKid: c.mode === "dmr" && !c.kind ? c.dmrAesKid || undefined : undefined };
+	const dmr = c.mode === "dmr" && !c.kind;
+	const privacy = dmr ? (c.dmrPrivacy ?? (c.dmrAesKid ? DMR_PRIV.aes : 0)) || undefined : undefined;
+	const out = { ...c, dmrPrivacy: privacy, dmrPrivacyKey: privacy ? c.dmrPrivacyKey ?? c.dmrAesKid ?? 0 : undefined };
+	delete out.dmrAesKid;
 	for (const k of REFS) out[k] = refNumber(c[k]);
 	return out;
 }

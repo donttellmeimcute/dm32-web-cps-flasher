@@ -18,6 +18,7 @@
 
 import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, KV_SIZE, KV_HDR, KEYS } from "./kv.js?v=c16ffd9bbf";
 import { getName, putName } from "./fields.js?v=c16ffd9bbf";
+import { redactDmrBasicKeys } from "./records.js?v=89bf988ad1";
 import { KINDS, kindRow, typeRow, radioRuns } from "./modes.js?v=c16ffd9bbf";
 import { u16, u32, put16, put32, sameBytes, sameValue, nameCheck } from "./modebytes.js?v=c16ffd9bbf";
 
@@ -307,6 +308,7 @@ export function modeEntries(m, entries, baseNames = () => new Map()) {
 		if (decodeKey(e.key, e.value) && !ring.some((k) => k.slot === e.key - KEY_BASE)) del(e.key);
 	}
 	for (const k of ring) {
+		if (!validKeyHex(k.alg, k.key)) continue;
 		if (k.slot == null) {
 			let n = 0;
 			while (n < KEY_MAX && getValue(out, KEY_BASE + n)) n++;
@@ -315,7 +317,7 @@ export function modeEntries(m, entries, baseNames = () => new Map()) {
 		}
 		const prev = getValue(out, KEY_BASE + k.slot);
 		const v = Uint8Array.from([KEY_RING_SYSTEM, k.alg, k.id & 0xFF, (k.id >> 8) & 0xFF, k.flags ?? 0, ...hexToBytes(k.key)]);
-		const keep = prev && prev.length > v.length ? prev.subarray(v.length) : new Uint8Array(0);
+		const keep = prev && prev[1] === k.alg && prev.length > v.length ? prev.subarray(v.length) : new Uint8Array(0);
 		const full = new Uint8Array(v.length + keep.length);
 		full.set(v);
 		full.set(keep, v.length);
@@ -464,12 +466,12 @@ export function validateModes(m, err, warn, { features = null, baseNames } = {})
 		const st = k.module.settings, s = m.modeSettings?.[k.id];
 		if (st && s) st.validate(s, { err: (f, code, p = {}) => err("general", null, f, code, p), warn: (f, code, p = {}) => warn("general", null, f, code, p) });
 	}
-	// the keyring: a key is 32 octets, its id in its algorithm's range, and no two keys share an algorithm and id
+	// The keyring validates the size and ID for each algorithm. No two keys share one algorithm and ID.
 	const seen = new Set();
 	for (const k of m.keyring ?? []) {
 		const a = keyAlg(k.alg);
 		if (!a) continue;
-		if (!KEY_HEX.test(k.key)) err("general", null, "key", "key_bad");
+		if (!validKeyHex(k.alg, k.key)) err("general", null, "key", "key_bad");
 		if (!(Number.isInteger(k.id) && k.id >= (a.idMin ?? 0) && k.id <= a.idMax)) err("general", null, "id", "key_id_range", { max: a.idMax });
 		const tag = `${k.alg}:${k.id}`;
 		if (seen.has(tag)) err("general", null, "id", "key_duplicate");
@@ -487,7 +489,7 @@ export function validateModes(m, err, warn, { features = null, baseNames } = {})
 	if (used > max) err(S, null, null, "settings_area_full", { used, max });
 }
 
-// --- The keyring (docs/spec/air-encryption.md 4): AES-256 keys of the air modes ---
+// --- The keyring (docs/spec/air-encryption.md 4) ---
 
 export const KEY_BASE = 0x1900, KEY_MAX = 0x400;
 export const KEY_RING_SYSTEM = 0xFF;			// "no system": the radio's own keyring
@@ -496,17 +498,20 @@ export const KEY_ALGS = [
 	{ alg: 0x84, token: "p25", idMax: 0xFFFF, hex: true },
 	{ alg: 3, token: "nxdn", idMax: 63, hex: false },
 	{ alg: 0x25, token: "dmr", idMin: 1, idMax: 255, hex: false },	// DMR AES-256, Motorola layout
+	{ alg: 0x21, token: "arc4", idMin: 1, idMax: 255, hex: false, bytes: 5 },
 ];
 export const keyAlg = (alg) => KEY_ALGS.find((a) => a.alg === alg) ?? null;
+export const keyBytes = (alg) => keyAlg(alg)?.bytes ?? 32;
 const hexToBytes = (s) => Uint8Array.from(s.match(/../g) ?? [], (x) => parseInt(x, 16));
 const bytesToHex = (b) => [...b].map((x) => x.toString(16).padStart(2, "0")).join("").toUpperCase();
-// A traffic key record of the keyring with an algorithm the editor knows: {slot, alg, id, flags, key: 64 hex digits}
+// A traffic key record of the keyring with an algorithm the editor knows.
 function decodeKey(key, v) {
-	if (!v || v.length < 5 + 32 || v[0] !== KEY_RING_SYSTEM || !keyAlg(v[1])) return null;
-	return { slot: key - KEY_BASE, alg: v[1], id: v[2] | (v[3] << 8), flags: v[4], key: bytesToHex(v.subarray(5, 37)) };
+	if (!v || v[0] !== KEY_RING_SYSTEM || !keyAlg(v[1]) || v.length < 5 + keyBytes(v[1])) return null;
+	return { slot: key - KEY_BASE, alg: v[1], id: v[2] | (v[3] << 8), flags: v[4], key: bytesToHex(v.subarray(5, 5 + keyBytes(v[1]))) };
 }
 export const newKey = (alg) => ({ slot: null, alg, id: 1, flags: 0, key: "" });
-export const KEY_HEX = /^[0-9A-Fa-f]{64}$/;
+export const validKeyHex = (alg, s) => keyAlg(alg) != null && typeof s === "string" &&
+	s.length === 2 * keyBytes(alg) && /^[0-9A-Fa-f]+$/.test(s);
 
 // --- Secrets (8) ---
 
@@ -522,6 +527,7 @@ export function countSecrets(b) {
 
 // An image's bytes with every secret taken out of its settings area (a file export without keys)
 export function withoutSecrets(b) {
+	redactDmrBasicKeys(b);
 	const a = decodeArea(b);
 	if (a.state !== "valid") return;
 	const entries = dedupe(a.entries);

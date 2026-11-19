@@ -10,10 +10,10 @@ import { recordSize, extent, convert, readHeader } from "../codeplug/iddb.js?v=c
 import { openBundle, bundleFolder } from "../flasher/backup.js?v=c16ffd9bbf";
 import { unzip } from "../flasher/zip.js?v=c16ffd9bbf";
 import { startsWith, toHex } from "../flasher/bytes.js?v=c16ffd9bbf";
-import { classify } from "../codeplug/detect.js?v=c16ffd9bbf";
-import { importStock, STOCK, RDT_MD380 } from "../codeplug/stock_tyt.js?v=c16ffd9bbf";
-import { DM32_STOCK, importStock as importDm32 } from "../codeplug/stock_baofeng.js?v=c16ffd9bbf";
-import { empty, encode } from "../codeplug/model.js?v=c16ffd9bbf";
+import { classify } from "../codeplug/detect.js?v=89bf988ad1";
+import { importStock, STOCK, RDT_MD380 } from "../codeplug/stock_tyt.js?v=89bf988ad1";
+import { DM32_STOCK, importStock as importDm32 } from "../codeplug/stock_baofeng.js?v=89bf988ad1";
+import { empty, encode } from "../codeplug/model.js?v=89bf988ad1";
 
 // code: the editor.err.* text; params: what the file was, for the error report (never its contents)
 export class FileError extends Error {

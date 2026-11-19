@@ -9,7 +9,7 @@ import { register } from "./extensions.js?v=c16ffd9bbf";
 import * as diag from "../diag.js?v=c16ffd9bbf";
 import { h, button, progressBar, num as fmtNum } from "../flasher/dom.js?v=c16ffd9bbf";
 import * as radioid from "../codeplug/sources/radioid.js?v=c16ffd9bbf";
-import { writeIddb, eraseIddb, convertIddb, addContacts, iddbEnd, iddbSize, iddbRecords } from "../codeplug/sources/output.js?v=c16ffd9bbf";
+import { writeIddb, eraseIddb, convertIddb, addContacts, iddbEnd, iddbSize, iddbRecords } from "../codeplug/sources/output.js?v=89bf988ad1";
 import { TEXT_LENGTHS } from "../codeplug/iddb.js?v=c16ffd9bbf";
 
 const PREFS = "rfoundry-editor-radioid";

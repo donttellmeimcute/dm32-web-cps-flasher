@@ -6,11 +6,11 @@
 // channels, plan rows) in a table per class, and its secret behind a button. What a type holds comes from its mode
 // module (codeplug/mode_*.js); no mode is named here.
 
-import { formDialog, fallbackOptions } from "./views.js?v=c16ffd9bbf";
+import { formDialog, fallbackOptions } from "./views.js?v=89bf988ad1";
 import { specField, parseSpec, formatSpec, label } from "./modefields.js?v=c16ffd9bbf";
 import { SYSTEM_TYPES, typeRow, typeName, offeredTypes, offeredKinds } from "../codeplug/modes.js?v=c16ffd9bbf";
-import { newSystem, syncModes, SHARE, MODE_LIMITS, KEY_ALGS, KEY_HEX, KEY_MAX, keyAlg, newKey } from "../codeplug/channelmodes.js?v=c16ffd9bbf";
-import { remove, assignNumbers } from "../codeplug/model.js?v=c16ffd9bbf";
+import { newSystem, syncModes, SHARE, MODE_LIMITS, KEY_ALGS, KEY_MAX, keyAlg, keyBytes, validKeyHex, newKey } from "../codeplug/channelmodes.js?v=89bf988ad1";
+import { remove, assignNumbers } from "../codeplug/model.js?v=89bf988ad1";
 
 const SHARE_LEVELS = [SHARE.off, SHARE.identity, SHARE.whole];
 
@@ -278,23 +278,23 @@ export function modeSettingsPart(api, features) {
 
 // The keyring (docs/spec/air-encryption.md 4) in the Radio tab: AES-256 keys of the air modes the radio runs, or the
 // codeplug holds. A channel names a key by its algorithm and key id; the key itself never goes in a shared zone and
-// is left out of a file saved without keys. Each key is a row: its id, the key (hidden unless asked), delete
+// is left out of exported codeplugs. Each key is a row: its ID, masked key and delete.
 export function keyringPart(api, features) {
 	const { model: m, t, h, button } = api;
 	const ring = m.keyring ?? [];
 	const offered = offeredKinds(m, features).map((k) => k.token);
 	const have = Array.isArray(features) ? features : String(features ?? "").split(",");
 	const algs = KEY_ALGS.filter((a) => offered.includes(a.token.toUpperCase()) ||
-		(a.token === "dmr" && (have.includes("DMR") || m.channels.some((c) => c.mode === "dmr" && !c.kind))));
+		((a.token === "dmr" || a.token === "arc4") && (have.includes("DMR") || m.channels.some((c) => c.mode === "dmr" && !c.kind))));
 	if (!algs.length && !ring.length) return [];
 	const set = (k, patch) => api.change(t("editor.undo.edit"), () => (m.keyring = (m.keyring ?? []).map((x) => (x === k ? { ...x, ...patch } : x))));
 	const rows = ring.map((k, i) => {
 		const a = keyAlg(k.alg);
 		const id = h("input", { type: "text", id: `kr-id-${i}`, value: a.hex ? k.id.toString(16).toUpperCase().padStart(4, "0") : String(k.id), size: "6", spellcheck: "false" });
-		const key = h("input", { type: "password", id: `kr-key-${i}`, value: k.key, size: "66", maxlength: "64", spellcheck: "false", autocomplete: "off" });
+		const hexLength = 2 * keyBytes(k.alg);
+		const key = h("input", { type: "password", id: `kr-key-${i}`, value: k.key, size: String(hexLength + 2),
+			maxlength: String(hexLength), spellcheck: "false", autocomplete: "off" });
 		const err = h("span", { class: "small ed-err" });
-		const show = h("input", { type: "checkbox", id: `kr-show-${i}` });
-		show.addEventListener("change", () => (key.type = show.checked ? "text" : "password"));
 		id.addEventListener("change", () => {
 			const n = a.hex ? parseInt(id.value, 16) : Number(id.value);
 			if (!/^[0-9A-Fa-f]+$/.test(id.value.trim()) || !(Number.isInteger(n) && n >= (a.idMin ?? 0) && n <= a.idMax)) return void (err.textContent = t("editor.err.range", { min: a.idMin ?? 0, max: a.idMax }));
@@ -303,13 +303,12 @@ export function keyringPart(api, features) {
 		});
 		key.addEventListener("change", () => {
 			const v = key.value.replace(/[\s:-]/g, "").toUpperCase();
-			if (!KEY_HEX.test(v)) return void (err.textContent = t("editor.keys.bad"));
+			if (!validKeyHex(k.alg, v)) return void (err.textContent = t("editor.keys.bad", { n: hexLength }));
 			err.textContent = "";
 			set(k, { key: v });
 		});
 		return h("div", { class: "form-row" }, h("label", { for: `kr-id-${i}` }, t(`editor.keys.alg.${a.token}`) + " " + t("editor.keys.id")), id,
 			h("label", { for: `kr-key-${i}` }, t("editor.keys.key")), key,
-			h("label", { for: `kr-show-${i}`, class: "small" }, show, " " + t("editor.keys.show")),
 			button(t("editor.delete"), () => api.change(t("editor.undo.delete"), () => (m.keyring = (m.keyring ?? []).filter((x) => x !== k))), { quiet: true, danger: true }), err);
 	});
 	const pick = h("select", { "aria-label": t("editor.keys.title") }, ...KEY_ALGS.map((a) => h("option", { value: String(a.alg) }, t(`editor.keys.alg.${a.token}`))));
