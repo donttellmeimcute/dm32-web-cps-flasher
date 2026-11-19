@@ -9,6 +9,8 @@
 import { parseFreq, parseTone, mhz } from "./fields.js?v=c16ffd9bbf";
 import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=c16ffd9bbf";
 import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=c16ffd9bbf";
+import { setKind } from "./channelmodes.js?v=c16ffd9bbf";
+import { kindName } from "./modes.js?v=c16ffd9bbf";
 
 // --- RFC 4180 ---
 
@@ -145,7 +147,34 @@ const asWord = (words, dflt, lo, hi) => (s) => {
 
 const POWER = { ...POWER_NAMES };
 const powerText = (n) => POWER_NAMES[n] || String(n);
-const MODES = { fm: "FM", dmr: "DMR" };
+const MODES = { fm: "FM", dmr: "DMR", nxdn: "NXDN", ysf: "YSF" };
+const KIND_OF_MODE = { nxdn: 4, ysf: 6 };
+
+// A channel's mode, as a kind or a plain mode: a kind channel exports its kind's name (the base record stands in as
+// DMR, so MODES[mode] would read DMR for it), a plain one its mode. Setting it makes or unmakes the kind
+// (channelmodes.js setKind): NXDN or YSF gives the channel the kind's parameters, FM or DMR takes it back to plain.
+// A blank cell is the default mode and leaves the kind as it was, as before.
+const modeCol = {
+	header: "Mode", aliases: ["Channel Mode", "Channel Type", "Type"], key: "mode",
+	get: (r) => {
+		if (r.kind) {
+			const n = kindName(r.kind);
+			if (n !== "?") return n;
+		}
+		return MODES[r.mode] ?? r.mode;
+	},
+	set: (r, s, m) => {
+		const v = s.trim().toLowerCase();
+		if (!v) {
+			r.mode = "fm";
+			return;
+		}
+		const key = Object.keys(MODES).find((k) => MODES[k].toLowerCase() === v);
+		if (!key) throw new Bad("bad_value", { value: s.trim(), allowed: Object.values(MODES).join(", ") });
+		if (KIND_OF_MODE[key]) setKind(m, r, KIND_OF_MODE[key]);
+		else setKind(m, r, 0, key);
+	},
+};
 const TYPES = Object.fromEntries(CALL_TYPES.map((k) => [k, k[0].toUpperCase() + k.slice(1)]));
 
 // --- References by name ---
@@ -223,9 +252,9 @@ const NUMBER = (max) => ({ header: "Number", aliases: ["No", "#", "Index"], key:
 	r.number = asInt(1, max, null)(s);
 } });
 
-// NXDN RANs (mode_nxdn.js): kind 4 (modes.js). CSV cannot make a channel NXDN — Mode takes FM/DMR only — so these
-// columns update a channel that already is NXDN. A blank RX RAN keeps the value; a blank TX RAN sends the RX RAN,
-// RAN 1 when that is every RAN (0), as the editor's blank TX RAN does.
+// NXDN RANs (mode_nxdn.js): kind 4 (modes.js). These columns update a channel that already is NXDN, or one the
+// file itself makes NXDN (Mode is applied before the other columns). A blank RX RAN keeps the value; a blank TX RAN
+// sends the RX RAN, RAN 1 when that is every RAN (0), as the editor's blank TX RAN does.
 const NXDN_KIND = 4, RAN_MAX = 63;
 const txRanDefault = (rx) => (rx !== 0 ? rx : 1);
 const ranCol = (header, key, aliases) => ({
@@ -251,6 +280,72 @@ const ranCol = (header, key, aliases) => ({
 		if (!Number.isInteger(n) || n < 0 || n > RAN_MAX) throw new Bad("range", { min: 0, max: RAN_MAX });
 		r.params = { ...r.params, [key]: n };
 	},
+});
+
+// YSF (mode_ysf.js): kind 6 (modes.js). A column of a YSF channel's parameters, blank on any other channel; a value
+// on a channel that is not YSF is reported as a bad value instead of being dropped silently. A blank cell keeps the
+// value, except TX DG-ID, which sends the RX DG-ID, and Destination, which calls ALL, as the editor's blanks do.
+const YSF_KIND = 6, DGID_MAX = 127, CALLSIGN_LEN = 10;
+const ysfCol = (header, key, aliases, get, set) => ({
+	header, aliases, key,
+	get: (r) => (r.kind === YSF_KIND && r.params ? get(r.params) : ""),
+	set: (r, s) => {
+		s = s.trim();
+		if (r.kind !== YSF_KIND || !r.params) {
+			if (s === "") return;
+			throw new Bad("bad_value", { value: s, allowed: "YSF channels" });
+		}
+		set(r, s);
+	},
+});
+
+// The data type (mode_ysf.js DT_*): V/D-1, Data FR, DN, VW, or 0-3
+const DT_WORDS = {
+	"v/d-1": 0, vd1: 0, "v/d mode 1": 0, "data fr": 1, data: 1, dn: 2, "v/d-2": 2, vd2: 2, "v/d mode 2": 2,
+	vw: 3, "voice fr": 3, voice: 3,
+};
+const DT_TEXT = ["V/D-1", "Data FR", "DN", "VW"];
+const ysfDtCol = () => ysfCol("YSF DT", "dt", ["YSF Data Type", "Data Type"], (p) => DT_TEXT[p.dt] ?? "", (r, s) => {
+	if (s === "") return;
+	const v = s.toLowerCase();
+	const n = v in DT_WORDS ? DT_WORDS[v] : /^\d+$/.test(v) ? Number(v) : NaN;
+	if (!Number.isInteger(n) || n < 0 || n > 3) throw new Bad("bad_value", { value: s, allowed: "V/D-1, Data FR, DN, VW" });
+	r.params = { ...r.params, dt: n };
+});
+
+// Wide or narrow deviation
+const ysfDevCol = () => ysfCol("Deviation", "narrow", ["YSF Deviation"], (p) => (p.narrow ? "Narrow" : "Wide"), (r, s) => {
+	if (s === "") return;
+	const v = s.toLowerCase();
+	if (v !== "wide" && v !== "narrow") throw new Bad("bad_value", { value: s, allowed: "Wide, Narrow" });
+	r.params = { ...r.params, narrow: v === "narrow" };
+});
+
+// A DG-ID, 0-127. A blank TX DG-ID sends the RX DG-ID
+const ysfDgidCol = (header, key, aliases) => ysfCol(header, key, aliases,
+	(p) => {
+		const v = p[key];
+		if (v === undefined || v === null) return "";
+		if (key === "txDgid" && v === (p.rxDgid ?? 0)) return "";
+		return String(v);
+	}, (r, s) => {
+		if (s === "") {
+			if (key === "txDgid") r.params = { ...r.params, txDgid: r.params.rxDgid ?? 0 };
+			return;
+		}
+		const n = Number(s);
+		if (!Number.isInteger(n) || n < 0 || n > DGID_MAX) throw new Bad("range", { min: 0, max: DGID_MAX });
+		r.params = { ...r.params, [key]: n };
+	});
+
+// The destination call sign, up to 10 printable ASCII characters. A blank cell calls ALL
+const ysfDestCol = () => ysfCol("Destination", "dest", ["YSF Destination", "Callsign"], (p) => (p.dest === "ALL" ? "" : (p.dest ?? "")), (r, s) => {
+	if (s === "") {
+		r.params = { ...r.params, dest: "ALL" };
+		return;
+	}
+	if (s.length > CALLSIGN_LEN || /[^ -~]/.test(s)) throw new Bad("bad_value", { value: s, allowed: "up to 10 printable ASCII characters" });
+	r.params = { ...r.params, dest: s };
 });
 
 export const TABLES = {
@@ -324,7 +419,7 @@ export const TABLES = {
 		columns: [
 			NUMBER(LIMITS.channels),
 			c("Name", "name", asName(LIMITS.name), undefined, ["Channel Name", "Channel"]),
-			c("Mode", "mode", asWord(MODES, "fm"), (r) => MODES[r.mode], ["Channel Mode", "Channel Type", "Type"]),
+			modeCol,
 			c("RX Frequency (MHz)", "rxHz", asFreq(), (r) => mhz(r.rxHz), ["RX Frequency", "RX Freq", "Receive Frequency", "RX"]),
 			c("TX Frequency (MHz)", "txHz", asFreq(), (r) => mhz(r.txHz), ["TX Frequency", "TX Freq", "Transmit Frequency", "TX"]),
 			c("Power", "power", asWord(POWER, 0, 0, 10), (r) => powerText(r.power), ["TX Power"]),
@@ -342,6 +437,11 @@ export const TABLES = {
 			c("Timeslot", "timeslot", asInt(1, 2, 1), undefined, ["TS", "Time Slot", "Slot"]),
 			ranCol("RX RAN", "rxRan", ["Receive RAN"]),
 			ranCol("TX RAN", "txRan", ["Transmit RAN"]),
+			ysfDtCol(),
+			ysfDevCol(),
+			ysfDgidCol("RX DG-ID", "rxDgid", ["Receive DG-ID"]),
+			ysfDgidCol("TX DG-ID", "txDgid", ["Transmit DG-ID"]),
+			ysfDestCol(),
 			ref("TX Contact", "contact", "contacts", ["Contact"]),
 			ref("RX Group List", "rxList", "rxLists", ["Group List", "RX List"]),
 			ref("APRS", "aprs", "aprs", ["APRS Configuration"]),
@@ -475,7 +575,9 @@ export function importTable(m, text, table = detect(text)) {
 		else taken.add(rec);
 		const work = { ...rec };
 		let skip = false;
-		for (const { col, index } of found) {
+		// Mode first: it makes or unmakes the channel's kind, and the kind's columns (RAN, DG-ID) read the kind
+		const ordered = [...found].sort((a, b) => (a.col.key === "mode" ? 0 : 1) - (b.col.key === "mode" ? 0 : 1));
+		for (const { col, index } of ordered) {
 			try {
 				col.set(work, row[index] ?? "", m, (e) => problems.push({ row: i + 1, column: col.header, code: e.code, params: e.params }));
 			} catch (e) {

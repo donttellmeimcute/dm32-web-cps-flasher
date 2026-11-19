@@ -817,7 +817,7 @@ async function readRadio() {
 }
 
 // Features a newer release may add that change what the editor can do with the radio, with what each gains
-const UPDATE_GAINS = ["CPS_FAST", "IDDB_COMPACT", "DMR_TRUNK", "P25", "P25_TRUNK", "NXDN"];
+const UPDATE_GAINS = ["CPS_FAST", "IDDB_COMPACT", "DMR_TRUNK", "P25", "P25_TRUNK", "NXDN", "YSF"];
 let releaseList = null;
 
 // After a read: a newer release for this radio (releases.json, updateFor), offered once per tab for each radio, running
