@@ -328,7 +328,10 @@ export function validate(m, { bands = null, features = null } = {}) {
 		if (c.colorCode < 0 || c.colorCode > 15) err("channels", c, "colorCode", "range", { min: 0, max: 15 });
 		if (c.mode === "dmr" && !c.kind && !c.contact && !c.rxOnly) warn("channels", c, "contact", "no_contact");
 		const band = listenBand(c.rxHz);
-		if (band && c.mode === "dmr") warn("channels", c, "mode", `listen_dmr_${band}`);
+		// A channel of a kind keeps a safe stand-in record (an AM channel stands in as DMR, receive only),
+		// so its base record's mode is not its real mode: only a plain DMR channel warns here. The no_contact
+		// rule above already guards on kind the same way.
+		if (band && c.mode === "dmr" && !c.kind) warn("channels", c, "mode", `listen_dmr_${band}`);
 		const txBand = listenBand(c.txHz);
 		if (txBand && !c.rxOnly) warn("channels", c, "rxOnly", `listen_tx_${txBand}`);
 		for (const k of REFS) if (typeof c[k] === "number") warn("channels", c, k, "dangling", { number: c[k] });
