@@ -9,23 +9,23 @@ import { h, t, ROOT, HOME, button, notice, download, progressBar, num as fmtNum,
 import { equal } from "../flasher/bytes.js?v=c16ffd9bbf";
 import { SerialStream, serialSupported, serialApi, RFOUNDRY_USB, browserErrorKey, knownRadioPort } from "../flasher/link.js?v=c16ffd9bbf";
 import { CodeplugImage, IDDB_HEADER, EDITOR_REGIONS } from "../codeplug/image.js?v=c16ffd9bbf";
-import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=c16ffd9bbf";
-import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=c16ffd9bbf";
-import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=c16ffd9bbf";
+import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=89bf988ad1";
+import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=89bf988ad1";
+import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=89bf988ad1";
 import { FastError } from "../codeplug/fastlink.js?v=c16ffd9bbf";
 import { areaForWrite, KEYS } from "../codeplug/kv.js?v=c16ffd9bbf";
 import { toSerial, CLICK_WAIT_MS } from "../flasher/netmode.js?v=c16ffd9bbf";
 import { convert as convertDb, readHeader as dbHeader } from "../codeplug/iddb.js?v=c16ffd9bbf";
-import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=c16ffd9bbf";
+import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=89bf988ad1";
 import { FakeCpsRadio } from "../codeplug/fakecps.js?v=c16ffd9bbf";
 import { Grid } from "./grid.js?v=c16ffd9bbf";
 import { History } from "./undo.js?v=c16ffd9bbf";
-import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=c16ffd9bbf";
-import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=c16ffd9bbf";
-import { syncModes, countSecrets, withoutSecrets } from "../codeplug/channelmodes.js?v=c16ffd9bbf";
-import { openFile, saveBytes, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=c16ffd9bbf";
+import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=89bf988ad1";
+import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=89bf988ad1";
+import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=89bf988ad1";
+import { openFile, saveBytes, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=89bf988ad1";
 import { extensions } from "./extensions.js?v=c16ffd9bbf";
-import "./parts.js?v=c16ffd9bbf";
+import "./parts.js?v=89bf988ad1";
 import * as diag from "../diag.js?v=c16ffd9bbf";
 import { initReporting, reportedLine } from "../report.js?v=c16ffd9bbf";
 import { updateFor } from "../flasher/version.js?v=c16ffd9bbf";
@@ -489,17 +489,8 @@ function saveFile(kind) {
 	const errors = problems().filter((p) => p.level === "error");
 	if (errors.length) return say(t("editor.err.fix_first", { n: errors.length }), "bad");
 	const img = encode(S.model);
-	// keys (channel-modes.md 8) go into a file only when the user turns them on for this export
-	const n = countSecrets(img.bytes);
-	if (!n) return saveImage(kind, img);
-	const box = h("input", { type: "checkbox", id: "keep-secrets" });
-	dialog(t("editor.secrets.title"), [h("p", {}, t("editor.secrets.text", { n })),
-		h("div", { class: "form-row form-check" }, h("label", { for: "keep-secrets" }, t("editor.secrets.include")), box)],
-	t("editor.save"), (close) => {
-		close();
-		if (!box.checked) withoutSecrets(img.bytes);
-		saveImage(kind, img);
-	});
+	withoutSecrets(img.bytes);
+	saveImage(kind, img);
 }
 
 function saveImage(kind, img) {

@@ -6,11 +6,11 @@
 
 import { h, button } from "../flasher/dom.js?v=c16ffd9bbf";
 import { parseFreq, parseTone, mhz } from "../codeplug/fields.js?v=c16ffd9bbf";
-import { LIMITS, POWER_NAMES } from "../codeplug/records.js?v=c16ffd9bbf";
-import { refNumber, listenBand } from "../codeplug/model.js?v=c16ffd9bbf";
+import { LIMITS, POWER_NAMES, DMR_PRIV } from "../codeplug/records.js?v=89bf988ad1";
+import { refNumber, listenBand } from "../codeplug/model.js?v=89bf988ad1";
 import { keyValid } from "../codeplug/kv.js?v=c16ffd9bbf";
 import { kindRow, kindName, offeredKinds } from "../codeplug/modes.js?v=c16ffd9bbf";
-import { KEY_ALGS, KEY_HEX, setKind } from "../codeplug/channelmodes.js?v=c16ffd9bbf";
+import { KEY_ALGS, validKeyHex, setKind } from "../codeplug/channelmodes.js?v=89bf988ad1";
 import { specField } from "./modefields.js?v=c16ffd9bbf";
 
 // --- Parsers shared by the columns and the forms ---
@@ -287,7 +287,7 @@ export function systemOptions(m, t, type, current) {
 // reference where the image was deliberately exported without keys.
 function aesOptions(m, t, alg, current, fallback) {
 	const format = (id) => alg.hex ? id.toString(16).toUpperCase().padStart(4, "0") : String(id);
-	const ids = new Set((m.keyring ?? []).filter((k) => k.alg === alg.alg && KEY_HEX.test(k.key) &&
+	const ids = new Set((m.keyring ?? []).filter((k) => k.alg === alg.alg && validKeyHex(k.alg, k.key) &&
 		Number.isInteger(k.id) && k.id >= (alg.idMin ?? 0) && k.id <= alg.idMax).map((k) => k.id));
 	if (current != null) ids.add(current);
 	return [[null, t(fallback)], ...[...ids].sort((a, b) => a - b).map((id) => [id, format(id)])];
@@ -330,6 +330,10 @@ export function channelForm(m, t, { features = null } = {}) {
 		}
 	}
 	const dmrAlg = KEY_ALGS.find((a) => a.token === "dmr");
+	const arc4Alg = KEY_ALGS.find((a) => a.token === "arc4");
+	const privacy = (r) => r.dmrPrivacy ?? (r.dmrAesKid ? DMR_PRIV.aes : DMR_PRIV.default);
+	const plainDmr = (r) => r.mode === "dmr" && !r.kind;
+	const keyId = (r) => (r.dmrPrivacyKey ?? r.dmrAesKid) || null;
 	return [
 		{ group: t("editor.form.basic") },
 		txt("name", "editor.col.name", name(LIMITS.name)(t)),
@@ -366,12 +370,28 @@ export function channelForm(m, t, { features = null } = {}) {
 		dmr(sel("rxList", "editor.col.rx_list", () => refOptions(m.rxLists, t))),
 		dmr(txt("dmrId", "editor.col.channel_id", dmrId(t), (v) => (v ? String(v) : ""))),
 		dmr(chk("dmo", "editor.col.dmo")),
-		sel("dmrAesKid", "editor.keys.alg.dmr",
-			(r) => aesOptions(m, t, dmrAlg, r.dmrAesKid || null, "editor.tot.default"), {
-				show: (r) => r.mode === "dmr" && !r.kind,
-				get: (r) => r.dmrAesKid || null,
-				set: (r, id) => { if (r.mode === "dmr" && !r.kind) r.dmrAesKid = id ?? 0; },
-			}),
+		sel("dmrPrivacy", "editor.col.dmr_privacy", () => [
+			[DMR_PRIV.default, t("editor.tot.default")], [DMR_PRIV.off, t("editor.none")],
+			[DMR_PRIV.basic, "Motorola Basic Privacy"], [DMR_PRIV.enhanced, "Motorola Enhanced Privacy"],
+			[DMR_PRIV.aes, "AES-256"],
+		], {
+			show: plainDmr, get: privacy,
+			set: (r, kind) => {
+				if (!plainDmr(r) || privacy(r) === kind) return;
+				r.dmrPrivacy = kind;
+				r.dmrPrivacyKey = 0;
+				delete r.dmrAesKid;
+			},
+		}),
+		sel("dmrPrivacyKey", "editor.keys.id", (r) =>
+			privacy(r) === DMR_PRIV.basic
+				? [[null, t("editor.none")], ...Array.from({ length: 255 }, (_, n) => [n + 1, String(n + 1)])]
+				: aesOptions(m, t, privacy(r) === DMR_PRIV.enhanced ? arc4Alg : dmrAlg, keyId(r), "editor.none"), {
+			show: (r) => plainDmr(r) && privacy(r) !== DMR_PRIV.default && privacy(r) !== DMR_PRIV.off,
+			optionsKey: privacy,
+			get: keyId,
+			set: (r, id) => { if (plainDmr(r)) r.dmrPrivacyKey = id ?? 0; },
+		}),
 		dmr(sel("aliasTs1", "editor.col.alias_ts1", () => aliasOptions(t))),
 		dmr(sel("aliasTs2", "editor.col.alias_ts2", () => aliasOptions(t))),
 		dmr(chk("noBeep", "editor.col.no_beep")),
@@ -425,6 +445,7 @@ export function formDialog(title, fields, record, t, onSave, opts = {}) {
 			input = h("select", { id }, ...opts.map(([, label], i) => h("option", { value: String(i) }, label)));
 			input.selectedIndex = Math.max(0, opts.findIndex(([v]) => v === get(work)));
 			input._opts = opts;
+			if (f.optionsKey) input._optionsKey = f.optionsKey(work);
 		} else {
 			const v = get(work);
 			input = h("input", { type: "text", id, value: f.format ? f.format(v ?? "") : v ?? "", spellcheck: "false" });
@@ -508,6 +529,12 @@ export function formDialog(title, fields, record, t, onSave, opts = {}) {
 				continue;
 			}
 			if (f.type === "select") {
+				if (f.optionsKey && input._optionsKey !== f.optionsKey(work)) {
+					input._optionsKey = f.optionsKey(work);
+					input._opts = f.options(work);
+					input.replaceChildren(...input._opts.map(([, text], i) => h("option", { value: String(i) }, text)));
+					input.selectedIndex = Math.max(0, input._opts.findIndex(([v]) => v === f.get(work)));
+				}
 				const v = input._opts[input.selectedIndex]?.[0];
 				f.set ? f.set(work, v) : (work[f.key] = v);
 			}

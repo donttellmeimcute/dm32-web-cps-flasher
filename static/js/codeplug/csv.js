@@ -7,9 +7,9 @@
 // {row, column, code, params}, and the page words them.
 
 import { parseFreq, parseTone, mhz } from "./fields.js?v=c16ffd9bbf";
-import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=c16ffd9bbf";
-import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=c16ffd9bbf";
-import { setKind } from "./channelmodes.js?v=c16ffd9bbf";
+import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=89bf988ad1";
+import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=89bf988ad1";
+import { setKind } from "./channelmodes.js?v=89bf988ad1";
 import { kindName } from "./modes.js?v=c16ffd9bbf";
 
 // --- RFC 4180 ---
