@@ -667,6 +667,23 @@ abbr.gl:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; bo
 .site-nav a { white-space: nowrap; font-size: 0.9rem; font-weight: 650; }
 .site-footer { margin-top: 50px; }
 .footer-support { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+/* the support bar (Ko-fi, Throne): the first thing on every page, in the flow (never over the content).
+   Dark like the hero and footer so it reads first in both themes; the footer keeps its plain links. */
+.support-bar { background: var(--hero-bg); color: var(--hero-text); border-bottom: 1px solid var(--hero-line); }
+.support-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-2) var(--space-3);
+	padding: var(--space-2) 0; font-size: var(--text-sm); }
+.support-row > span { color: var(--hero-muted); font-weight: 600; }
+.kofi-btn, .throne-btn {
+	display: inline-flex; align-items: center; gap: var(--space-2); padding: 0.45rem 0.95rem; min-height: 36px;
+	border-radius: var(--radius-sm); color: #fff; font-weight: 700; letter-spacing: 0.02em; text-decoration: none;
+}
+.kofi-btn { background: linear-gradient(90deg, #ff5e5b, #e8217a); }
+.throne-btn { background: linear-gradient(90deg, #e8217a, #7c4dff); }
+.kofi-btn:hover, .kofi-btn:focus-visible, .throne-btn:hover, .throne-btn:focus-visible { filter: brightness(1.1); color: #fff; text-decoration: none; }
+@media (max-width: 760px) {
+	.support-row > span { flex-basis: 100%; text-align: center; }
+}
+@media print { .support-bar { display: none; } }
 .build-stamp { overflow-wrap: anywhere; }
 .btn { min-height: 44px; padding: 0.55rem 1rem; }
 .btn-ghost { background: transparent; }
