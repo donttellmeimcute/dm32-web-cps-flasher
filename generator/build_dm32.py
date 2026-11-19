@@ -29,42 +29,18 @@ class DM32Site(B.Site):
 		self.boards = [b for b in self.boards if b["id"] == RADIO]
 		self.boards[0]["flash"]["stock_download"] = "https://baofeng.s3.amazonaws.com/Baofeng_DM-32UV_Firmware_v1.01.048.zip"
 		self.planned = []
+		self.served_release = next((r for r in reversed(self.release_list()) if r["board"] == RADIO), None)
+		if self.served_release is None:
+			raise B.repo.SourceError("no DM-32 release manifest in %s" % self.firmware)
 
 	def nav(self, lang, home, current):
-		items = [("flash", "flash/index.html"), ("codeplug", "codeplug/index.html")]
+		items = [("home", "index.html"), ("flash", "flash/index.html"), ("codeplug", "codeplug/index.html")]
 		return "".join('<a href="%s%s"%s>%s</a>' % (home, href, ' aria-current="page"' if key == current else "",
 							    B.html.escape(self.i18n.t(lang, "nav." + key))) for key, href in items)
 
 	def home(self, lang):
-		b = self.boards[0]
-		self.drawn(b, b["frame_geometry"], B.shots.css_px(".hero-device img", "max-height") * b["frame_geometry"]["aspect"])
-		self.page(lang, "index.html", self.t(lang, "home.title"), self.tpl.render("home", {"radio_id": b["id"], "radio_name": b["name"]}, lang), "home")
-
-	def _inject_after_lead(self, path, keys, lang, eyebrow=None):
-		"""Redesign: an eyebrow over the title and a row of fact chips under the page lead (flash, editor).
-		Tolerant on purpose: if the upstream page ever changes its lead markup, the page ships without the
-		extras instead of failing the build."""
-		with open(path, encoding="utf-8") as f:
-			text = f.read()
-		if eyebrow:
-			at = text.find("<h1>")
-			if at >= 0:
-				text = text[:at] + '<p class="eyebrow">%s</p>\n\t' % B.html.escape(eyebrow) + text[at:]
-		start = text.find('<p class="lead">')
-		if start < 0:
-			with open(path, "w", encoding="utf-8") as f:
-				f.write(text)
-			return
-		end = text.find("</p>", start)
-		if end < 0:
-			with open(path, "w", encoding="utf-8") as f:
-				f.write(text)
-			return
-		end += len("</p>")
-		chips = "".join('<span class="meta-chip%s">%s</span>' % (" hot" if i == 0 else "", B.html.escape(self.t(lang, k)))
-				 for i, k in enumerate(keys))
-		with open(path, "w", encoding="utf-8") as f:
-			f.write(text[:end] + '\n\t<div class="page-meta">' + chips + "</div>" + text[end:])
+		content = self.tpl.render("home", {"release": self.served_release}, lang)
+		self.page(lang, "index.html", self.t(lang, "home.title"), content, "home", nav="home")
 
 	def flash_page(self, lang):
 		super().flash_page(lang)
@@ -78,14 +54,6 @@ class DM32Site(B.Site):
 			raise B.repo.SourceError("flash page: no flash log note to take out")
 		with open(p, "w", encoding="utf-8") as f:
 			f.write(text[:start] + text[end + len("</details>"):])
-		self._inject_after_lead(p, ["page.meta_browser", "page.meta_local", "page.meta_sim"], lang,
-					 eyebrow="Baofeng DM-32UV")
-
-	def codeplug_page(self, lang):
-		super().codeplug_page(lang)
-		self._inject_after_lead(os.path.join(self.out, self.i18n.prefix(lang), "codeplug", "index.html"),
-					 ["page.meta_browser", "page.meta_local", "page.meta_files"], lang,
-					 eyebrow="Baofeng DM-32UV")
 
 	def not_found(self, lang):
 		super().not_found(lang)
@@ -142,9 +110,6 @@ def main():
 	args = ap.parse_args()
 	site = DM32Site(args.out, args.repo_url, "main", firmware=args.firmware)
 	warnings = site.build()
-	if not site.releases:
-		print("no release manifest in %s" % args.firmware, file=sys.stderr)
-		return 1
 	print("site: %s (%d warnings)" % (args.out, len(warnings)))
 	return 0
 

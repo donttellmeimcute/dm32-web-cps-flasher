@@ -64,9 +64,9 @@ for rel in ("templates/home.html", "templates/base.html", "templates/partials/be
 	shutil.copy(os.path.join(HERE, rel), os.path.join(SITE, rel))
 shutil.copy(os.path.join(HERE, "build_dm32.py"), os.path.join(SITE, "build_dm32.py"))
 
-# pink accent: the firmware's new default light theme
-edit("static/css/tokens.css", [("--accent: #b8431f;", "--accent: #c2185b;"), ("--accent-soft: #fbe9e2;", "--accent-soft: #fce4ec;"),
-			       ("--accent: #ef7a50;", "--accent: #f48fb1;"), ("--accent-soft: #3a2219;", "--accent-soft: #3a1a2a;")], count=None)
+# The DM32 layout uses the site's own brand artwork and stylesheet.
+for rel in ("img/lyra.png", "img/favicon-lyra.png", "css/tokens.css", "css/site.css"):
+	shutil.copy(os.path.join(HERE, "..", "static", rel), os.path.join(SITE, "static", rel))
 
 # the codeplug editor's practice radio is a DM-32UV (the only radio in radios.json here)
 edit("static/js/editor/app.js", [('new FakeCpsRadio({ board: "DM-1701",', 'new FakeCpsRadio({ board: "DM-32UV",')])

@@ -12,6 +12,7 @@ image that would reach the codec's flash window: this repository must never carr
 """
 import datetime
 import hashlib
+import html
 import json
 import os
 import re
@@ -55,8 +56,8 @@ def main(man_path):
 		 "size": len(image), "sha256": sha}
 	with open(os.path.join(ROOT, "data", "releases.json"), "w", encoding="utf-8", newline="\n") as f:
 		f.write(json.dumps({"releases": [entry]}, indent=1, ensure_ascii=False) + "\n")
-	pages = stamp_pages(m["version"], m.get("git_time"))
-	print("firmware/dm32/%s (%d bytes, %s), data/releases.json and %d page footers updated" %
+	pages = stamp_pages(entry)
+	print("firmware/dm32/%s (%d bytes, %s), data/releases.json and %d pages updated" %
 	      (name, len(image), m["version"], pages))
 
 
@@ -65,18 +66,45 @@ def main(man_path):
 STAMP = re.compile(r'(<p class="build-stamp">.*?</a>) · [^<]* · <time datetime="[^"]*">[^<]*</time></p>')
 
 
-def stamp_pages(version, git_time):
-	when = datetime.datetime.fromtimestamp(git_time or 0, datetime.timezone.utc)
-	new = r'\1 · NXDN-P25-DM32 %s · <time datetime="%s">%s</time></p>' % (
-		version, when.strftime("%Y-%m-%dT%H:%MZ"), when.strftime("%Y-%m-%d %H:%M UTC"))
+def stamp_home(text, root, entry):
+	fields = {
+		"version": entry["version"],
+		"size": str(entry["size"]) + " B",
+		"sha256": entry["sha256"],
+	}
+	links = {
+		"image": root + entry["image"],
+		"manifest": root + entry["manifest"],
+		"notes": "https://github.com/donttellmeimcute/DM32-nxdn-p25/releases/tag/v" + entry["version"],
+	}
+	for key, value in fields.items():
+		pattern = rf'(id="fw-{key}">)[^<]*'
+		text, count = re.subn(pattern, lambda m: m[1] + html.escape(value), text)
+		if count != 1:
+			sys.exit("home: expected one firmware " + key + " field")
+	for key, value in links.items():
+		pattern = rf'(id="fw-{key}" href=")[^"]*(")'
+		text, count = re.subn(pattern, lambda m: m[1] + html.escape(value) + m[2], text)
+		if count != 1:
+			sys.exit("home: expected one firmware " + key + " link")
+	return text
+
+
+def stamp_pages(entry):
+	version = entry["version"]
+	when = datetime.datetime.fromtimestamp(entry["git_time"] or 0, datetime.timezone.utc)
+	stamp = ' · NXDN-P25-DM32 %s · <time datetime="%s">%s</time></p>' % (
+		html.escape(version), when.strftime("%Y-%m-%dT%H:%MZ"), when.strftime("%Y-%m-%d %H:%M UTC"))
 	count = 0
 	for page in PAGES:
 		path = os.path.join(ROOT, page)
 		with open(path, encoding="utf-8") as f:
 			text = f.read()
-		stamped, n = STAMP.subn(new, text)
+		stamped, n = STAMP.subn(lambda m: m[1] + stamp, text)
 		if n != 1:
 			sys.exit("%s: no build stamp to update" % page)
+		if page in ("index.html", "en/index.html"):
+			stamped = stamp_home(stamped, "../" if page.startswith("en/") else "", entry)
 		if stamped != text:
 			with open(path, "w", encoding="utf-8", newline="\n") as f:
 				f.write(stamped)

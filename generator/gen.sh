@@ -59,8 +59,7 @@ for f in "$SRC/../../LICENSE:GPL-3.0-or-later.txt" "$SRC/../../LICENSES/mbelib-I
 	if [ -f "$src" ]; then cp "$src" "firmware/LICENSES/${dst:-$(basename "$src")}"; fi
 done
 
-# 5. this repository's own layer: its look (static/css, kept from the repository) and the P25/NXDN feature data
-if [ -d "$OUT/static/css" ]; then cp "$OUT"/static/css/*.css "$W/site/static/css/"; fi
+# 5. the P25/NXDN feature data
 python3 "$GEN/p25_data.py" "$W/site"
 
 # copied over the repository, never a rm -rf of it: .git, android/ and generator/ stay; git status shows the rest

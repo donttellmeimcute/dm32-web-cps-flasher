@@ -1,88 +1,90 @@
-<section class="wrap section masthead">
-	<p class="eyebrow">{{t home.eyebrow}}</p>
-	<h1>{{t home.headline}}</h1>
-	<p class="lead">{{t home.lead}}</p>
-	<div class="actions">
-		<a class="btn btn-primary" href="{{home}}flash/index.html">{{t home.cta_flash}}</a>
-		<a class="btn btn-ghost" href="{{home}}codeplug/index.html">{{t home.cta_editor}}</a>
+<section class="home-hero">
+	<div class="wrap hero-layout">
+		<div class="hero-copy">
+			<p class="eyebrow">Baofeng DM-32UV</p>
+			<h1>{{t home.headline}}</h1>
+			<p class="lead">{{t home.lead}}</p>
+			<div class="actions">
+				<a class="btn btn-primary" href="{{home}}flash/index.html">{{t home.cta_flash}} <span aria-hidden="true">→</span></a>
+				<a class="btn btn-ghost" href="{{home}}codeplug/index.html">{{t home.cta_editor}}</a>
+			</div>
+			<p class="hero-requirements">{{t home.browser}}</p>
+		</div>
+		<figure class="hero-radio">
+			<img src="{{root}}static/img/radios/dm32.svg" alt="Baofeng DM-32UV" width="590" height="1580" fetchpriority="high">
+		</figure>
 	</div>
-	<p class="small muted">{{t home.browser}}</p>
 </section>
 
-<section class="wrap section bento">
-	<figure class="tile tile-portrait">
-		<div class="display-bar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>XE1ARS · Lyra</span><span class="sig" aria-hidden="true">▂▄▆█</span></div>
-		<div class="portrait-frame">
-			<img src="{{root}}static/img/lyra.png?v={{ assets }}" alt="Lyra XE1ARS">
+<section class="wrap home-section" aria-labelledby="served-firmware">
+	<div class="release-card">
+		<div>
+			<h2 id="served-firmware"><span class="release-dot" aria-hidden="true"></span>{{t home.f_firmware}}</h2>
+			<p class="release-name">NXDN-P25-DM32 <code id="fw-version">{{ release.version }}</code></p>
 		</div>
-		<div class="fw-readout"><span class="led" aria-hidden="true"></span><span id="fw-version">…</span><span class="fw-tag">{{t home.f_firmware}}</span></div>
-	</figure>
-
-	<div class="tile tile-modes">
-		<h2>{{t home.modes_title}}</h2>
-		<ul class="mode-tiles">
-			<li class="mode-tile-voice"><b>DMR</b><span>{{t home.mode_voice}}</span></li>
-			<li class="mode-tile-data"><b>NXDN</b><span>{{t home.mode_data}}</span></li>
-			<li class="mode-tile-data"><b>P25</b><span>{{t home.mode_data}}</span></li>
-			<li class="mode-tile-voice"><b>FM</b><span>{{t home.mode_voice}}</span></li>
-		</ul>
+		<dl class="release-meta">
+			<div><dt>{{t home.f_image_size}}</dt><dd id="fw-size">{{ release.size }} B</dd></div>
+			<div><dt>SHA-256</dt><dd><code id="fw-sha256">{{ release.sha256 }}</code></dd></div>
+		</dl>
+		<div class="release-links">
+			<a class="btn" id="fw-image" href="{{root}}{{ release.image }}" download>{{t home.f_download}} <span aria-hidden="true">↓</span></a>
+			<div>
+				<a id="fw-manifest" href="{{root}}{{ release.manifest }}">{{t home.f_manifest}}</a>
+				<a id="fw-notes" href="https://github.com/donttellmeimcute/DM32-nxdn-p25/releases/tag/v{{ release.version }}">{{t home.f_notes}}</a>
+			</div>
+		</div>
 	</div>
+</section>
 
-	<div class="tile tile-steps">
-		<h2>{{t home.steps_title}}</h2>
-		<ol class="step-rail">
-			<li><b>01</b><h3>{{t home.step1_title}}</h3><p>{{t home.step1_text}}</p></li>
-			<li><b>02</b><h3>{{t home.step2_title}}</h3><p>{{t home.step2_text}}</p></li>
-			<li><b>03</b><h3>{{t home.step3_title}}</h3><p>{{t home.step3_text}}</p></li>
-		</ol>
+<section class="wrap home-section" aria-labelledby="tools-title">
+	<h2 id="tools-title">{{t home.tools_title}}</h2>
+	<div class="home-tools">
+		<a class="tool-card" href="{{home}}flash/index.html">
+			<h3>{{t home.f_flash}}</h3>
+			<p>{{t home.f_flash_text}}</p>
+			<span class="tool-arrow" aria-hidden="true">→</span>
+		</a>
+		<a class="tool-card" href="{{home}}codeplug/index.html">
+			<h3>{{t home.f_editor}}</h3>
+			<p>{{t home.f_editor_text}}</p>
+			<span class="tool-arrow" aria-hidden="true">→</span>
+		</a>
 	</div>
+</section>
 
-	<a class="tile tile-act" href="{{home}}flash/index.html">
-		<span class="tile-index">01</span>
-		<h2>{{t home.f_flash}}</h2>
-		<p>{{t home.f_flash_text}}</p>
-		<span class="tile-arrow" aria-hidden="true">→</span>
-	</a>
-	<a class="tile tile-act" href="{{home}}codeplug/index.html">
-		<span class="tile-index">02</span>
-		<h2>{{t home.f_editor}}</h2>
-		<p>{{t home.f_editor_text}}</p>
-		<span class="tile-arrow" aria-hidden="true">→</span>
-	</a>
+<section class="wrap home-section" aria-labelledby="modes-title">
+	<h2 id="modes-title">{{t home.modes_title}}</h2>
+	<ul class="mode-list">
+		<li><b>YSF</b><span>{{t home.mode_ysf}}</span></li>
+		<li><b>NXDN</b><span>{{t home.mode_nxdn}}</span></li>
+		<li><b>P25</b><span>{{t home.mode_p25}}</span></li>
+		<li><b>DMR</b><span>{{t home.mode_dmr}}</span></li>
+		<li><b>FM</b><span>{{t home.mode_fm}}</span></li>
+		<li><b>AM</b><span>{{t home.mode_am}}</span></li>
+	</ul>
+</section>
 
-	<div class="tile tile-update">
-		<div class="notice warn"><p><strong>{{t home.experimental_title}}</strong> {{t home.experimental_text}}</p></div>
+<section class="wrap home-section home-help" aria-label="{{t home.help_title}}">
+	<div class="setup-card">
 		<h2>{{t home.update_mode_title}}</h2>
-		<ol class="steps-check">
+		<ol>
 			<li>{{t home.update_mode_1}}</li>
 			<li>{{t home.update_mode_2}}</li>
 			<li>{{t home.update_mode_3}}</li>
 		</ol>
 		<p class="small muted">{{t home.update_mode_note}}</p>
 	</div>
-
-	<div class="tile tile-codec">
+	<div class="setup-card">
 		<h2>{{t home.codec_title}}</h2>
-		<p>{{t home.codec_text}}</p>
+		<p class="muted">{{t home.codec_text}}</p>
+		<p class="notice warn"><strong>{{t home.experimental_title}}</strong> {{t home.experimental_text}}</p>
 	</div>
-
-	<div class="tile tile-credits">
-		<h2>{{t home.credits_title}}</h2>
+	<details class="project-credits">
+		<summary>{{t home.credits_title}}</summary>
 		<ul>
-			<li><a href="https://github.com/radiofoundry/radiofoundry">RadioFoundry</a>: {{t home.credit_rf}}</li>
-			<li><a href="https://github.com/tylerwatt12/Open25-DM32">Open25-DM32 (tylerwatt12)</a>: {{t home.credit_open25}}</li>
-			<li><a href="https://github.com/donttellmeimcute/DM32-nxdn-p25">DM32-nxdn-p25 (lyra XE1POC)</a>: {{t home.credit_p25}}</li>
+			<li><a href="https://github.com/radiofoundry/radiofoundry">RadioFoundry</a> — {{t home.credit_rf}}</li>
+			<li><a href="https://github.com/tylerwatt12/Open25-DM32">Open25-DM32</a> — {{t home.credit_open25}}</li>
+			<li><a href="https://github.com/donttellmeimcute/DM32-nxdn-p25">DM32-nxdn-p25 (lyra XE1POC)</a> — {{t home.credit_p25}}</li>
 		</ul>
-		<p class="small muted">{{t home.license}} <a href="https://github.com/donttellmeimcute/dm32-web-cps-flasher">{{t home.site_source}}</a></p>
-	</div>
+	</details>
 </section>
-<script type="module">
-// the image the flasher installs (data/releases.json, written with the image by the site build)
-const out = document.getElementById("fw-version");
-try {
-	const r = (await (await fetch(`{{root}}data/releases.json?check=${Date.now()}`, { cache: "no-store" })).json()).releases.at(-1);
-	out.textContent = `${r.name || r.version} · ${Math.round(r.size / 1024)} KB · SHA-256 ${r.sha256.slice(0, 16)}…`;
-} catch (e) {
-	out.textContent = "?";
-}
-</script>
