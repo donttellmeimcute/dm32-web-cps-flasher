@@ -37,7 +37,9 @@ export function decodeConv(b) {
 	const t = u8(b, 2);
 	return {
 		dt: f & DT_MASK,
-		narrow: (f & NARROW) !== 0,
+		// A zeroed flags byte is the default: V/D mode 1, which is a narrow mode (Yaesu 4.2.1: the V/D modes
+		// and DN are narrow, 1350 Hz; only Voice FR (VW) is wide, 2700 Hz). A stored Wide bit is still honored.
+		narrow: (f & NARROW) !== 0 || f === 0,
 		rxDgid: rx,
 		txDgid: (t & TX_DGID_SET) !== 0 ? t & DGID_MAX : rx,
 		// a destination of all spaces or all zeros reads as ALL
@@ -80,7 +82,7 @@ export const ysfKind = {
 	defaultTx: true,
 	recordFields: [],
 	flags: {},
-	newParams: () => ({ dt: DT_VD1, narrow: false, rxDgid: 0, txDgid: 0, dest: DEST_ALL }),
+	newParams: () => ({ dt: DT_VD1, narrow: true, rxDgid: 0, txDgid: 0, dest: DEST_ALL }),
 	decode: decodeConv,
 	encode: encodeConv,
 	fields: () => [
@@ -93,6 +95,9 @@ export const ysfKind = {
 	],
 	validate(c, p, problem) {
 		if (p.dest && (p.dest.length > CALLSIGN_LEN || /[^ -~]/.test(p.dest))) problem.warn("dest", "ysf_dest_chars");
+		// DN, V/D-1 and Data FR are narrow; only VW is wide (Yaesu 4.2.1). A mismatch is usually a channel
+		// left on the old Wide default, which real YSF radios and hotspots do not expect for DN.
+		if ((p.dt === DT_VW) === p.narrow) problem.warn("narrow", "ysf_dev_mismatch");
 	},
 	settings: {
 		key: "ysf",
