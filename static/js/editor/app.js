@@ -22,6 +22,7 @@ import { Grid } from "./grid.js?v=c16ffd9bbf";
 import { History } from "./undo.js?v=c16ffd9bbf";
 import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=89bf988ad1";
 import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=89bf988ad1";
+import { drawBootPreview, BOOT_PREVIEW_WIDTH, BOOT_PREVIEW_HEIGHT } from "./bootpreview.js?v=798db71156";
 import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=89bf988ad1";
 import { openFile, saveBytes, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=89bf988ad1";
 import { extensions } from "./extensions.js?v=c16ffd9bbf";
@@ -375,7 +376,7 @@ function openRecord(tab, r) {
 	}
 }
 
-// --- Radio tab: the radio-wide settings ---
+// --- Radio tab: the radio-wide settings, in sections ---
 
 function radioTab() {
 	const g = S.model.general;
@@ -412,21 +413,47 @@ function radioTab() {
 		return h("div", { class: "form-row" }, h("label", { for: "g-" + key }, label), sel,
 			h("span", { class: "small muted" }, t("editor.general.tone_help")));
 	};
+	// one section: a heading and its fields in a grid
+	const section = (title, ...children) => h("div", {},
+		h("h3", {}, title), h("div", { class: "form-grid" }, ...children));
+	// the boot screen as the radio shows it, drawn from the model on every render: refresh() rebuilds the tab
+	// after each change, so an edited boot line shows in the preview at once
+	const preview = h("canvas", { width: BOOT_PREVIEW_WIDTH, height: BOOT_PREVIEW_HEIGHT,
+		style: "display: block; width: 100%; max-width: 220px; height: auto;",
+		role: "img", "aria-label": t("editor.general.boot_preview") }, t("editor.general.boot_preview"));
+	const pctx = preview.getContext("2d");
+	if (pctx) {
+		drawBootPreview(pctx, { line1: g.bootLine1 ?? "", line2: g.bootLine2 ?? "",
+			model: S.conn?.radio?.name ?? "DM-32UV", version: S.conn?.probe?.git ?? "",
+			photoLabel: t("editor.general.boot_preview_photo") });
+	}
+	const modeRows = modeSettingsPart(api(), features());
+	const keyRows = keyringPart(api(), features());
 	const parts = [
-		h("div", { class: "form-grid ed-radio-form" },
-			field("dmrId", t("editor.general.dmr_id"), 8, t("editor.general.dmr_id_help"), num(0, 0xFFFFFF)),
-			field("radioName", t("editor.general.radio_name"), LIMITS.radioName, t("editor.general.radio_name_help"), text(LIMITS.radioName)),
-			field("bootLine1", t("editor.general.boot1"), LIMITS.bootText, null, text(LIMITS.bootText)),
-			field("bootLine2", t("editor.general.boot2"), LIMITS.bootText, null, text(LIMITS.bootText)),
-			field("groupHang", t("editor.general.group_hang"), 3, t("editor.general.hang_help"), num(0, 255)),
-			field("privateHang", t("editor.general.private_hang"), 3, t("editor.general.hang_help"), num(0, 255)),
-			field("arsServer", t("editor.general.ars_server"), 8, t("editor.general.ars_server_help"), areaKey("arsServer")),
-			field("ipGateway", t("editor.general.ip_gateway"), 8, t("editor.general.ip_gateway_help"), areaKey("ipGateway")),
-			onOff("callEndTone", t("editor.general.call_end_tone")),
-			onOff("totWarnTone", t("editor.general.tot_warn_tone")),
-			onOff("batteryTone", t("editor.general.battery_tone")),
-			onOff("txDenyTone", t("editor.general.tx_deny_tone")),
-			...modeSettingsPart(api(), features()), ...keyringPart(api(), features())),
+		h("div", { class: "ed-radio-form" },
+			section(t("editor.general.section_identity"),
+				field("dmrId", t("editor.general.dmr_id"), 8, t("editor.general.dmr_id_help"), num(0, 0xFFFFFF)),
+				field("radioName", t("editor.general.radio_name"), LIMITS.radioName, t("editor.general.radio_name_help"), text(LIMITS.radioName))),
+			section(t("editor.general.section_boot"),
+				field("bootLine1", t("editor.general.boot1"), LIMITS.bootText, null, text(LIMITS.bootText)),
+				field("bootLine2", t("editor.general.boot2"), LIMITS.bootText, null, text(LIMITS.bootText)),
+				h("div", { class: "form-note" },
+					h("p", { class: "small muted" }, t("editor.general.boot_preview")),
+					preview,
+					h("p", { class: "small muted" }, t("editor.general.boot_preview_note")))),
+			section(t("editor.general.section_times"),
+				field("groupHang", t("editor.general.group_hang"), 3, t("editor.general.hang_help"), num(0, 255)),
+				field("privateHang", t("editor.general.private_hang"), 3, t("editor.general.hang_help"), num(0, 255))),
+			section(t("editor.general.section_audio"),
+				onOff("callEndTone", t("editor.general.call_end_tone")),
+				onOff("totWarnTone", t("editor.general.tot_warn_tone")),
+				onOff("batteryTone", t("editor.general.battery_tone")),
+				onOff("txDenyTone", t("editor.general.tx_deny_tone"))),
+			section(t("editor.general.section_network"),
+				field("arsServer", t("editor.general.ars_server"), 8, t("editor.general.ars_server_help"), areaKey("arsServer")),
+				field("ipGateway", t("editor.general.ip_gateway"), 8, t("editor.general.ip_gateway_help"), areaKey("ipGateway"))),
+			...(modeRows.length ? [section(t("editor.general.section_modes"), ...modeRows)] : []),
+			...(keyRows.length ? [h("div", {}, ...keyRows)] : [])),
 	];
 	if (S.conn) {
 		const p = S.conn.probe;
