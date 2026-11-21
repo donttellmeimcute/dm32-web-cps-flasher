@@ -20,7 +20,7 @@ import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=89bf988ad1
 import { FakeCpsRadio } from "../codeplug/fakecps.js?v=c16ffd9bbf";
 import { Grid } from "./grid.js?v=c16ffd9bbf";
 import { History } from "./undo.js?v=c16ffd9bbf";
-import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=89bf988ad1";
+import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=6244577532";
 import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=89bf988ad1";
 import { drawBootPreview, BOOT_PREVIEW_WIDTH, BOOT_PREVIEW_HEIGHT } from "./bootpreview.js?v=798db71156";
 import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=89bf988ad1";
@@ -324,8 +324,8 @@ function bulkSet(tab, g) {
 	const rows = g.selection();
 	const cols = bulkColumns(tab, S.model, t, { features: features() });
 	if (!cols.length) return;
-	const pickCol = h("select", {}, ...cols.map((c, i) => h("option", { value: String(i) }, c.label)));
-	const slot = h("div");
+	const pickCol = h("select", { id: "bulk-field" }, ...cols.map((c, i) => h("option", { value: String(i) }, c.label)));
+	const slot = h("div", { class: "form-row" });
 	const errs = h("p", { class: "notice bad", hidden: true });
 	let input;
 	const fill = () => {
@@ -337,11 +337,14 @@ function bulkSet(tab, g) {
 		} else if (c.type === "bool") {
 			input = h("select", {}, h("option", { value: "1" }, t("editor.yes")), h("option", { value: "0" }, t("editor.no")));
 		} else input = h("input", { type: "text" });
-		slot.replaceChildren(h("label", {}, t("editor.value"), input));
+		input.id = "bulk-value";
+		slot.replaceChildren(h("label", { for: "bulk-value" }, t("editor.value")), input);
 	};
 	pickCol.addEventListener("change", fill);
 	fill();
-	dialog(t("editor.bulk_edit_n", { n: rows.length }), [h("label", {}, t("editor.field"), pickCol), slot, errs], t("editor.apply"), (close) => {
+	const fields = h("div", { class: "form-grid form-list" },
+		h("div", { class: "form-row" }, h("label", { for: "bulk-field" }, t("editor.field")), pickCol), slot);
+	dialog(t("editor.bulk_edit_n", { n: rows.length }), [fields, errs], t("editor.apply"), (close) => {
 		const c = cols[pickCol.selectedIndex];
 		const v = c.type === "select" ? input._opts[input.selectedIndex][0] : c.type === "bool" ? input.value === "1" : input.value;
 		let err = null;

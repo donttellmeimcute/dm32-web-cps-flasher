@@ -94,7 +94,11 @@ const recordField = (r, key) => !r.kind || !!kindMod(r)?.recordFields?.includes(
 const ownFreqs = (r) => !r.kind || kindMod(r)?.ownFreqs !== false;
 // Receive only: for a channel of a kind, its tag's transmit allowed turned round (the record is receive only)
 const rxOnlyGet = (r) => (r.kind ? !r.tagTx : r.rxOnly);
-const rxOnlySet = (r, v) => (r.kind ? (r.tagTx = !v) : (r.rxOnly = !!v));
+const rxOnlySet = (r, v) => {
+	// Column setters return an error string or nothing, never the assigned Boolean: Bulk Edit treats truthy as an error.
+	if (r.kind) r.tagTx = !v;
+	else r.rxOnly = !!v;
+};
 
 const tone = (t) => (r, k, v) => {
 	const s = parseTone(v);
