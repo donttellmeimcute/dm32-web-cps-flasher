@@ -2,18 +2,18 @@
   "format": "rfoundry-release/1",
   "board": "dm32",
   "board_name": "Baofeng DM-32UV",
-  "version": "2026.11.21-a39d3399",
-  "git": "a39d3399",
-  "git_full": "a39d3399a0364543675a2b30d76dc9b43e6c8abc",
+  "version": "2026.11.21-8d85a1e0",
+  "git": "8d85a1e0",
+  "git_full": "8d85a1e0eeec8bb7f2fdfe2bd0596763708dad0a",
   "image": {
-    "file": "rfoundry-dm32-2026.11.21-a39d3399.bin",
-    "size": 725712,
-    "sha256": "1de2523d156ab48361b60d7bcca45ff6de9a01e191c3ef7938894fa4873d04c8"
+    "file": "rfoundry-dm32-2026.11.21-8d85a1e0.bin",
+    "size": 725772,
+    "sha256": "05c82e1f2b90047c4059e8d16fa14c949040d4e8d1f94e1aa4e971609b23fed9"
   },
   "ranges": [
     {
       "addr": "0x0300C000",
-      "size": 725712
+      "size": 725772
     }
   ],
   "sectors": [
@@ -37,5 +37,5 @@
   "toolchain": "csky-elf-gcc (GCC) 14.3.0",
   "variant": "full",
   "off": "USB_SERIAL_REQUEST,VOICE_CAPTURE,NET_WEBCTL,NET_RIGCTL,NET_APRSIS,NET_USRP,SNMP,BACKLIGHT_TEST,LANG_IT,LANG_FR,LANG_ZH,LANG_DEFAULT_ES,LANG_DEFAULT_IT,LANG_DEFAULT_FR,LANG_DEFAULT_ZH,VIBRATE,AIR_RAW,MDC1200",
-  "git_time": 1795292242
+  "git_time": 1795295232
 }
