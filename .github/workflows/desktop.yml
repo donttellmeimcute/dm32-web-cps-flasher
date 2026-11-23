@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: MIT
+# Builds the desktop codeplug editor (electron/) for Windows and Linux: the offline one-file editor the repository
+# carries (downloads/dm32-codeplug-editor-offline.zip) packed into installers. Runs by hand (Actions > Desktop
+# editor) or on every push to the electron/ layer; the artifacts land on the run, and a release carries them.
+name: Desktop editor
+
+on:
+  workflow_dispatch:
+  push:
+    paths: ["electron/**", "tools/offline_zip.py", ".github/workflows/desktop.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, targets: "--win" }
+          - { os: ubuntu-latest, targets: "--linux" }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Editor pages into the app
+        run: |
+          cd electron
+          python -m zipfile -e ../downloads/dm32-codeplug-editor-offline.zip .
+          cp ../static/img/icon-512.png icon.png
+      - name: Build
+        run: |
+          cd electron
+          npm install
+          npx electron-builder ${{ matrix.targets }} --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ runner.os }}
+          path: |
+            electron/dist/*.*.*
+            electron/dist/*.AppImage
+            electron/dist/*.exe
+            electron/dist/*.deb
+            electron/dist/*.zip
+          if-no-files-found: error

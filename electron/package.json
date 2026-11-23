@@ -1,0 +1,21 @@
+{
+  "name": "dm32-codeplug-editor",
+  "productName": "DM32 Codeplug Editor",
+  "version": "0.2.0",
+  "description": "Offline codeplug editor for the DM-32UV (Open25-DM32): edit channels, zones and contacts, CSV and qdmr YAML, and read or write the radio over its USB cable.",
+  "main": "main.js",
+  "author": "lyra XE1POC",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "io.github.donttellmeimcute.dm32cps.editor",
+    "files": ["main.js", "codeplug-editor-*.html", "icon.png"],
+    "win": { "target": ["nsis", "zip"], "icon": "icon.png" },
+    "linux": { "target": ["AppImage", "deb"], "category": "Utility;HamRadio", "icon": "icon.png", "maintainer": "lyra XE1POC <24362190+donttellmeimcute@users.noreply.github.com>" },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true }
+  }
+}
