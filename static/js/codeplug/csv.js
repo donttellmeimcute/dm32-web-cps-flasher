@@ -123,9 +123,11 @@ const asFreq = (blank) => (s) => {
 };
 
 const asTone = (s) => {
-	const v = parseTone(s.trim().replace(",", "."));
-	if (v === null) throw new Bad("bad_tone");
-	return v;
+	const v = s.trim().replace(",", ".");
+	if (/^(none|-)$/i.test(v)) return "";
+	const t = parseTone(v);
+	if (t === null) throw new Bad("bad_tone");
+	return t;
 };
 
 const asId = (s) => {
@@ -136,11 +138,13 @@ const asId = (s) => {
 	return n;
 };
 
-// One of a few words (case-insensitive), or a number in range; a blank cell is the default
-const asWord = (words, dflt, lo, hi) => (s) => {
+// One of a few words (case-insensitive), or a number in range; a blank cell is the default. `extra` maps more words
+// a file may use to a key (the stock CPS writes "Middle" for the power level the editor calls Mid)
+const asWord = (words, dflt, lo, hi, extra = {}) => (s) => {
 	const v = s.trim().toLowerCase();
 	if (!v) return dflt;
 	for (const [k, w] of Object.entries(words)) if (w.toLowerCase() === v) return isNaN(Number(k)) ? k : Number(k);
+	for (const [w, k] of Object.entries(extra)) if (w.toLowerCase() === v) return k;
 	if (lo !== undefined && /^\d+$/.test(v) && Number(v) >= lo && Number(v) <= hi) return Number(v);
 	throw new Bad("bad_value", { value: s.trim(), allowed: Object.values(words).join(", ") });
 };
@@ -148,7 +152,12 @@ const asWord = (words, dflt, lo, hi) => (s) => {
 const POWER = { ...POWER_NAMES };
 const powerText = (n) => POWER_NAMES[n] || String(n);
 const MODES = { fm: "FM", dmr: "DMR", nxdn: "NXDN", ysf: "YSF" };
-const KIND_OF_MODE = { nxdn: 4, ysf: 6 };
+// A word a file may use for the mode, and the channel kind it means (0: a plain FM or DMR channel). Besides the
+// editor's own names these are the kind short names the editor itself exports (P25, P25T, T3, AM), so its own files
+// round-trip, and the stock CPS's Analog/Digital
+const MODE_WORDS = { fm: 0, analog: 0, digital: 0, nxdn: 4, ysf: 6, p25: 2, p25t: 3, t3: 1, am: 5 };
+const PLAIN_OF_WORD = { analog: "fm", digital: "dmr" };
+const MODE_ALLOWED = "FM, DMR, NXDN, YSF, P25, P25T, T3, AM";
 
 // A channel's mode, as a kind or a plain mode: a kind channel exports its kind's name (the base record stands in as
 // DMR, so MODES[mode] would read DMR for it), a plain one its mode. Setting it makes or unmakes the kind
@@ -169,9 +178,10 @@ const modeCol = {
 			r.mode = "fm";
 			return;
 		}
-		const key = Object.keys(MODES).find((k) => MODES[k].toLowerCase() === v);
-		if (!key) throw new Bad("bad_value", { value: s.trim(), allowed: Object.values(MODES).join(", ") });
-		if (KIND_OF_MODE[key]) setKind(m, r, KIND_OF_MODE[key]);
+		const kind = MODE_WORDS[v];
+		if (kind === undefined) throw new Bad("bad_value", { value: s.trim(), allowed: MODE_ALLOWED });
+		const key = Object.keys(MODES).find((k) => MODES[k].toLowerCase() === v) ?? PLAIN_OF_WORD[v] ?? "dmr";
+		if (kind) setKind(m, r, kind);
 		else setKind(m, r, 0, key);
 	},
 };
@@ -244,7 +254,8 @@ const ref = (header, key, table, aliases = []) => ({
 	header, aliases, key,
 	get: (r, m) => refText(r[key], m[table]),
 	set: (r, s, m) => {
-		r[key] = findRef(s, m[table]);
+		const v = s.trim();
+		r[key] = !v || /^(0|none|-)$/i.test(v) ? null : findRef(v, m[table]);
 	},
 });
 
@@ -420,9 +431,9 @@ export const TABLES = {
 			NUMBER(LIMITS.channels),
 			c("Name", "name", asName(LIMITS.name), undefined, ["Channel Name", "Channel"]),
 			modeCol,
-			c("RX Frequency (MHz)", "rxHz", asFreq(), (r) => mhz(r.rxHz), ["RX Frequency", "RX Freq", "Receive Frequency", "RX"]),
-			c("TX Frequency (MHz)", "txHz", asFreq(), (r) => mhz(r.txHz), ["TX Frequency", "TX Freq", "Transmit Frequency", "TX"]),
-			c("Power", "power", asWord(POWER, 0, 0, 10), (r) => powerText(r.power), ["TX Power"]),
+			c("RX Frequency (MHz)", "rxHz", asFreq(), (r) => mhz(r.rxHz), ["RX Frequency", "RX Freq", "Receive Frequency", "RX", "RX Frequency[MHz]"]),
+			c("TX Frequency (MHz)", "txHz", asFreq(), (r) => mhz(r.txHz), ["TX Frequency", "TX Freq", "Transmit Frequency", "TX", "TX Frequency[MHz]"]),
+			c("Power", "power", asWord(POWER, 0, 0, 10, { middle: 6 }), (r) => powerText(r.power), ["TX Power"]),
 			c("Timeout (s)", "tot", asInt(0, 3825, 0), undefined, ["Timeout", "TOT"]),
 			c("Bandwidth (kHz)", "bw", (s) => {
 				const v = s.trim().replace(",", ".").replace(/\s*khz$/i, "");
@@ -430,11 +441,14 @@ export const TABLES = {
 				if (v === "25") return 25;
 				throw new Bad("bad_value", { value: s.trim(), allowed: "12.5, 25" });
 			}, undefined, ["Bandwidth", "BW"]),
-			c("RX Tone", "rxTone", asTone, undefined, ["RX CTCSS/DCS", "Decode", "RX CTCSS"]),
-			c("TX Tone", "txTone", asTone, undefined, ["TX CTCSS/DCS", "Encode", "TX CTCSS"]),
-			c("Squelch", "squelch", asInt(0, 21, 0)),
+			c("RX Tone", "rxTone", asTone, undefined, ["RX CTCSS/DCS", "Decode", "RX CTCSS", "CTC/DCS Decode"]),
+			c("TX Tone", "txTone", asTone, undefined, ["TX CTCSS/DCS", "Encode", "TX CTCSS", "CTC/DCS Encode"]),
+			c("Squelch", "squelch", asInt(0, 21, 0), undefined, ["Squelch Level"]),
 			c("Color Code", "colorCode", asInt(0, 15, 1), undefined, ["CC", "Colour Code"]),
-			c("Timeslot", "timeslot", asInt(1, 2, 1), undefined, ["TS", "Time Slot", "Slot"]),
+			c("Timeslot", "timeslot", (s) => {
+				const slot = /^slot\s*([12])$/i.exec(s.trim());
+				return slot ? Number(slot[1]) : asInt(1, 2, 1)(s);
+			}, undefined, ["TS", "Time Slot", "Slot"]),
 			ranCol("RX RAN", "rxRan", ["Receive RAN"]),
 			ranCol("TX RAN", "txRan", ["Transmit RAN"]),
 			ysfDtCol(),
@@ -446,10 +460,10 @@ export const TABLES = {
 			ref("RX Group List", "rxList", "rxLists", ["Group List", "RX List"]),
 			ref("APRS", "aprs", "aprs", ["APRS Configuration"]),
 			c("DMR ID", "dmrId", asId, (r) => r.dmrId || "", ["Channel DMR ID"]),
-			c("RX Only", "rxOnly", asBool, (r) => yesNo(r.rxOnly)),
+			c("RX Only", "rxOnly", asBool, (r) => yesNo(r.rxOnly), ["Forbid TX"]),
 			c("All Skip", "allSkip", asBool, (r) => yesNo(r.allSkip), ["Scan Skip"]),
 			c("Zone Skip", "zoneSkip", asBool, (r) => yesNo(r.zoneSkip)),
-			c("VOX", "vox", asBool, (r) => yesNo(r.vox)),
+			c("VOX", "vox", asBool, (r) => yesNo(r.vox), ["VOX Function"]),
 			c("Tone Burst", "toneBurst", asBool, (r) => yesNo(r.toneBurst), ["1750 Hz"]),
 			c("No Beep", "noBeep", asBool, (r) => yesNo(r.noBeep)),
 			c("No Eco", "noEco", asBool, (r) => yesNo(r.noEco)),

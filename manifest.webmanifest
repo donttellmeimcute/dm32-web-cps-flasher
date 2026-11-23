@@ -1,0 +1,24 @@
+{
+ "name": "DM32 Web CPS & Flasher",
+ "short_name": "DM32 CPS",
+ "description": "Flash the DM-32UV and edit its codeplug in the browser. Works without a connection once installed.",
+ "start_url": "codeplug/",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#14161a",
+ "theme_color": "#14161a",
+ "icons": [
+  {
+   "src": "static/img/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "static/img/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any maskable"
+  }
+ ]
+}

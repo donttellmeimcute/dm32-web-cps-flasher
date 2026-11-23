@@ -62,6 +62,22 @@ done
 # 5. the P25/NXDN feature data
 python3 "$GEN/p25_data.py" "$W/site"
 
+# 6. this repository's own layer: the editor fixes that live in the published repository (CSV stock-CPS headers and
+# kind words, the multi-block stock converter) and its offline layer (the installable app and the one-file editor).
+# Like the CSS, these are kept in the published repository and copied back here, so a regeneration does not undo them
+if [ -d "$OUT/static/css" ]; then cp "$OUT"/static/css/*.css "$W/site/static/css/"; fi
+for f in csv.js stock_baofeng.js; do
+	if [ -f "$OUT/static/js/codeplug/$f" ]; then cp "$OUT/static/js/codeplug/$f" "$W/site/static/js/codeplug/"; fi
+done
+if [ -f "$OUT/static/js/pwa.js" ]; then
+	cp "$OUT/static/js/pwa.js" "$W/site/static/js/"
+	# the pages carry the Install button, the offline zip link and the worker registration
+	for p in index.html flash/index.html codeplug/index.html en/index.html en/flash/index.html en/codeplug/index.html; do
+		if [ -f "$OUT/$p" ]; then mkdir -p "$W/site/$(dirname "$p")"; cp "$OUT/$p" "$W/site/$p"; fi
+	done
+	(cd "$W/site" && python3 "$OUT/tools/make_pwa.py" && python3 "$OUT/tools/offline_zip.py") || true
+fi
+
 # copied over the repository, never a rm -rf of it: .git, android/ and generator/ stay; git status shows the rest
 mkdir -p "$OUT"; rm -rf "$OUT/firmware/dm32"
 cp -r "$W/site/." "$OUT/"

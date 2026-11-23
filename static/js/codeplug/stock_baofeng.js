@@ -18,8 +18,11 @@ const BLK = { settings: 0x04, lists: 0x0F, channels: 0x12, txContacts: 0x42, con
 const CH = 0x30, CONTACT = 0x18, LIST = 0x6D, ZONE = 0x91, RADIO_ID = 0x10;
 const N_LISTS = 32, LIST_MEMBERS = 32, ZONE_CHANNELS = 64, N_IDS = 255;
 const BLOCK_DATA = PAGE - 1;	// the last byte is the block number
-// Channels past the first block's are in a layout not mapped yet (spec 5): only the first block's are read
-const CH_PER_BLOCK = Math.floor((BLOCK_DATA - 0x10) / CH);
+// The channel blocks: the first (0x12) holds the count at +0 and channels from +0x10 (84 of them); the blocks after
+// it (0x13 up) hold 85 more each, raw records from +0x00 with no header. A slot with no name is an unused channel
+// number: it counts towards the next block's channels but holds no record
+const CH_FIRST_BLOCK = Math.floor((BLOCK_DATA - 0x10) / CH), CH_PER_BLOCK = Math.floor(BLOCK_DATA / CH);
+const CONTACTS_PER_BLOCK = Math.floor(BLOCK_DATA / CONTACT), ZONES_PER_BLOCK = Math.floor(BLOCK_DATA / ZONE);
 
 const power = (name) => Number(Object.keys(POWER_NAMES).find((k) => POWER_NAMES[k] === name));
 const POWER = [power("Low"), power("Mid"), power("High")];
@@ -94,17 +97,33 @@ function blocksOf(bytes) {
 	return m && m.has(BLK.channels) ? m : null;
 }
 
-// Good and bad channels (spec 3): named records with both frequencies are good
+// Walk the channel slots the count names, across the channel blocks in order, until the blocks run out. Each slot's
+// record (48 bytes) goes to fn(record, zero-based channel number). Returns how many the count named and how many
+// were walked: blocks missing from the page map end the walk early
+function eachChannel(m, fn) {
+	const count = u16(m.get(BLK.channels), 0);
+	let n = 0;
+	for (let blk = BLK.channels; m.has(blk) && n < count; blk++) {
+		const p = m.get(blk);
+		const base = blk === BLK.channels ? 0x10 : 0x00;
+		const per = blk === BLK.channels ? CH_FIRST_BLOCK : CH_PER_BLOCK;
+		for (let i = 0; i < per && n < count; i++, n++) fn(p.subarray(base + i * CH, base + (i + 1) * CH), n);
+	}
+	return { count, read: n };
+}
+
+// Good and bad channels (spec 3): named records with both frequencies are good; a slot with no name is an unused
+// channel number, not a bad record
 export function stockEvidence(bytes) {
 	const m = blocksOf(bytes);
 	if (!m) return { good: 0, bad: 0 };
-	const ch = m.get(BLK.channels), n = u16(ch, 0);
 	let good = 0, bad = 0;
-	for (let i = 0; i < Math.min(n, CH_PER_BLOCK); i++) {
-		const c = readChannel(ch.subarray(0x10 + i * CH, 0x10 + (i + 1) * CH));
-		if (c && c.nameOk && c.rxHz && c.txHz) good++;
+	eachChannel(m, (r) => {
+		const c = readChannel(r);
+		if (!c) return;
+		if (c.nameOk && c.rxHz && c.txHz) good++;
 		else bad++;
-	}
+	});
 	return { good, bad };
 }
 
@@ -138,20 +157,30 @@ export function readStock(bytes) {
 	}
 
 	const ch = blk(BLK.channels), tx = blk(BLK.txContacts);
-	out.channelCount = u16(ch, 0);
-	const nCh = Math.min(out.channelCount, CH_PER_BLOCK);
-	for (let i = 0; i < nCh; i++) {
-		const c = readChannel(ch.subarray(0x10 + i * CH, 0x10 + (i + 1) * CH));
+	const walked = eachChannel(m, (r, i) => {
+		const c = readChannel(r);
 		if (c) out.channels.push({ index: i + 1, ...c, contact: c.mode === "dmr" && 2 * i + 1 < BLOCK_DATA ? tx[2 * i + 1] : 0 });
-	}
+	});
+	out.channelCount = walked.count;
+	out.channelsRead = walked.read;
 
-	const ct = blk(BLK.contacts);
-	for (let i = 0; (i + 1) * CONTACT <= BLOCK_DATA; i++) {
-		const r = ct.subarray(i * CONTACT, (i + 1) * CONTACT);
-		const type = { 3: "private", 4: "group" }[r[0x16]];
-		const name = okName(r, 2, 16);
-		const id = u24(r, 0x13);
-		if (type && name && id) out.contacts.push({ index: i + 1, name, type, id });
+	// contacts: block 0x44 and the blocks after it, records from +0 with no header; a slot with an empty name is
+	// unused but still counts its number
+	let contactSlot = 0;
+	for (let blkN = BLK.contacts; m.has(blkN); blkN++) {
+		const p = m.get(blkN);
+		let any = false;
+		for (let i = 0; (i + 1) * CONTACT <= BLOCK_DATA; i++, contactSlot++) {
+			const r = p.subarray(i * CONTACT, (i + 1) * CONTACT);
+			const type = { 3: "private", 4: "group" }[r[0x16]];
+			const name = okName(r, 2, 16);
+			const id = u24(r, 0x13);
+			if (type && name && id) {
+				out.contacts.push({ index: contactSlot + 1, name, type, id });
+				any = true;
+			}
+		}
+		if (!any && blkN > BLK.contacts) break;
 	}
 
 	const gl = blk(BLK.lists);
@@ -169,18 +198,28 @@ export function readStock(bytes) {
 		out.rxLists.push({ index: i + 1, name, ids: members });
 	}
 
+	// zones: block 0x5C holds the count and the first 28 records from +0x10; the blocks after it hold 28 more each,
+	// raw records from +0x00 with no header
 	const zb = blk(BLK.zones);
-	for (let i = 0; i < Math.min(zb[0], 255); i++) {
-		const a = 0x10 + i * ZONE;
-		if (a + ZONE > BLOCK_DATA) break;
-		const name = okName(zb, a, 16);
-		if (!name) continue;
-		const n = Math.min(zb[a + 0x10], ZONE_CHANNELS), list = [];
-		for (let k = 0; k < n; k++) {
-			const x = u16(zb, a + 0x11 + 2 * k);
-			if (x && x !== 0xFFFF) list.push(x);
+	const zoneCount = Math.min(zb[0], 255);
+	{
+		let n = 0;
+		for (let blkN = BLK.zones; m.has(blkN) && n < zoneCount; blkN++) {
+			const p = m.get(blkN);
+			const base = blkN === BLK.zones ? 0x10 : 0x00;
+			for (let i = 0; i < ZONES_PER_BLOCK && n < zoneCount; i++, n++) {
+				const a = base + i * ZONE;
+				if (a + ZONE > BLOCK_DATA) break;
+				const name = okName(p, a, 16);
+				if (!name) continue;
+				const cnt = Math.min(p[a + 0x10], ZONE_CHANNELS), list = [];
+				for (let k = 0; k < cnt; k++) {
+					const x = u16(p, a + 0x11 + 2 * k);
+					if (x && x !== 0xFFFF) list.push(x);
+				}
+				out.zones.push({ index: n + 1, name, a: list });
+			}
 		}
-		out.zones.push({ index: i + 1, name, a: list });
 	}
 	return out;
 }
@@ -208,7 +247,7 @@ export function importStock(m, bytes) {
 		return t.slice(0, max);
 	};
 
-	if (s.channelCount > CH_PER_BLOCK) note("too_many_channels", s.channelCount - CH_PER_BLOCK);
+	if (s.channelCount > s.channelsRead) note("too_many_channels", s.channelCount - s.channelsRead);
 	let stockChannels = s.channels.filter((c) => {
 		if (c.rxHz && c.txHz) return true;
 		note("bad_frequency");
