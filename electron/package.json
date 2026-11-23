@@ -3,6 +3,7 @@
   "productName": "DM32 Codeplug Editor",
   "version": "0.2.0",
   "description": "Offline codeplug editor for the DM-32UV (Open25-DM32): edit channels, zones and contacts, CSV and qdmr YAML, and read or write the radio over its USB cable.",
+  "homepage": "https://github.com/donttellmeimcute/dm32-web-cps-flasher",
   "main": "main.js",
   "author": "lyra XE1POC",
   "license": "MIT",
