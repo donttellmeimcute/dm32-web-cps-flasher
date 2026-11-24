@@ -10,7 +10,7 @@ import { equal } from "../flasher/bytes.js?v=c16ffd9bbf";
 import { SerialStream, serialSupported, serialApi, RFOUNDRY_USB, browserErrorKey, knownRadioPort } from "../flasher/link.js?v=c16ffd9bbf";
 import { CodeplugImage, IDDB_HEADER, EDITOR_REGIONS } from "../codeplug/image.js?v=c16ffd9bbf";
 import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=89bf988ad1";
-import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=21c0de0054";
+import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=6276ed067d";
 import { BOOT_IMAGE_EDGE, packBootImage } from "../codeplug/bootimage.js";
 import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=89bf988ad1";
 import { FastError } from "../codeplug/fastlink.js?v=c16ffd9bbf";
@@ -21,10 +21,10 @@ import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=89bf988ad1
 import { FakeCpsRadio } from "../codeplug/fakecps.js?v=c16ffd9bbf";
 import { Grid } from "./grid.js?v=c16ffd9bbf";
 import { History } from "./undo.js?v=c16ffd9bbf";
-import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=dbaabc57d9";
-import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=89bf988ad1";
+import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=6276ed067d";
+import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=6276ed067d";
 import { drawBootPreview, BOOT_PREVIEW_WIDTH, BOOT_PREVIEW_HEIGHT } from "./bootpreview.js?v=21c0de0054";
-import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=21c0de0054";
+import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=6276ed067d";
 import { openFile, saveBytes, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=89bf988ad1";
 import { extensions } from "./extensions.js?v=c16ffd9bbf";
 import "./parts.js?v=89bf988ad1";
@@ -41,7 +41,7 @@ const S = {
 	history: new History(),
 	fileName: "codeplug",
 	dirty: false,
-	tab: "channels",
+	tab: location.hash === "#startup-image" ? "radio" : "channels",
 	grid: null,
 	radios: [],
 	conn: null,		// {transport, radio, image: the radio's bytes as last read or written, cable}

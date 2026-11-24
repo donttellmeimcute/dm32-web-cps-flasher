@@ -7,10 +7,11 @@
 // {row, column, code, params}, and the page words them.
 
 import { parseFreq, parseTone, mhz } from "./fields.js?v=c16ffd9bbf";
-import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=21c0de0054";
+import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=6276ed067d";
 import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=89bf988ad1";
-import { setKind } from "./channelmodes.js?v=21c0de0054";
-import { kindName } from "./modes.js?v=c16ffd9bbf";
+import { setKind } from "./channelmodes.js?v=6276ed067d";
+import { kindName } from "./modes.js?v=6276ed067d";
+import { SCRAMBLER_KIND } from "./mode_nxdn.js";
 
 // --- RFC 4180 ---
 
@@ -157,7 +158,7 @@ const MODES = { fm: "FM", dmr: "DMR", nxdn: "NXDN", ysf: "YSF" };
 // round-trip, and the stock CPS's Analog/Digital
 const MODE_WORDS = { fm: 0, analog: 0, digital: 0, nxdn: 4, ysf: 6, c4fm: 6, fusion: 6, "system fusion": 6, "yaesu system fusion": 6, p25: 2, p25t: 3, t3: 1, am: 5 };
 const PLAIN_OF_WORD = { analog: "fm", digital: "dmr" };
-const MODE_ALLOWED = "FM, DMR, NXDN, YSF, P25, P25T, T3, AM";
+const MODE_ALLOWED = "FM, DMR, NXDN, NXDN Scrambler, YSF, P25, P25T, T3, AM";
 
 // A channel's mode, as a kind or a plain mode: a kind channel exports its kind's name (the base record stands in as
 // DMR, so MODES[mode] would read DMR for it), a plain one its mode. Setting it makes or unmakes the kind
@@ -166,6 +167,7 @@ const MODE_ALLOWED = "FM, DMR, NXDN, YSF, P25, P25T, T3, AM";
 const modeCol = {
 	header: "Mode", aliases: ["Channel Mode", "Channel Type", "Type"], key: "mode",
 	get: (r) => {
+		if (r.kind === SCRAMBLER_KIND) return `NXDN ${r.params?.rate9600 === false ? "4800" : "9600"} Scrambler`;
 		if (r.kind) {
 			const n = kindName(r.kind);
 			if (n !== "?") return n;
@@ -175,6 +177,11 @@ const modeCol = {
 	set: (r, s, m) => {
 		const v = s.trim().toLowerCase();
 		if (!v) return;
+		if (["nxdn scrambler", "nxdn-s", "nxdn 9600 scrambler", "nxdn 4800 scrambler"].includes(v)) {
+			setKind(m, r, SCRAMBLER_KIND);
+			r.params = { ...r.params, rate9600: v !== "nxdn 4800 scrambler" };
+			return;
+		}
 		const kind = MODE_WORDS[v];
 		if (kind === undefined) throw new Bad("bad_value", { value: s.trim(), allowed: MODE_ALLOWED });
 		const key = Object.keys(MODES).find((k) => MODES[k].toLowerCase() === v) ?? PLAIN_OF_WORD[v] ?? "dmr";
@@ -264,11 +271,12 @@ const NUMBER = (max) => ({ header: "Number", aliases: ["No", "#", "Index"], key:
 // file itself makes NXDN (Mode is applied before the other columns). A blank RX RAN keeps the value; a blank TX RAN
 // sends the RX RAN, RAN 1 when that is every RAN (0), as the editor's blank TX RAN does.
 const NXDN_KIND = 4, RAN_MAX = 63;
+const isNxdn = (kind) => kind === NXDN_KIND || kind === SCRAMBLER_KIND;
 const txRanDefault = (rx) => (rx !== 0 ? rx : 1);
 const ranCol = (header, key, aliases) => ({
 	header, aliases, key,
 	get: (r) => {
-		if (r.kind !== NXDN_KIND || !r.params) return "";
+		if (!isNxdn(r.kind) || !r.params) return "";
 		const v = r.params[key];
 		if (v === undefined || v === null) return "";
 		if (key === "txRan" && v === txRanDefault(r.params.rxRan ?? 0)) return "";
@@ -276,7 +284,7 @@ const ranCol = (header, key, aliases) => ({
 	},
 	set: (r, s) => {
 		s = s.trim();
-		if (r.kind !== NXDN_KIND || !r.params) {
+		if (!isNxdn(r.kind) || !r.params) {
 			if (s === "") return;
 			throw new Bad("bad_value", { value: s, allowed: "NXDN channels" });
 		}
@@ -458,12 +466,26 @@ export const TABLES = {
 			ref("APRS", "aprs", "aprs", ["APRS Configuration"]),
 			c("DMR ID", "dmrId", asId, (r) => r.dmrId || "", ["Channel DMR ID"]),
 			{ header: "RX Only", key: "rxOnly", aliases: ["Forbid TX"],
-				get: (r) => yesNo(r.kind === YSF_KIND ? !r.tagTx : r.rxOnly),
+				get: (r) => yesNo(r.kind === SCRAMBLER_KIND || (r.kind === YSF_KIND ? !r.tagTx : r.rxOnly)),
 				set: (r, s) => {
-					if (r.kind === YSF_KIND && !s.trim()) return;
+					if ((r.kind === YSF_KIND || r.kind === SCRAMBLER_KIND) && !s.trim()) return;
 					const rxOnly = asBool(s);
-					if (r.kind === YSF_KIND) r.tagTx = !rxOnly;
+					if (r.kind === YSF_KIND || r.kind === SCRAMBLER_KIND) r.tagTx = !rxOnly;
 					else r.rxOnly = rxOnly;
+				} },
+			{ header: "NXDN Scrambler Key ID", key: "scramblerKeyId", aliases: [],
+				get: (r) => r.kind === SCRAMBLER_KIND ? r.params?.keyId ?? "" : "",
+				set: (r, s) => {
+					if (!s.trim()) return;
+					if (r.kind !== SCRAMBLER_KIND) throw new Bad("bad_value", { value: s.trim(), allowed: "an NXDN Scrambler channel" });
+					r.params = { ...r.params, keyId: asInt(0, RAN_MAX)(s) };
+				} },
+			{ header: "NXDN Scrambler TX", key: "scramblerTx", aliases: [],
+				get: (r) => r.kind === SCRAMBLER_KIND ? yesNo(r.tagTx) : "",
+				set: (r, s) => {
+					if (!s.trim()) return;
+					if (r.kind !== SCRAMBLER_KIND) throw new Bad("bad_value", { value: s.trim(), allowed: "an NXDN Scrambler channel" });
+					r.tagTx = asBool(s);
 				} },
 			c("All Skip", "allSkip", asBool, (r) => yesNo(r.allSkip), ["Scan Skip"]),
 			c("Zone Skip", "zoneSkip", asBool, (r) => yesNo(r.zoneSkip)),
@@ -572,8 +594,8 @@ export function importTable(m, text, table = detect(text)) {
 	const keys = new Set(found.map((f) => f.col.key));
 	if (table === "channels") {
 		if (!spec.required.every((key) => keys.has(key))) throw new Bad("not_a_table");
-		// Read the mode and RX DG-ID before any dependent fields, in any column order.
-		const priority = { mode: 0, rxDgid: 1 };
+		// Read the mode and RX DG-ID first. Scrambler TX overrides the receive-only base record.
+		const priority = { mode: 0, rxDgid: 1, scramblerTx: 3 };
 		found.sort((a, b) => (priority[a.col.key] ?? 2) - (priority[b.col.key] ?? 2));
 	}
 	const hasNumber = keys.has("number");

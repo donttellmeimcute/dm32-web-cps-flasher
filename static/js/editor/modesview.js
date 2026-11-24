@@ -6,10 +6,10 @@
 // channels, plan rows) in a table per class, and its secret behind a button. What a type holds comes from its mode
 // module (codeplug/mode_*.js); no mode is named here.
 
-import { formDialog, fallbackOptions } from "./views.js?v=89bf988ad1";
+import { formDialog, fallbackOptions } from "./views.js?v=6276ed067d";
 import { specField, parseSpec, formatSpec, label } from "./modefields.js?v=c16ffd9bbf";
-import { SYSTEM_TYPES, typeRow, typeName, offeredTypes, offeredKinds } from "../codeplug/modes.js?v=c16ffd9bbf";
-import { newSystem, syncModes, SHARE, MODE_LIMITS, KEY_ALGS, KEY_MAX, keyAlg, keyBytes, validKeyHex, newKey } from "../codeplug/channelmodes.js?v=21c0de0054";
+import { SYSTEM_TYPES, typeRow, typeName, offeredTypes, offeredKinds } from "../codeplug/modes.js?v=6276ed067d";
+import { newSystem, syncModes, SHARE, MODE_LIMITS, KEY_ALGS, KEY_MAX, keyAlg, keyBytes, validKeyHex, newKey, scramblerSeed, scramblerKeyHex } from "../codeplug/channelmodes.js?v=6276ed067d";
 import { remove, assignNumbers } from "../codeplug/model.js?v=89bf988ad1";
 
 const SHARE_LEVELS = [SHARE.off, SHARE.identity, SHARE.whole];
@@ -276,7 +276,7 @@ export function modeSettingsPart(api, features) {
 	return out;
 }
 
-// The keyring (docs/spec/air-encryption.md 4) in the Radio tab: AES-256 keys of the air modes the radio runs, or the
+// The keyring (docs/spec/air-encryption.md 4) in the Radio tab: traffic keys of the air modes the radio runs, or the
 // codeplug holds. A channel names a key by its algorithm and key id; the key itself never goes in a shared zone and
 // is left out of exported codeplugs. Each key is a row: its ID, masked key and delete.
 export function keyringPart(api, features) {
@@ -284,16 +284,18 @@ export function keyringPart(api, features) {
 	const ring = m.keyring ?? [];
 	const offered = offeredKinds(m, features).map((k) => k.token);
 	const have = Array.isArray(features) ? features : String(features ?? "").split(",");
-	const algs = KEY_ALGS.filter((a) => offered.includes(a.token.toUpperCase()) ||
-		((a.token === "dmr" || a.token === "arc4") && (have.includes("DMR") || m.channels.some((c) => c.mode === "dmr" && !c.kind))));
+	const algs = KEY_ALGS.filter((a) => offered.includes(a.token.toUpperCase()) || (a.feature && have.includes(a.feature)) ||
+		((a.token === "dmr" || a.token === "dmr128" || a.token === "arc4") && (have.includes("DMR") || m.channels.some((c) => c.mode === "dmr" && !c.kind))));
 	if (!algs.length && !ring.length) return [];
 	const set = (k, patch) => api.change(t("editor.undo.edit"), () => (m.keyring = (m.keyring ?? []).map((x) => (x === k ? { ...x, ...patch } : x))));
 	const rows = ring.map((k, i) => {
 		const a = keyAlg(k.alg);
 		const id = h("input", { type: "text", id: `kr-id-${i}`, value: a.hex ? k.id.toString(16).toUpperCase().padStart(4, "0") : String(k.id), size: "6", spellcheck: "false" });
 		const hexLength = 2 * keyBytes(k.alg);
-		const key = h("input", { type: "password", id: `kr-key-${i}`, value: k.key, size: String(hexLength + 2),
-			maxlength: String(hexLength), spellcheck: "false", autocomplete: "off" });
+		const keyLength = a.decimalSeed ? 5 : hexLength;
+		const key = h("input", { type: "password", id: `kr-key-${i}`,
+			value: a.decimalSeed && k.key ? String(scramblerSeed(k.key)) : k.key, size: String(keyLength + 2),
+			maxlength: String(keyLength), inputmode: a.decimalSeed ? "numeric" : "text", spellcheck: "false", autocomplete: "off" });
 		const err = h("span", { class: "small ed-err" });
 		id.addEventListener("change", () => {
 			const n = a.hex ? parseInt(id.value, 16) : Number(id.value);
@@ -302,8 +304,9 @@ export function keyringPart(api, features) {
 			set(k, { id: n });
 		});
 		key.addEventListener("change", () => {
-			const v = key.value.replace(/[\s:-]/g, "").toUpperCase();
-			if (!validKeyHex(k.alg, v)) return void (err.textContent = t("editor.keys.bad", { n: hexLength }));
+			const text = key.value.trim();
+			const v = a.decimalSeed ? (/^[0-9]+$/.test(text) ? scramblerKeyHex(Number(text)) : "") : text.replace(/[\s:-]/g, "").toUpperCase();
+			if (!validKeyHex(k.alg, v)) return void (err.textContent = t(a.decimalSeed ? "editor.keys.bad_seed" : "editor.keys.bad", { n: hexLength }));
 			err.textContent = "";
 			set(k, { key: v });
 		});
@@ -311,7 +314,7 @@ export function keyringPart(api, features) {
 			h("label", { for: `kr-key-${i}` }, t("editor.keys.key")), key,
 			button(t("editor.delete"), () => api.change(t("editor.undo.delete"), () => (m.keyring = (m.keyring ?? []).filter((x) => x !== k))), { quiet: true, danger: true }), err);
 	});
-	const pick = h("select", { "aria-label": t("editor.keys.title") }, ...KEY_ALGS.map((a) => h("option", { value: String(a.alg) }, t(`editor.keys.alg.${a.token}`))));
+	const pick = h("select", { "aria-label": t("editor.keys.title") }, ...KEY_ALGS.filter((a) => !a.feature || features == null || have.includes(a.feature)).map((a) => h("option", { value: String(a.alg) }, t(`editor.keys.alg.${a.token}`))));
 	return [
 		h("h3", {}, t("editor.keys.title")),
 		h("p", { class: "small muted" }, t("editor.keys.intro")),

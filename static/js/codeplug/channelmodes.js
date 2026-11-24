@@ -19,9 +19,10 @@
 import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, KV_SIZE, KV_HDR, KEYS, getKey, keyValid, keyValue } from "./kv.js";
 import { BOOT_IMAGE_KEY, bootImageValid } from "./bootimage.js";
 import { getName, putName } from "./fields.js?v=c16ffd9bbf";
-import { redactDmrBasicKeys } from "./records.js?v=21c0de0054";
-import { KINDS, kindRow, typeRow, radioRuns } from "./modes.js?v=c16ffd9bbf";
+import { redactDmrBasicKeys } from "./records.js?v=6276ed067d";
+import { KINDS, kindRow, typeRow, radioRuns } from "./modes.js?v=6276ed067d";
 import { u16, u32, put16, put32, sameBytes, sameValue, nameCheck } from "./modebytes.js?v=c16ffd9bbf";
+import { SCRAMBLER_ALG, SCRAMBLER_SEED_MAX } from "./mode_nxdn.js";
 
 export const MODE_KEY = { system: 0x0100, entry: 0x0200, secret: 0x0300, tag: 0x0400, setting: 0x0A00 };
 export const MODE_LIMITS = { systems: 255, entries: 256, tags: 1024, name: 16 };
@@ -472,6 +473,9 @@ export function validateModes(m, err, warn, { features = null, baseNames } = {})
 		}
 		if (typeof c.fallback === "number") warn("channels", c, "fallback", "mode_fallback_stale", { number: c.fallback });
 		else if (c.fallback?.kind) warn("channels", c, "fallback", "mode_fallback_kind");
+		if (mod.requiredKeyAlg && c.tagTx && !(m.keyring ?? []).some((k) =>
+			k.alg === mod.requiredKeyAlg && k.id === c.params?.keyId && validKeyHex(k.alg, k.key)))
+			warn("channels", c, "keyId", "nxdn_scrambler_key_missing");
 		mod.validate?.(c, c.params, { err: (f, code, p = {}) => err("channels", c, f, code, p), warn: (f, code, p = {}) => warn("channels", c, f, code, p) });
 	}
 	for (const k of KINDS) {
@@ -509,14 +513,22 @@ export const KEY_RING_SYSTEM = 0xFF;			// "no system": the radio's own keyring
 // The algorithms the editor knows: P25's ALGID and NXDN's cipher type, the key id's range and how it is written
 export const KEY_ALGS = [
 	{ alg: 0x84, token: "p25", idMax: 0xFFFF, hex: true },
+	{ alg: 0x81, token: "p25des", idMax: 0xFFFF, hex: true, bytes: 8, feature: "P25_DES" },
 	{ alg: 3, token: "nxdn", idMax: 63, hex: false },
 	{ alg: 0x25, token: "dmr", idMin: 1, idMax: 255, hex: false },	// DMR AES-256, Motorola layout
+	{ alg: 0x24, token: "dmr128", idMin: 1, idMax: 255, hex: false, bytes: 16 },
 	{ alg: 0x21, token: "arc4", idMin: 1, idMax: 255, hex: false, bytes: 5 },
+	{ alg: SCRAMBLER_ALG, token: "nxdn_scrambler", idMax: 63, hex: false, bytes: 2, decimalSeed: true },
 ];
 export const keyAlg = (alg) => KEY_ALGS.find((a) => a.alg === alg) ?? null;
 export const keyBytes = (alg) => keyAlg(alg)?.bytes ?? 32;
 const hexToBytes = (s) => Uint8Array.from(s.match(/../g) ?? [], (x) => parseInt(x, 16));
 const bytesToHex = (b) => [...b].map((x) => x.toString(16).padStart(2, "0")).join("").toUpperCase();
+export const scramblerSeed = (hex) => u16(hexToBytes(hex), 0);
+export function scramblerKeyHex(seed) {
+	if (!Number.isInteger(seed) || seed < 1 || seed > SCRAMBLER_SEED_MAX) return "";
+	return bytesToHex([seed & 0xFF, seed >> 8]);
+}
 // A traffic key record of the keyring with an algorithm the editor knows.
 function decodeKey(key, v) {
 	if (!v || v[0] !== KEY_RING_SYSTEM || !keyAlg(v[1]) || v.length < 5 + keyBytes(v[1])) return null;
@@ -524,7 +536,8 @@ function decodeKey(key, v) {
 }
 export const newKey = (alg) => ({ slot: null, alg, id: 1, flags: 0, key: "" });
 export const validKeyHex = (alg, s) => keyAlg(alg) != null && typeof s === "string" &&
-	s.length === 2 * keyBytes(alg) && /^[0-9A-Fa-f]+$/.test(s);
+	s.length === 2 * keyBytes(alg) && /^[0-9A-Fa-f]+$/.test(s) &&
+	(alg !== SCRAMBLER_ALG || scramblerKeyHex(scramblerSeed(s)) !== "");
 
 // --- Secrets (8) ---
 

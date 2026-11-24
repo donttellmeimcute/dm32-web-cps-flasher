@@ -5,7 +5,7 @@
 // fills the editing model (model.js) from it the way a qdmr import does (qdmr.js), with the same note codes.
 
 import { getFreq, getTone } from "./fields.js?v=c16ffd9bbf";
-import { LIMITS, POWER_NAMES } from "./records.js?v=21c0de0054";
+import { LIMITS, POWER_NAMES } from "./records.js?v=6276ed067d";
 
 const GENERAL = { boot1: 0x2040, boot2: 0x2054, bootLen: 10, dmrId: 0x2084, name: 0x20B0, nameLen: 16 };
 

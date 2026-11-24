@@ -6,8 +6,10 @@
 //
 //     node tools/check_edits.mjs
 import { exportTable, importTable, detect } from "../static/js/codeplug/csv.js?v=c16ffd9bbf";
-import { empty } from "../static/js/codeplug/model.js?v=89bf988ad1";
+import { empty, encode, decode, newChannel } from "../static/js/codeplug/model.js?v=89bf988ad1";
 import { importStock, detectStock, PAGE } from "../static/js/codeplug/stock_baofeng.js?v=c16ffd9bbf";
+import { setKind, validKeyHex, withoutSecrets } from "../static/js/codeplug/channelmodes.js";
+import { bulkColumns, channelForm } from "../static/js/editor/views.js";
 
 let failed = 0;
 const check = (name, ok) => {
@@ -77,6 +79,36 @@ const check = (name, ok) => {
 	const names = m.channels.map((c) => c.name);
 	check("channels past the first block convert", names.includes("Ch85") && names.includes("Ch86") && !r.notes.some((n) => n.code === "too_many_channels"));
 	check("zone resolves a channel past block one", m.zones.length === 1 && m.zones[0].channels.length === 1 && m.zones[0].channels[0].name === "Ch86");
+}
+
+// #61: a P25 DES-OFB key shares its ID only with the matching algorithm and survives encoding.
+{
+	const m = empty();
+	const ch = newChannel({ name: "P25 DES", rxHz: 433000000, txHz: 433000000 });
+	setKind(m, ch, 2);
+	m.channels.push(ch);
+	m.keyring = [{ alg: 0x81, id: 0, key: "133457799BBCDFF1" }, { alg: 0x84, id: 5, key: "AB".repeat(32) }];
+	const fields = channelForm(m, (s) => s, { features: "P25,P25_DES" });
+	const encryption = fields.find((f) => f.key === "k2.encryption");
+	check("P25 Encryption lists AES and DES key IDs by algorithm", encryption.show(ch) &&
+		JSON.stringify(encryption.options(ch).map(([id]) => id)) === '[null,"aes:5","des:0"]' &&
+		!validKeyHex(0x81, "AB".repeat(32)));
+	encryption.set(ch, "aes:5");
+	encryption.set(ch, "des:0");
+
+	const img = encode(m);
+	const restored = decode(img);
+	check("P25 DES with key id zero round-trips", restored.channels[0].params.des === true &&
+		restored.channels[0].params.aes === false && restored.channels[0].params.keyId === 0 &&
+		restored.keyring.some((k) => k.alg === 0x81 && k.key === "133457799BBCDFF1"));
+	withoutSecrets(img.bytes);
+	check("redaction retains DES key reference and removes key material",
+		decode(img).keyring.length === 0 && decode(img).channels[0].params.des === true);
+	const bulk = bulkColumns("channels", m, (s) => s, { rows: [ch] }).find((f) => f.key === "bulkAes");
+	bulk.set(ch, 5);
+	check("bulk AES selection explicitly replaces DES on selected P25 channels",
+		encryption.get(ch) === "aes:5" && ch.params.des === false);
+
 }
 
 process.exit(failed);

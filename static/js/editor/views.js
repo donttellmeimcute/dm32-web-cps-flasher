@@ -6,11 +6,11 @@
 
 import { h, button } from "../flasher/dom.js?v=c16ffd9bbf";
 import { parseFreq, parseTone, mhz } from "../codeplug/fields.js?v=c16ffd9bbf";
-import { LIMITS, POWER_NAMES, DMR_PRIV } from "../codeplug/records.js?v=21c0de0054";
+import { LIMITS, POWER_NAMES, DMR_PRIV } from "../codeplug/records.js?v=6276ed067d";
 import { refNumber, listenBand } from "../codeplug/model.js?v=89bf988ad1";
 import { keyValid } from "../codeplug/kv.js?v=c16ffd9bbf";
-import { kindRow, kindName, offeredKinds } from "../codeplug/modes.js?v=c16ffd9bbf";
-import { KEY_ALGS, validKeyHex, setKind } from "../codeplug/channelmodes.js?v=21c0de0054";
+import { kindRow, kindName, offeredKinds } from "../codeplug/modes.js?v=6276ed067d";
+import { KEY_ALGS, validKeyHex, setKind } from "../codeplug/channelmodes.js?v=6276ed067d";
 import { specField } from "./modefields.js?v=c16ffd9bbf";
 
 // --- Parsers shared by the columns and the forms ---
@@ -161,19 +161,25 @@ export function bulkColumns(table, m, t, { rows = [], ...opts } = {}) {
 	const alg = ["dmr", "p25", "nxdn"].includes(token) ? KEY_ALGS.find((a) => a.token === token) : undefined;
 	if (!alg || !rows.every((r) => first.kind ? r.kind === first.kind : !r.kind && r.mode === "dmr")) return out;
 	const dmr = !first.kind;
-	out.push({
-		key: "bulkAes", label: t(`editor.keys.alg.${alg.token}`), type: "select",
-		options: () => aesOptions(m, t, alg, null, "editor.none"),
-		set: (r, id) => {
-			if (!dmr) {
-				r.params = { ...r.params, aes: id != null, keyId: id ?? 0 };
-			} else if (id != null || r.dmrPrivacy === DMR_PRIV.aes || r.dmrAesKid) {
-				r.dmrPrivacy = id != null ? DMR_PRIV.aes : DMR_PRIV.off;
-				r.dmrPrivacyKey = id ?? 0;
-				delete r.dmrAesKid;
-			}
-		},
-	});
+	const choices = dmr ? [alg, KEY_ALGS.find((a) => a.token === "dmr128")] : [alg];
+	for (const a of choices) {
+		const is128 = a.token === "dmr128";
+		const privacy = is128 ? DMR_PRIV.aes128 : DMR_PRIV.aes;
+		out.push({
+			key: is128 ? "bulkAes128" : "bulkAes", label: t(`editor.keys.alg.${a.token}`), type: "select",
+			options: () => aesOptions(m, t, a, null, "editor.none"),
+			set: (r, id) => {
+				if (!dmr) {
+					r.params = { ...r.params, aes: id != null, keyId: id ?? 0 };
+					if (token === "p25") r.params.des = false;
+				} else if (id != null || r.dmrPrivacy === privacy || (!is128 && r.dmrAesKid)) {
+					r.dmrPrivacy = id != null ? privacy : DMR_PRIV.off;
+					r.dmrPrivacyKey = id ?? 0;
+					delete r.dmrAesKid;
+				}
+			},
+		});
+	}
 	return out;
 }
 
@@ -342,8 +348,42 @@ export function channelForm(m, t, { features = null } = {}) {
 		}
 		const alg = KEY_ALGS.find((a) => a.token.toUpperCase() === k.token);
 		for (const spec of mod.fields()) {
-			if (alg && spec.key === "keyId") continue;
-			if (alg && spec.key === "aes") {
+			if (alg && spec.key === "keyId") {
+				if (mod.requiredKeyAlg) {
+					const get = (r) => on(r) ? r.params?.keyId : null;
+					kindFields.push(sel(`k${k.id}.keyId`, `editor.keys.alg.${alg.token}`,
+						(r) => aesOptions(m, t, alg, get(r), "editor.none"), {
+							show: on, get, help: t("editor.nxdn.scrambler_help"),
+							set: (r, id) => on(r) && (r.params = { ...r.params, keyId: id }),
+						}));
+				}
+				continue;
+			}
+			if (spec.ciphers) {
+				const have = Array.isArray(features) ? features : String(features ?? "").split(",");
+				const ciphers = spec.ciphers.map(([flag, token]) => ({ flag, alg: KEY_ALGS.find((a) => a.token === token) }));
+				const get = (r) => {
+					const active = on(r) && ciphers.find(({ flag }) => r.params?.[flag]);
+					return active ? `${active.flag}:${r.params.keyId}` : null;
+				};
+				kindFields.push(sel(`k${k.id}.encryption`, spec.label, (r) => [
+					[null, t("editor.alias.off")],
+					...ciphers.flatMap(({ flag, alg }) => {
+						const current = r.params?.[flag] ? r.params.keyId : null;
+						if (alg.feature && features != null && !have.includes(alg.feature) && current == null) return [];
+						return aesOptions(m, t, alg, current, "editor.alias.off").slice(1)
+							.map(([id, text]) => [`${flag}:${id}`, `${t(`editor.keys.alg.${alg.token}`)} · ${text}`]);
+					}),
+				], {
+					show: on, get, help: t(spec.help),
+					set: (r, v) => {
+						if (!on(r)) return;
+						const [selected, id] = (v ?? "").split(":");
+						r.params = { ...r.params, keyId: id == null ? 0 : Number(id) };
+						for (const { flag } of ciphers) r.params[flag] = flag === selected;
+					},
+				}));
+			} else if (alg && spec.key === "aes") {
 				const get = (r) => on(r) && r.params?.aes ? r.params.keyId : null;
 				kindFields.push(sel(`k${k.id}.aes`, `editor.keys.alg.${alg.token}`,
 					(r) => aesOptions(m, t, alg, get(r), "editor.alias.off"), {
@@ -356,6 +396,7 @@ export function channelForm(m, t, { features = null } = {}) {
 		}
 	}
 	const dmrAlg = KEY_ALGS.find((a) => a.token === "dmr");
+	const dmr128Alg = KEY_ALGS.find((a) => a.token === "dmr128");
 	const arc4Alg = KEY_ALGS.find((a) => a.token === "arc4");
 	const privacy = (r) => r.dmrPrivacy ?? (r.dmrAesKid ? DMR_PRIV.aes : DMR_PRIV.default);
 	const plainDmr = (r) => r.mode === "dmr" && !r.kind;
@@ -399,7 +440,7 @@ export function channelForm(m, t, { features = null } = {}) {
 		sel("dmrPrivacy", "editor.col.dmr_privacy", () => [
 			[DMR_PRIV.default, t("editor.tot.default")], [DMR_PRIV.off, t("editor.none")],
 			[DMR_PRIV.basic, "Motorola Basic Privacy"], [DMR_PRIV.enhanced, "Motorola Enhanced Privacy"],
-			[DMR_PRIV.aes, "AES-256"],
+			[DMR_PRIV.aes, "AES-256"], [DMR_PRIV.aes128, "AES-128"],
 		], {
 			show: plainDmr, get: privacy,
 			set: (r, kind) => {
@@ -412,7 +453,8 @@ export function channelForm(m, t, { features = null } = {}) {
 		sel("dmrPrivacyKey", "editor.keys.id", (r) =>
 			privacy(r) === DMR_PRIV.basic
 				? [[null, t("editor.none")], ...Array.from({ length: 255 }, (_, n) => [n + 1, String(n + 1)])]
-				: aesOptions(m, t, privacy(r) === DMR_PRIV.enhanced ? arc4Alg : dmrAlg, keyId(r), "editor.none"), {
+				: aesOptions(m, t, privacy(r) === DMR_PRIV.enhanced ? arc4Alg :
+					privacy(r) === DMR_PRIV.aes128 ? dmr128Alg : dmrAlg, keyId(r), "editor.none"), {
 			show: (r) => plainDmr(r) && privacy(r) !== DMR_PRIV.default && privacy(r) !== DMR_PRIV.off,
 			optionsKey: privacy,
 			get: keyId,

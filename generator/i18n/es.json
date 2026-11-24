@@ -1,4 +1,9 @@
 {
+	"flash.task.startup_image": "Cambiar imagen de inicio",
+	"flash.task.startup_image.text": "Abre la pestaña Radio del editor de codeplug para cargar una imagen.",
+	"editor.keys.title": "Claves de tráfico",
+	"editor.keys.key": "Clave",
+	"editor.keys.alg.dmr128": "DMR AES-128",
 	"site.tagline": "Actualiza la Baofeng DM-32UV y edita sus canales con el flasher y editor de codeplug de NXDN-P25-DM32.",
 	"nav.flash": "Flasher",
 	"nav.codeplug": "Editor de codeplug",
@@ -124,5 +129,10 @@
 	"home.help_title": "Instalación y recuperación",
 	"pwa.install": "Instalar la app (funciona sin conexión)",
 	"pwa.installed": "Instalada: funciona sin conexión",
-	"pwa.download": "Descargar para usar sin conexión (.zip)"
+	"pwa.download": "Descargar para usar sin conexión (.zip)",
+	"editor.mode_name.NXDN_SCRAMBLER": "Scrambler NXDN",
+	"editor.keys.alg.nxdn_scrambler": "Scrambler NXDN",
+	"editor.nxdn.scrambler_help": "Selecciona el ID de clave correspondiente en la pestaña Radio. Sin la clave se bloquea la transmisión.",
+	"editor.keys.bad_seed": "Introduce una clave decimal de 1 a 32767.",
+	"editor.problem.nxdn_scrambler_key_missing": "Falta la clave del scrambler NXDN. Este canal no puede transmitir."
 }

@@ -32,9 +32,11 @@ export function decodeConv(b) {
 	const txDflt = rx === NAC_ANY ? NAC_DEFAULT : rx;
 	let tx = nacField(u16(b, 3), txDflt);
 	if (tx === NAC_ANY || tx === NAC_REPEAT_ANY) tx = txDflt;
-	// AES-256 (docs/spec/air-encryption.md): byte 5 bit 0 and the key id after it; blocks without them are clear
-	const aes = b != null && b.length >= 6 && (b[5] & 1) !== 0;
-	return { squelch: sq === 1 ? 1 : 0, rxNac: rx, txNac: tx, aes, keyId: aes ? u16(b, 6) : 0 };
+	// Bit 0 requires encryption. Bit 1 selects DES-OFB, preserving older readers' existing encryption guard.
+	const enc = (u8(b, 5) & 1) !== 0;
+	const des = enc && (u8(b, 5) & 2) !== 0;
+	return { squelch: sq === 1 ? 1 : 0, rxNac: rx, txNac: tx, aes: enc && !des, keyId: enc ? u16(b, 6) : 0,
+		...(des ? { des } : {}) };
 }
 
 export function encodeConv(p, prev = null) {
@@ -42,8 +44,8 @@ export function encodeConv(p, prev = null) {
 	v[0] = (v[0] & ~3) | (p.squelch === 1 ? 1 : 0);
 	put16(v, 1, nacOut(p.rxNac, NAC_DEFAULT));
 	put16(v, 3, nacOut(p.txNac, p.rxNac === NAC_ANY ? NAC_DEFAULT : p.rxNac));
-	v[5] = (v[5] & ~1) | (p.aes ? 1 : 0);
-	put16(v, 6, p.aes ? p.keyId & 0xFFFF : 0);
+	v[5] = (v[5] & ~3) | (p.des ? 3 : p.aes ? 1 : 0);
+	put16(v, 6, p.aes || p.des ? p.keyId & 0xFFFF : 0);
 	return v;
 }
 
@@ -73,7 +75,8 @@ export const p25Kind = {
 		// blank: the default NAC; the TX NAC's, the RX NAC
 		{ ...nacFieldDef("rxNac", "editor.p25.rx_nac"), blank: NAC_DEFAULT, help: "editor.p25.nac_any" },
 		{ ...nacFieldDef("txNac", "editor.p25.tx_nac"), blank: (p) => (p.rxNac === NAC_ANY ? NAC_DEFAULT : p.rxNac) },
-		{ key: "aes", label: "editor.p25.aes", type: "bool", help: "editor.p25.aes_help" },
+		{ key: "aes", label: "editor.p25.encryption", type: "bool", help: "editor.p25.aes_help",
+			ciphers: [["aes", "p25"], ["des", "p25des"]] },
 		{ key: "keyId", label: "editor.p25.key_id", type: "hex", min: 0, max: 0xFFFF, digits: 4, format: (v) => v.toString(16).toUpperCase().padStart(4, "0") },
 	],
 	validate(c, p, problem) {

@@ -9,8 +9,8 @@
 // mode is offered (validation warns once a radio that lacks one connects).
 
 import { t3Kind, t3System } from "./mode_t3.js?v=c16ffd9bbf";
-import { p25Kind, p25TrunkKind, p25System } from "./mode_p25.js?v=c16ffd9bbf";
-import { nxdnKind } from "./mode_nxdn.js?v=c16ffd9bbf";
+import { p25Kind, p25TrunkKind, p25System } from "./mode_p25.js?v=6276ed067d";
+import { nxdnKind, nxdnScramblerKind } from "./mode_nxdn.js?v=6276ed067d";
 import { amKind } from "./mode_am.js?v=c16ffd9bbf";
 import { ysfKind } from "./mode_ysf.js?v=c16ffd9bbf";
 
@@ -22,6 +22,7 @@ export const KINDS = [
 	{ id: 4, token: "NXDN", short: "NXDN", feature: "NXDN", module: nxdnKind },
 	{ id: 5, token: "AM", short: "AM", feature: "AM_RX", module: amKind },
 	{ id: 6, token: "YSF", short: "YSF", feature: "YSF", module: ysfKind },
+	{ id: 8, token: "NXDN_SCRAMBLER", short: "NXDN-S", feature: "NXDN_SCRAMBLER", module: nxdnScramblerKind },
 ];
 
 export const SYSTEM_TYPES = [

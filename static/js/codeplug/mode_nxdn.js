@@ -9,6 +9,7 @@ import { u8, u16, put16, grow } from "./modebytes.js?v=c16ffd9bbf";
 
 export const RAN_MAX = 63, TX_RAN_SET = 0x80, TX_RAN_DEFAULT = 1, RATE_4800 = 0x04;
 export const UNIT_MAX = 65519, ID_ALL = 0xFFFF;
+export const SCRAMBLER_ALG = 1, SCRAMBLER_KIND = 8, SCRAMBLER_MARK = 2, SCRAMBLER_SEED_MAX = 32767;
 
 // The TX RAN a block that leaves it unset sends: the RX RAN, RAN 1 when that is every RAN (0)
 const txDefault = (rx) => (rx !== 0 ? rx : TX_RAN_DEFAULT);
@@ -97,4 +98,28 @@ export const nxdnKind = {
 		fields: [{ key: "unitId", label: "editor.nxdn.unit_id", type: "int", min: 0, max: UNIT_MAX, blank: 0, help: "editor.nxdn.unit_id_help" }],
 		validate() {},
 	},
+};
+
+export const nxdnScramblerKind = {
+	...nxdnKind,
+	id: SCRAMBLER_KIND,
+	feature: "NXDN_SCRAMBLER",
+	settings: null,
+	requiredKeyAlg: SCRAMBLER_ALG,
+	newParams: () => ({ rate9600: true, squelch: 0, rxRan: 0, txRan: TX_RAN_DEFAULT, keyId: null }),
+	decode(b) {
+		const { rate9600, squelch, rxRan, txRan } = decodeConv(b);
+		const trunk = (u8(b, 5) & 1) !== 0;
+		const keyId = b?.length >= 5 && b[3] === SCRAMBLER_MARK && b[4] <= 63 && !trunk ? b[4] : null;
+		return { rate9600, squelch, rxRan, txRan, keyId };
+	},
+	encode(p, prev = null) {
+		const v = encodeConv(p, prev);
+		const keyOk = Number.isInteger(p.keyId) && p.keyId >= 0 && p.keyId <= 63;
+		v[3] = keyOk ? SCRAMBLER_MARK : 0;
+		v[4] = keyOk ? p.keyId : 0;
+		if (v.length > 5) v[5] &= ~3;
+		return v;
+	},
+	fields: () => nxdnKind.fields().filter((f) => ["rate9600", "squelch", "rxRan", "txRan", "keyId"].includes(f.key)),
 };

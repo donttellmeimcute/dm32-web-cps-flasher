@@ -38,7 +38,7 @@ import { suggestPack, packCode, startCode, startLanguages, startLanguage, setSta
 import { readBootKey } from "./bootkey.js?v=c16ffd9bbf";
 import { codecSegments, loadCodec, readCodec, saveCodec } from "./codecsave.js?v=c16ffd9bbf";
 import { FakeRadio, simulation, randomBytes, rng } from "./fake.js?v=c16ffd9bbf";
-import { t, tOr, num, LANG, ROOT, h, download, filePicker, progressBar, stopBars, logBox, notice, button, spinner, panel, localTime, partNames, barsRunning } from "./dom.js?v=c16ffd9bbf";
+import { t, tOr, num, LANG, ROOT, HOME, h, download, filePicker, progressBar, stopBars, logBox, notice, button, spinner, panel, localTime, partNames, barsRunning } from "./dom.js?v=c16ffd9bbf";
 import { stepHistory } from "./stephistory.js?v=c16ffd9bbf";
 import * as c7ui from "./c7000ui.js?v=c16ffd9bbf";
 import { variantWarning, variantVerdict } from "./iapui.js?v=c16ffd9bbf";
@@ -894,7 +894,8 @@ function startView() {
 		...support,
 		panel(t("flash.start.title"),
 			h("div", { class: "choice-grid" }, choice("update", "⟳"), choice("install", "⤓"), choice("backup", "⎘"), choice("restore", "↺"), choice("restart", "⏻"),
-				choice("help", "?"))),
+				choice("help", "?"), h("a", { class: "choice", href: `${HOME}codeplug/index.html#startup-image` },
+					h("strong", {}, t("flash.task.startup_image")), h("span", { class: "small muted" }, t("flash.task.startup_image.text"))))),
 		h("details", { class: "small" }, h("summary", {}, t("flash.start.privacy_title")), h("p", {}, t("flash.start.privacy"))),
 		h("p", { class: "small muted" }, S.sim ? h("a", { href: "#", onclick: (e) => { e.preventDefault(); location.hash = ""; location.reload(); } }, t("flash.sim.leave"))
 			: simLinks()));

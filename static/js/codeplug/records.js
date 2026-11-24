@@ -20,8 +20,8 @@ export const LIMITS = {
 // --- Layout ---
 
 export const CH_SIZE = 56;
-export const DMR_PRIV = { default: 0, aes: 1, basic: 2, enhanced: 3, off: 4 };
-const DMR_PRIV_BASE = 0x5AA4;
+export const DMR_PRIV = { default: 0, aes: 1, basic: 2, enhanced: 3, off: 4, aes128: 5 };
+const DMR_PRIV_BASE = 0x5AA4, DMR_AES128_TX = 0x5AAA;
 const CH_PER_BANK = 128;
 const BANK0 = EE + 0x3780;
 const BANK1 = FL + 0x7B1B0;
@@ -76,7 +76,7 @@ export function decodeChannel(r, memory = false) {
 		rxTone: getTone(r, 0x20),
 		txTone: getTone(r, 0x22),
 		bw: f4 & 0x02 ? 25 : 12.5,
-		rxOnly: (f4 & 0x04) !== 0,
+		rxOnly: (f4 & 0x04) !== 0 && !(memory && r[0x18] === 1 && u16(r, 0x34) === DMR_AES128_TX),
 		allSkip: (f4 & 0x10) !== 0,
 		zoneSkip: (f4 & 0x20) !== 0,
 		vox: (f4 & 0x40) !== 0,
@@ -114,8 +114,9 @@ export function encodeChannel(c, r, memory = false) {
 	r[0x18] = c.mode === "dmr" ? 1 : 0;
 	// Named DMR memory extension used by the DM32 firmware; the VFO uses these bytes for offset/step.
 	const priv = c.dmrPrivacy ?? (c.dmrAesKid ? DMR_PRIV.aes : DMR_PRIV.default);
-	if (memory && !c.kind && c.mode === "dmr" && priv > DMR_PRIV.default && priv <= DMR_PRIV.off) {
-		put16(r, 0x34, DMR_PRIV_BASE + priv);
+	const aes128 = memory && !c.kind && c.mode === "dmr" && priv === DMR_PRIV.aes128;
+	if (memory && !c.kind && c.mode === "dmr" && priv > DMR_PRIV.default && priv <= DMR_PRIV.aes128) {
+		put16(r, 0x34, aes128 && !c.rxOnly ? DMR_AES128_TX : DMR_PRIV_BASE + priv);
 		r[0x36] = priv === DMR_PRIV.off ? 0 : clamp(c.dmrPrivacyKey ?? c.dmrAesKid ?? 0, 0, 255);
 	} else if (memory && dmrPrivacy(r)) {
 		r.fill(0, 0x34, 0x37);
@@ -124,7 +125,7 @@ export function encodeChannel(c, r, memory = false) {
 	r[0x1B] = clamp(Math.ceil((c.tot || 0) / 15), 0, 255);
 	putTone(r, 0x20, c.rxTone);
 	putTone(r, 0x22, c.txTone);
-	r[0x33] = (r[0x33] & ~0x76) | (c.bw === 25 ? 0x02 : 0) | (c.rxOnly ? 0x04 : 0) | (c.allSkip ? 0x10 : 0) |
+	r[0x33] = (r[0x33] & ~0x76) | (c.bw === 25 ? 0x02 : 0) | (c.rxOnly || aes128 ? 0x04 : 0) | (c.allSkip ? 0x10 : 0) |
 		(c.zoneSkip ? 0x20 : 0) | (c.vox ? 0x40 : 0);
 	r[0x37] = clamp(c.squelch, 0, 21);
 	r[0x2C] = (r[0x2C] & 0xF0) | (c.colorCode & 0x0F);
@@ -159,8 +160,10 @@ export function encodeChannel(c, r, memory = false) {
 }
 
 function dmrPrivacy(r) {
-	const priv = u16(r, 0x34) - DMR_PRIV_BASE;
-	return priv > DMR_PRIV.default && priv <= DMR_PRIV.off ? priv : DMR_PRIV.default;
+	const marker = u16(r, 0x34);
+	if (marker === DMR_AES128_TX) return DMR_PRIV.aes128;
+	const priv = marker - DMR_PRIV_BASE;
+	return priv > DMR_PRIV.default && priv <= DMR_PRIV.aes128 ? priv : DMR_PRIV.default;
 }
 
 // Includes deleted channels, whose underlying record can still hold a Basic Privacy key number.

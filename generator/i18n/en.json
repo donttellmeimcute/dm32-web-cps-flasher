@@ -1,4 +1,9 @@
 {
+	"flash.task.startup_image": "Change Startup Image",
+	"flash.task.startup_image.text": "Open the Radio tab of the Codeplug Editor to load an image.",
+	"editor.keys.title": "Traffic keys",
+	"editor.keys.key": "Key",
+	"editor.keys.alg.dmr128": "DMR AES-128",
 	"site.tagline": "Update the Baofeng DM-32UV and edit its channels with the NXDN-P25-DM32 web flasher and codeplug editor.",
 	"nav.flash": "Flasher",
 	"nav.codeplug": "Codeplug editor",
@@ -124,5 +129,10 @@
 	"home.help_title": "Flashing and recovery",
 	"pwa.install": "Install the app (works offline)",
 	"pwa.installed": "Installed: works offline",
-	"pwa.download": "Download to use offline (.zip)"
+	"pwa.download": "Download to use offline (.zip)",
+	"editor.mode_name.NXDN_SCRAMBLER": "NXDN Scrambler",
+	"editor.keys.alg.nxdn_scrambler": "NXDN scrambler",
+	"editor.nxdn.scrambler_help": "Select the matching key ID from the Radio tab. A missing key blocks transmission.",
+	"editor.keys.bad_seed": "Enter a decimal seed from 1 to 32767.",
+	"editor.problem.nxdn_scrambler_key_missing": "The NXDN scrambler key is missing. This channel cannot transmit."
 }
