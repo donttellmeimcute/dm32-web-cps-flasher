@@ -155,7 +155,7 @@ const MODES = { fm: "FM", dmr: "DMR", nxdn: "NXDN", ysf: "YSF" };
 // A word a file may use for the mode, and the channel kind it means (0: a plain FM or DMR channel). Besides the
 // editor's own names these are the kind short names the editor itself exports (P25, P25T, T3, AM), so its own files
 // round-trip, and the stock CPS's Analog/Digital
-const MODE_WORDS = { fm: 0, analog: 0, digital: 0, nxdn: 4, ysf: 6, p25: 2, p25t: 3, t3: 1, am: 5 };
+const MODE_WORDS = { fm: 0, analog: 0, digital: 0, nxdn: 4, ysf: 6, c4fm: 6, fusion: 6, p25: 2, p25t: 3, t3: 1, am: 5 };
 const PLAIN_OF_WORD = { analog: "fm", digital: "dmr" };
 const MODE_ALLOWED = "FM, DMR, NXDN, YSF, P25, P25T, T3, AM";
 
@@ -460,7 +460,13 @@ export const TABLES = {
 			ref("RX Group List", "rxList", "rxLists", ["Group List", "RX List"]),
 			ref("APRS", "aprs", "aprs", ["APRS Configuration"]),
 			c("DMR ID", "dmrId", asId, (r) => r.dmrId || "", ["Channel DMR ID"]),
-			c("RX Only", "rxOnly", asBool, (r) => yesNo(r.rxOnly), ["Forbid TX"]),
+			{ header: "RX Only", key: "rxOnly", aliases: ["Forbid TX"],
+				get: (r) => yesNo(r.kind === YSF_KIND ? !r.tagTx : r.rxOnly),
+				set: (r, s) => {
+					const rxOnly = asBool(s);
+					if (r.kind === YSF_KIND) r.tagTx = !rxOnly;
+					else r.rxOnly = rxOnly;
+				} },
 			c("All Skip", "allSkip", asBool, (r) => yesNo(r.allSkip), ["Scan Skip"]),
 			c("Zone Skip", "zoneSkip", asBool, (r) => yesNo(r.zoneSkip)),
 			c("VOX", "vox", asBool, (r) => yesNo(r.vox), ["VOX Function"]),

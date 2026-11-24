@@ -35,11 +35,11 @@ export function decodeConv(b) {
 	let rx = u8(b, 1);
 	if (rx > DGID_MAX) rx = 0;
 	const t = u8(b, 2);
+	const dt = f & DT_MASK;
 	return {
-		dt: f & DT_MASK,
-		// A zeroed flags byte is the default: V/D mode 1, which is a narrow mode (Yaesu 4.2.1: the V/D modes
-		// and DN are narrow, 1350 Hz; only Voice FR (VW) is wide, 2700 Hz). A stored Wide bit is still honored.
-		narrow: (f & NARROW) !== 0 || f === 0,
+		dt,
+		// The firmware uses narrow deviation for every data type except Voice FR.
+		narrow: dt !== DT_VW || (f & NARROW) !== 0,
 		rxDgid: rx,
 		txDgid: (t & TX_DGID_SET) !== 0 ? t & DGID_MAX : rx,
 		// a destination of all spaces or all zeros reads as ALL
