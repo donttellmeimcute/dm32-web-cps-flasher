@@ -66,6 +66,7 @@ python3 "$GEN/p25_data.py" "$W/site"
 # kind words, the multi-block stock converter) and its offline layer (the installable app and the one-file editor).
 # Like the CSS, these are kept in the published repository and copied back here, so a regeneration does not undo them
 if [ -d "$OUT/static/css" ]; then cp "$OUT"/static/css/*.css "$W/site/static/css/"; fi
+cp "$OUT/static/img/radios/voxel-station.png" "$W/site/static/img/radios/"
 for f in csv.js stock_baofeng.js; do
 	if [ -f "$OUT/static/js/codeplug/$f" ]; then cp "$OUT/static/js/codeplug/$f" "$W/site/static/js/codeplug/"; fi
 done

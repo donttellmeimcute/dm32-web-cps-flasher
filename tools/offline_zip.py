@@ -7,6 +7,7 @@
 # radio transfer, which needs the installed app or the site. Run from the repository root:
 #
 #     python tools/offline_zip.py
+import base64
 import json
 import re
 import sys
@@ -143,7 +144,7 @@ def bundle():
 
 def page(lang):
     html = (ROOT / ("codeplug" if lang == "es" else f"{lang}/codeplug") / "index.html").read_text(encoding="utf-8")
-    css = "\n".join((ROOT / "static/css" / f).read_text(encoding="utf-8") for f in ("tokens.css", "site.css"))
+    css = "\n".join((ROOT / "static/css" / f).read_text(encoding="utf-8") for f in ("tokens.css", "site.css", "station.css"))
     html = STYLES.sub(lambda m: f"<style>\n{css}\n</style>" if m.group(1) == "tokens.css" else "", html, count=1)
     html = STYLES.sub("", html)
     js = bundle().replace("</script", "<\\/script")  # inside a JS string this is the same text
@@ -156,6 +157,10 @@ def page(lang):
     icon = (ROOT / "static/img/icon.svg").read_text(encoding="utf-8")
     icon = "data:image/svg+xml," + quote(icon.strip(), safe="")
     html = re.sub(r'src="[^"]*img/icon\.svg\?v=[^"]*"', f'src="{icon}"', html)
+    for asset, source in (("static/img/lyra.png", "static/img/icon-32.png"),
+                          ("static/img/radios/voxel-station.png", "static/img/radios/voxel-station.png")):
+        data = base64.b64encode((ROOT / source).read_bytes()).decode("ascii")
+        html = re.sub(r'src="[^"]*' + re.escape(asset) + r'(?:\?[^"]*)?"', f'src="data:image/png;base64,{data}"', html)
     note = {
         "es": "<p class=\"notice ed-offline-note\">Copia sin conexión del editor de codeplug: abre, edita y guarda archivos de codeplug, tablas CSV y YAML de qdmr. Para leer o escribir la radio por USB usa la aplicación instalada o el sitio.</p>",
         "en": "<p class=\"notice ed-offline-note\">Offline copy of the codeplug editor: open, edit and save codeplug files, CSV tables and qdmr YAML. To read or write the radio over USB use the installed app or the site.</p>",
