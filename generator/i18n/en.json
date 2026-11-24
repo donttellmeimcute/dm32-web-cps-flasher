@@ -1,4 +1,5 @@
 {
+	"editor.radio_err.programming_locked": "Programming is locked. On the radio, open Settings → My radio → Unlock or relock programming, enter your PIN, and try again.",
 	"flash.task.startup_image": "Change Startup Image",
 	"flash.task.startup_image.text": "Open the Radio tab of the Codeplug Editor to load an image.",
 	"editor.keys.title": "Traffic keys",
@@ -134,5 +135,18 @@
 	"editor.keys.alg.nxdn_scrambler": "NXDN scrambler",
 	"editor.nxdn.scrambler_help": "Select the matching key ID from the Radio tab. A missing key blocks transmission.",
 	"editor.keys.bad_seed": "Enter a decimal seed from 1 to 32767.",
-	"editor.problem.nxdn_scrambler_key_missing": "The NXDN scrambler key is missing. This channel cannot transmit."
+	"editor.problem.nxdn_scrambler_key_missing": "The NXDN scrambler key is missing. This channel cannot transmit.",
+	"editor.stock_aes.title": "Import stock AES-256 keys",
+	"editor.stock_aes.help": "Look up Encryption ID in Baofeng CPS → Digital Encrypt Systems. Enter the ID from 1 to 255 for each key you want to import. Leave a row blank to skip it. Write to the radio in this session; drafts and exports omit keys.",
+	"editor.stock_aes.row": "Stock slot {slot} · {name} · {channels} channel(s)",
+	"editor.stock_aes.id": "Encryption ID for stock slot {slot}",
+	"editor.stock_aes.apply": "Import AES-256 keys",
+	"editor.stock_aes.skip": "Keep as receive-only",
+	"editor.stock_aes.invalid_id": "Enter a decimal Encryption ID from 1 to 255.",
+	"editor.stock_aes.duplicate_id": "Enter a different Encryption ID for each selected key.",
+	"editor.stock_aes.none": "Enter an ID for at least one key or keep the channels receive-only.",
+	"editor.stock_aes.imported": "Imported {n} AES-256 key(s) for this session.",
+	"editor.stock_aes.radio_conflict": "Writing would replace a destination AES-256 key with Encryption ID {id}. Resolve the keyring conflict first.",
+	"editor.stock_aes.radio_area": "This radio’s keyring cannot accept the imported AES-256 keys.",
+	"editor.qdmr.note.stock_aes_rx_only": "Encrypted channels without a matched key: {n} remain receive-only."
 }

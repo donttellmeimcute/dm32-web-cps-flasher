@@ -1,4 +1,5 @@
 {
+	"editor.radio_err.programming_locked": "La programación está bloqueada. En la radio, abre Ajustes → Mi radio → Desbloquear o bloquear CPS, introduce tu PIN y vuelve a intentarlo.",
 	"flash.task.startup_image": "Cambiar imagen de inicio",
 	"flash.task.startup_image.text": "Abre la pestaña Radio del editor de codeplug para cargar una imagen.",
 	"editor.keys.title": "Claves de tráfico",
@@ -134,5 +135,18 @@
 	"editor.keys.alg.nxdn_scrambler": "Scrambler NXDN",
 	"editor.nxdn.scrambler_help": "Selecciona el ID de clave correspondiente en la pestaña Radio. Sin la clave se bloquea la transmisión.",
 	"editor.keys.bad_seed": "Introduce una clave decimal de 1 a 32767.",
-	"editor.problem.nxdn_scrambler_key_missing": "Falta la clave del scrambler NXDN. Este canal no puede transmitir."
+	"editor.problem.nxdn_scrambler_key_missing": "Falta la clave del scrambler NXDN. Este canal no puede transmitir.",
+	"editor.stock_aes.title": "Importar claves AES-256 originales",
+	"editor.stock_aes.help": "Busca el ID de cifrado en Baofeng CPS → Digital Encrypt Systems. Introduce un ID entre 1 y 255 para cada clave que quieras importar. Deja en blanco las filas que quieras omitir. Escribe en la radio en esta sesión. Los borradores y las exportaciones omiten las claves.",
+	"editor.stock_aes.row": "Posición original {slot} · {name} · {channels} canal(es)",
+	"editor.stock_aes.id": "ID de cifrado de la posición original {slot}",
+	"editor.stock_aes.apply": "Importar claves AES-256",
+	"editor.stock_aes.skip": "Mantener en solo recepción",
+	"editor.stock_aes.invalid_id": "Introduce un ID de cifrado decimal entre 1 y 255.",
+	"editor.stock_aes.duplicate_id": "Introduce un ID de cifrado distinto para cada clave seleccionada.",
+	"editor.stock_aes.none": "Introduce el ID de al menos una clave o mantén los canales en solo recepción.",
+	"editor.stock_aes.imported": "Se importaron {n} clave(s) AES-256 para esta sesión.",
+	"editor.stock_aes.radio_conflict": "La escritura reemplazaría una clave AES-256 de la radio con el ID de cifrado {id}. Resuelve primero el conflicto en el llavero.",
+	"editor.stock_aes.radio_area": "El llavero de esta radio no puede recibir las claves AES-256 importadas.",
+	"editor.qdmr.note.stock_aes_rx_only": "Canales cifrados sin clave asociada: {n} quedan en solo recepción."
 }

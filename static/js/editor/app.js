@@ -12,22 +12,22 @@ import { CodeplugImage, IDDB_HEADER, EDITOR_REGIONS } from "../codeplug/image.js
 import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=89bf988ad1";
 import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=6276ed067d";
 import { BOOT_IMAGE_EDGE, packBootImage } from "../codeplug/bootimage.js";
-import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=89bf988ad1";
+import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=f2317c7c75";
 import { FastError } from "../codeplug/fastlink.js?v=c16ffd9bbf";
 import { areaForWrite, KEYS } from "../codeplug/kv.js?v=c16ffd9bbf";
 import { toSerial, CLICK_WAIT_MS } from "../flasher/netmode.js?v=c16ffd9bbf";
 import { convert as convertDb, readHeader as dbHeader } from "../codeplug/iddb.js?v=c16ffd9bbf";
 import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=89bf988ad1";
-import { FakeCpsRadio } from "../codeplug/fakecps.js?v=c16ffd9bbf";
+import { FakeCpsRadio } from "../codeplug/fakecps.js?v=f2317c7c75";
 import { Grid } from "./grid.js?v=c16ffd9bbf";
 import { History } from "./undo.js?v=c16ffd9bbf";
 import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=6276ed067d";
 import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=6276ed067d";
 import { drawBootPreview, BOOT_PREVIEW_WIDTH, BOOT_PREVIEW_HEIGHT } from "./bootpreview.js?v=21c0de0054";
 import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=6276ed067d";
-import { openFile, saveBytes, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=89bf988ad1";
+import { openFile, saveBytes, secretFreeBytes, stockAesAreaForWrite, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=f2317c7c75";
 import { extensions } from "./extensions.js?v=c16ffd9bbf";
-import "./parts.js?v=89bf988ad1";
+import "./parts.js?v=f2317c7c75";
 import * as diag from "../diag.js?v=c16ffd9bbf";
 import { initReporting, reportedLine } from "../report.js?v=c16ffd9bbf";
 import { updateFor } from "../flasher/version.js?v=c16ffd9bbf";
@@ -60,8 +60,9 @@ const messages = h("div", { class: "ed-messages", "aria-live": "polite" });
 
 // --- Model changes ---
 
-function load(model, name, { fromRadio = false } = {}) {
+function load(model, name, { fromRadio = false, stockAes = false } = {}) {
 	S.model = model;
+	S.stockAes = stockAes;
 	S.fileName = name;
 	S.history.reset();
 	S.dirty = false;
@@ -91,7 +92,7 @@ function draftSoon() {
 	clearTimeout(draftTimer);
 	draftTimer = setTimeout(() => {
 		try {
-			saveDraft({ bytes: saveBytes(encode(S.model)), name: S.fileName, dirty: S.dirty, at: new Date().toISOString() });
+			saveDraft({ bytes: secretFreeBytes(encode(S.model)), name: S.fileName, dirty: S.dirty, at: new Date().toISOString() });
 		} catch {
 			// an invalid model can't be encoded yet; the next change saves it
 		}
@@ -159,7 +160,7 @@ function renderToolbar(errors) {
 	save.addEventListener("click", (e) => {
 		if (e.target.closest(".ed-menu-list button")) save.open = false;
 	});
-	const input = h("input", { type: "file", accept: ".bin,.zip,.yaml,.yml,.csv,.txt", hidden: true, onchange: async () => {
+	const input = h("input", { type: "file", accept: ".bin,.data,.zip,.yaml,.yml,.csv,.txt", hidden: true, onchange: async () => {
 		const f = input.files?.[0];
 		input.value = "";
 		if (f) await openPicked(f.name, new Uint8Array(await f.arrayBuffer()));
@@ -522,6 +523,30 @@ function problemsTab(p) {
 
 // --- Files ---
 
+function chooseStockAes(plan) {
+	return new Promise((done) => {
+		let result = null;
+		const inputs = plan.rows.map(({ slot, name, channels }) => {
+			const id = `stock-aes-${slot}`;
+			const entry = h("input", { id, type: "text", inputmode: "numeric", maxlength: "3", autocomplete: "off",
+				"aria-label": t("editor.stock_aes.id", { slot }) });
+			const row = h("div", { class: "form-row" }, h("label", { for: id }, t("editor.stock_aes.row", { slot, name, channels })), entry);
+			return { slot, entry, row };
+		});
+		const error = h("p", { class: "ed-err", "aria-live": "polite" });
+		dialog(t("editor.stock_aes.title"), [h("p", {}, t("editor.stock_aes.help")), ...inputs.map((x) => x.row), error],
+			t("editor.stock_aes.apply"), (close) => {
+				const chosen = plan.apply(new Map(inputs.map(({ slot, entry }) => [slot, entry.value])));
+				if (chosen.error || !chosen.keys) {
+					error.textContent = t(`editor.stock_aes.${chosen.error || "none"}`);
+					return;
+				}
+				result = chosen;
+				close();
+			}, () => done(result), { cancel: t("editor.stock_aes.skip") });
+	});
+}
+
 async function openPicked(name, bytes) {
 	try {
 		const f = await openFile(name, bytes);
@@ -530,11 +555,18 @@ async function openPicked(name, bytes) {
 			say(t("editor.opened", { name }), "ok");
 		} else if (f.kind === "converted") {
 			// another firmware's codeplug (a stock radio's backup, say): converted, never shown as raw bytes
-			load(decode(f.image), name.replace(/\.[^.]+$/, ""));
+			const migrated = f.stockAes ? await chooseStockAes(f.stockAes) : null;
+			if (migrated) {
+				const locked = f.notes.find((x) => x.code === "stock_aes_rx_only");
+				if (locked) locked.n -= migrated.channels;
+				f.notes = f.notes.filter((x) => x.n > 0);
+			}
+			load(migrated ? f.model : decode(f.image), name.replace(/\.[^.]+$/, ""), { stockAes: migrated !== null });
 			const c = f.counts;
 			diag.note("codeplug converted", { from: f.from, ...c, notes: f.notes });
-			say(t("editor.converted", { name, format: t(`editor.format.${f.from}`), channels: c.channels, zones: c.zones, contacts: c.contacts, rxLists: c.rxLists }),
-				f.notes.length ? "warn" : "ok");
+			const summary = t("editor.converted", { name, format: t(`editor.format.${f.from}`), channels: c.channels, zones: c.zones,
+				contacts: c.contacts, rxLists: c.rxLists });
+			say(migrated ? `${summary} ${t("editor.stock_aes.imported", { n: migrated.keys })}` : summary, f.notes.length ? "warn" : "ok");
 			if (f.notes.length) {
 				dialog(t("editor.converted_left_out"), [h("ul", {}, ...f.notes.map((x) => h("li", {}, t(`editor.qdmr.note.${x.code}`, { n: x.n }))))],
 					null, null, () => {}, { cancel: t("editor.close") });
@@ -948,7 +980,12 @@ async function planWrite() {
 		// the same codeplug with this radio's own name, ID and boot text kept, and what each would send
 		// (compared byte for byte: two plans can send the same number of bytes. The second is planned only when there
 		// is something to keep: each plan is a pass over every block's CRC)
-		areaForWrite(file.bytes, c.image.bytes, S.model.base?.bytes);
+		if (S.stockAes) {
+			const problem = stockAesAreaForWrite(file.bytes, c.image.bytes, S.model.base?.bytes);
+			if (problem) return say(t(`editor.stock_aes.${problem.code}`, { id: problem.id }), "bad");
+		} else {
+			areaForWrite(file.bytes, c.image.bytes, S.model.base?.bytes);
+		}
 		const kept = keepIdentity(file, c.image);
 		const differs = IDENTITY.some(([a, b]) => kept.bytes.subarray(a, b).some((x, i) => x !== file.bytes[a + i]));
 		const plans = { file: await c.transport.plan(file, c.image, { iddb }) };
@@ -1149,9 +1186,9 @@ function reportContext() {
 // What the user may add to a report: the codeplug being edited and the one last read from the radio
 function reportFiles() {
 	const out = [];
-	if (S.model) out.push({ name: "codeplug-edited.bin", label: t("report.attach_codeplug"), data: () => saveBytes(encode(S.model)) });
+	if (S.model) out.push({ name: "codeplug-edited.bin", label: t("report.attach_codeplug"), data: () => secretFreeBytes(encode(S.model)) });
 	const radio = S.conn?.image || S.lastRadioImage;
-	if (radio) out.push({ name: "codeplug-radio.bin", label: t("report.attach_radio"), data: () => saveBytes(radio) });
+	if (radio) out.push({ name: "codeplug-radio.bin", label: t("report.attach_radio"), data: () => secretFreeBytes(radio) });
 	return out;
 }
 

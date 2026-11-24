@@ -9,11 +9,13 @@ import { CodeplugImage, CODEPLUG_SPAN, TFTP_SIZE } from "../codeplug/image.js?v=
 import { recordSize, extent, convert, readHeader } from "../codeplug/iddb.js?v=c16ffd9bbf";
 import { openBundle, bundleFolder } from "../flasher/backup.js?v=c16ffd9bbf";
 import { unzip } from "../flasher/zip.js?v=c16ffd9bbf";
-import { startsWith, toHex } from "../flasher/bytes.js?v=c16ffd9bbf";
-import { classify } from "../codeplug/detect.js?v=89bf988ad1";
+import { equal, startsWith, toHex } from "../flasher/bytes.js?v=c16ffd9bbf";
+import { classify } from "../codeplug/detect.js?v=f2317c7c75";
 import { importStock, STOCK, RDT_MD380 } from "../codeplug/stock_tyt.js?v=89bf988ad1";
-import { DM32_STOCK, importStock as importDm32 } from "../codeplug/stock_baofeng.js?v=89bf988ad1";
+import { DM32_STOCK, importStock as importDm32 } from "../codeplug/stock_baofeng.js?v=f2317c7c75";
 import { empty, encode } from "../codeplug/model.js?v=89bf988ad1";
+import { KEY_BASE, KEY_MAX, withoutSecrets } from "../codeplug/channelmodes.js";
+import { areaForWrite, decodeArea, putArea, KV_ADDR, KV_SIZE } from "../codeplug/kv.js";
 
 // code: the editor.err.* text; params: what the file was, for the error report (never its contents)
 export class FileError extends Error {
@@ -43,13 +45,13 @@ export function imageFrom(bytes) {
 //   {kind: "converted", from, model, image, counts, notes, board}: a stock codeplug, converted. model is the editing
 //     model (on a blank image), image its encoding; notes are {code, n} with qdmr.js's note codes
 //   {kind: "foreign", format, board}: a layout the editor can't read ("tyt-uv380-rdt" or "unknown")
-export function fromBytes(bytes, board = null) {
+export function fromBytes(bytes, board = null, { offerStockAes = false } = {}) {
 	const { layout } = classify(bytes);
 	if (layout === "openfw" || layout === "blank") return { kind: "image", image: imageFrom(bytes), board };
 	if (STOCK[layout] || layout === DM32_STOCK) {
 		const model = empty();
-		const { counts, notes } = STOCK[layout] ? importStock(model, bytes, layout) : importDm32(model, bytes);
-		return { kind: "converted", from: layout, model, image: encode(model), counts, notes, board };
+		const { counts, notes, stockAes } = STOCK[layout] ? importStock(model, bytes, layout) : importDm32(model, bytes, { offerStockAes });
+		return { kind: "converted", from: layout, model, image: encode(model), counts, notes, stockAes, board };
 	}
 	return { kind: "foreign", format: layout, board };
 }
@@ -83,6 +85,10 @@ export async function openFile(name, bytes) {
 	if (/\.ya?ml$/i.test(name)) return { kind: "yaml", text: new TextDecoder().decode(bytes) };
 	if (/\.(csv|txt)$/i.test(name)) return { kind: "csv", text: new TextDecoder().decode(bytes) };
 	if (startsWith(bytes, "OutSecurityBin")) throw new FileError("firmware_not_codeplug");
+	if (/\.data$/i.test(name)) {
+		const f = fromBytes(bytes, null, { offerStockAes: true });
+		if (f.kind === "converted" && f.from === DM32_STOCK) return f;
+	}
 	// a codeplug image (0x120000), the USB network codeplug.bin (0xAEE60), a whole data flash dump, or a TYT MD-380
 	// CPS file or memory image
 	if (bytes.length >= TFTP_SIZE) return fromBytes(bytes);
@@ -96,6 +102,59 @@ export async function openFile(name, bytes) {
 // The bytes Save writes: the image up to the end of its ID database
 export function saveBytes(image) {
 	return image.bytes.subarray(0, Math.max(CODEPLUG_SPAN, idDbTop(image.bytes)));
+}
+
+// Browser drafts and support attachments omit secrets; the live model still has them for the radio write.
+export function secretFreeBytes(image) {
+	const copy = image.clone();
+	withoutSecrets(copy.bytes);
+	return saveBytes(copy);
+}
+
+// Imported keys need to follow their on-air IDs, not the ring slots a fresh file happened to use. Preserve the
+// destination's unrelated keys and reject a conflicting ID before any write. The file isn't changed on a failure.
+export function stockAesAreaForWrite(file, radio, base) {
+	const entries = decodeArea(file).entries;
+	const isAes = ({ key, value }) => key >= KEY_BASE && key < KEY_BASE + KEY_MAX &&
+		value.length >= 5 && value[0] === 0xFF && value[1] === 0x25;
+	const incoming = entries.filter(isAes);
+	if (!incoming.length) {
+		areaForWrite(file, radio, base);
+		return null;
+	}
+	const existing = decodeArea(radio);
+	if (existing.state === "newer") return { code: "radio_area" };
+	const idOf = (e) => e.value[2] | (e.value[3] << 8);
+	const current = existing.entries.filter(isAes);
+	const add = [];
+	for (const e of incoming) {
+		const id = idOf(e);
+		const matches = current.filter((k) => idOf(k) === id);
+		if (matches.length > 1 || (matches.length && !equal(matches[0].value.subarray(5), e.value.subarray(5))))
+			return { code: "radio_conflict", id };
+		if (!matches.length) add.push(e);
+	}
+	const staged = file.slice(0, KV_ADDR + KV_SIZE);
+	putArea(staged, entries.filter((e) => !isAes(e)));
+	const prior = base?.slice(0, KV_ADDR + KV_SIZE);
+	const priorArea = prior && decodeArea(prior);
+	if (priorArea?.state === "valid") putArea(prior, priorArea.entries.filter((e) => !isAes(e)));
+	areaForWrite(staged, radio, prior);
+	const merged = decodeArea(staged).entries;
+	for (const e of current) {
+		const kept = merged.find((k) => k.key === e.key);
+		if (!kept || !equal(kept.value, e.value)) return { code: "radio_conflict", id: idOf(e) };
+	}
+	const used = new Set(merged.map((e) => e.key));
+	let slot = KEY_BASE;
+	for (const e of add) {
+		while (used.has(slot)) slot++;
+		if (slot >= KEY_BASE + KEY_MAX) return { code: "radio_area" };
+		merged.push({ ...e, key: slot++ });
+	}
+	putArea(staged, merged);
+	file.set(staged.subarray(KV_ADDR), KV_ADDR);
+	return null;
 }
 
 // A saved file's name without its extension: the codeplug's name and the local date and time, name-YYYY-MM-DD-HHMM, so

@@ -5,7 +5,7 @@
 // reads its records, and fills the editing model (model.js) from it as stock_tyt.js does, with the same note codes.
 
 import { getFreq } from "./fields.js?v=c16ffd9bbf";
-import { LIMITS, POWER_NAMES } from "./records.js?v=6276ed067d";
+import { DMR_PRIV, LIMITS, POWER_NAMES } from "./records.js?v=6276ed067d";
 
 export const DM32_STOCK = "baofeng-dm32";
 
@@ -16,6 +16,9 @@ export const PAGES_START = 0x1000, PAGES_END = 0xC9000, PAGE = 0x1000;
 // Logical blocks and record sizes (spec 2)
 const BLK = { settings: 0x04, lists: 0x0F, channels: 0x12, txContacts: 0x42, contacts: 0x44, zones: 0x5C, ids: 0x67 };
 const CH = 0x30, CONTACT = 0x18, LIST = 0x6D, ZONE = 0x91, RADIO_ID = 0x10;
+// Baofeng CPS .data layout observed in issue #42. Physical offsets, not logical block addresses.
+const STOCK_KEYS = 0xD300, STOCK_KEYS_END = 0xDFFF, STOCK_KEY_SIZE = 44;
+const STOCK_AES256 = 0x04, DMR_AES256 = 0x25, STOCK_ENCRYPTED = 0x40;
 const N_LISTS = 32, LIST_MEMBERS = 32, ZONE_CHANNELS = 64, N_IDS = 255;
 const BLOCK_DATA = PAGE - 1;	// the last byte is the block number
 // The channel blocks: the first (0x12) holds the count at +0 and channels from +0x10 (84 of them); the blocks after
@@ -83,11 +86,72 @@ function readChannel(r) {
 	const nm = asciiName(r, 0, 16);
 	if (!nm.text) return null;
 	const dmr = (r[0x18] & 0x10) !== 0;
+	const encrypted = dmr && r[0x1F] !== 0xFF && (r[0x1F] & STOCK_ENCRYPTED) !== 0;
 	return {
 		name: nm.text, nameOk: nm.ok, rxHz: getFreq(r, 0x10), txHz: getFreq(r, 0x14), mode: dmr ? "dmr" : "fm",
 		power: POWER[(r[0x18] >> 1) & 3] ?? POWER[2], bw: r[0x19] & 0x80 ? 25 : 12.5, scanList: (r[0x19] >> 2) & 0x1F,
-		timeslot: r[0x1D] & 0x10 ? 2 : 1, colorCode: r[0x1D] & 0x0F, rxList: r[0x1F], rxTone: dm32Tone(r, 0x21),
+		timeslot: r[0x1D] & 0x10 ? 2 : 1, colorCode: r[0x1D] & 0x0F,
+		encrypted, keySlot: encrypted ? r[0x1E] : 0, rxList: encrypted ? r[0x1F] & ~STOCK_ENCRYPTED : r[0x1F],
+		rxTone: dm32Tone(r, 0x21),
 		txTone: dm32Tone(r, 0x23),
+	};
+}
+
+// Read only the fixed table reported for .data files. An empty record terminates it. A malformed row or duplicate
+// slot makes the table ambiguous, so no migration is offered. At least one AES row must match an encrypted channel.
+function stockAesPlan(bytes, channels, channelOf, model) {
+	const refs = new Map();
+	for (const c of channels) {
+		if (!c.encrypted || c.keySlot === 0 || c.keySlot === 0xFF) continue;
+		const linked = refs.get(c.keySlot) ?? [];
+		linked.push(channelOf.get(c.index));
+		refs.set(c.keySlot, linked);
+	}
+	if (!refs.size) return null;
+	const slots = new Set(), records = [];
+	let ended = false;
+	for (let at = STOCK_KEYS; at + STOCK_KEY_SIZE <= Math.min(STOCK_KEYS_END, bytes.length); at += STOCK_KEY_SIZE) {
+		const r = bytes.subarray(at, at + STOCK_KEY_SIZE);
+		const slot = r[0];
+		if ((slot === 0 || slot === 0xFF) && r.subarray(1).every((b) => b === 0xFF)) {
+			ended = true;
+			break;
+		}
+		const n = r.subarray(1, 11), zero = n.indexOf(0), name = asciiName(n, 0, n.length);
+		if (!slot || slot === 0xFF || slots.has(slot) || !name.ok || !name.text.trim() ||
+			name.text.length !== (zero < 0 ? n.length : zero) ||
+			(zero >= 0 && n.subarray(zero).some((b) => b !== 0)) || !r[11] || r[11] === 0xFF) return null;
+		slots.add(slot);
+		if (r[11] === STOCK_AES256 && !r.subarray(12).every((b) => b === 0xFF) && refs.has(slot))
+			records.push({ slot, name: name.text, at });
+	}
+	if (!ended || !records.length) return null;
+	return {
+		rows: records.map(({ slot, name }) => ({ slot, name, channels: refs.get(slot).length })),
+		// IDs are supplied by the operator. Validate every selected row before touching the codeplug.
+		apply(ids) {
+			const used = new Set((model.keyring ?? []).filter((k) => k.alg === DMR_AES256).map((k) => k.id));
+			const selected = [];
+			for (const record of records) {
+				const value = String(ids.get(record.slot) ?? "").trim();
+				if (!value) continue;
+				const id = Number(value);
+				if (!/^\d{1,3}$/.test(value) || id < 1 || id > 255) return { error: "invalid_id" };
+				if (used.has(id)) return { error: "duplicate_id" };
+				used.add(id);
+				selected.push({ ...record, id });
+			}
+			let channels = 0;
+			for (const { slot, id, at } of selected) {
+				const key = Array.from(bytes.subarray(at + 12, at + STOCK_KEY_SIZE), (b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+				(model.keyring ??= []).push({ slot: null, alg: DMR_AES256, id, flags: 0, key });
+				for (const c of refs.get(slot)) {
+					Object.assign(c, { dmrPrivacy: DMR_PRIV.aes, dmrPrivacyKey: id, rxOnly: false });
+					channels++;
+				}
+			}
+			return { keys: selected.length, channels };
+		},
 	};
 }
 
@@ -237,7 +301,7 @@ function keepWanted(rows, max, wanted) {
 
 // The model filled from a stock codeplug, as stock_tyt.js importStock fills it: {counts, notes}. Every table the
 // stock codeplug has is replaced; DTMF contacts and APRS configurations are emptied, the VFOs lose their references
-export function importStock(m, bytes) {
+export function importStock(m, bytes, { offerStockAes = false } = {}) {
 	const s = readStock(bytes);
 	const notes = new Map();
 	const note = (code, n = 1) => notes.set(code, (notes.get(code) || 0) + n);
@@ -258,6 +322,8 @@ export function importStock(m, bytes) {
 		stockChannels = stockChannels.slice(0, LIMITS.channels);
 	}
 	if (stockChannels.some((c) => c.scanList)) note("scan_lists");
+	const encrypted = stockChannels.filter((c) => c.encrypted).length;
+	if (encrypted) note("stock_aes_rx_only", encrypted);
 
 	// A list names its members by ID: the contact with that ID, the first such one; an ID without a contact gets a
 	// group contact named after it, as the stock radio shows it
@@ -309,7 +375,7 @@ export function importStock(m, bytes) {
 		const x = {
 			number: i + 1, name: shorten(c.name, LIMITS.name), rxHz: c.rxHz, txHz: c.txHz, mode: c.mode,
 			power: c.power, tot: 0, rxTone: tone(c.rxTone), txTone: tone(c.txTone),
-			bw: dmr ? 12.5 : c.bw, rxOnly: false, allSkip: false, zoneSkip: false, vox: false, squelch: 0,
+			bw: dmr ? 12.5 : c.bw, rxOnly: c.encrypted, allSkip: false, zoneSkip: false, vox: false, squelch: 0,
 			colorCode: dmr ? c.colorCode : 0, timeslot: dmr ? c.timeslot : 1,
 			contact: dmr ? contactOf.get(c.contact) || null : null, rxList: dmr ? listOf.get(c.rxList) || null : null,
 			aprs: null, dmrId: 0, noBeep: false, noEco: false, dmo: false, roam: false, aliasTs1: 0, aliasTs2: 0,
@@ -340,5 +406,6 @@ export function importStock(m, bytes) {
 	g.bootLine2 = shorten(s.general.bootLine2, LIMITS.bootText);
 
 	const counts = { channels: channels.length, contacts: contacts.length, rxLists: rxLists.length, zones: zones.length };
-	return { counts, notes: [...notes].map(([code, n]) => ({ code, n })) };
+	const stockAes = offerStockAes && encrypted ? stockAesPlan(bytes, stockChannels, channelOf, m) : null;
+	return { counts, notes: [...notes].map(([code, n]) => ({ code, n })), stockAes };
 }

@@ -148,6 +148,7 @@ export class CpsSerial {
 			throw new TransportError(why.kind === "openfw" ? "openfw" : why.kind === "other" ? "not_rfoundry"
 				: this.cable ? "no_answer_cable" : "no_answer", why);
 		}
+		if (p.version?.programming_locked === "1") throw new TransportError("programming_locked");
 		const radio = radios.find((r) => r.codeplug?.names?.some((n) => n.toLowerCase() === String(p.board || "").toLowerCase()));
 		if (!radio) throw new TransportError("unknown_radio", { board: p.board || "?" });
 		this.radio = radio;

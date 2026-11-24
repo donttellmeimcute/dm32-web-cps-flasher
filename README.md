@@ -66,6 +66,12 @@ siguen aplicándose las condiciones de licencia correspondientes.
 Los nombres de archivos de Baofeng que aparecen en `data/flash-boards.json` y en los scripts son solo para reconocer
 (por nombre y SHA-256) el archivo que elige el usuario; no hay bytes de esos archivos aquí.
 
+## Migrar claves DMR AES-256 del CPS original
+
+Abre el `.data` de Baofeng en el editor. Si coincide con el [formato de la #42](https://github.com/donttellmeimcute/DM32-nxdn-p25/issues/42), verás las claves AES-256 asociadas a canales cifrados. Busca el **Encryption ID** en **Digital Encrypt Systems** y escríbelo en cada fila que quieras migrar. Las filas en blanco quedan en solo recepción.
+
+Usa **Escribir en la radio** por USB en la misma sesión para transferir las claves. Si la radio tiene una clave distinta con el mismo ID, el editor detiene la escritura. Los borradores, archivos exportados y adjuntos de diagnóstico omiten las claves.
+
 ## Cómo se instala la imagen
 
 La versión `2026.11.15-dv-monitor` añade el **monitor digital en P25 y NXDN** como en DMR (SK1 corto: todos los

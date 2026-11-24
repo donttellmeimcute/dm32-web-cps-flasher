@@ -11,7 +11,7 @@ import {
 } from "./records.js?v=6276ed067d";
 import { getBcdId } from "./fields.js?v=c16ffd9bbf";
 import { STOCK, stockBytes, stockEvidence, stockDmrId, RDT_MD380, RDT_UV380 } from "./stock_tyt.js?v=89bf988ad1";
-import { DM32_STOCK, stockEvidence as dm32Evidence } from "./stock_baofeng.js?v=89bf988ad1";
+import { DM32_STOCK, stockEvidence as dm32Evidence } from "./stock_baofeng.js?v=f2317c7c75";
 
 // A Latin-1 name field: {text, ok}; ok when the text is printable and only 0x00 or 0xFF follow it
 export function latinName(b, off, len) {

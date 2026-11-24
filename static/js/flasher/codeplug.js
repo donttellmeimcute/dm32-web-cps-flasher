@@ -6,10 +6,10 @@
 
 import { openBundle, CODEPLUG_SPAN } from "./backup.js?v=c16ffd9bbf";
 import { startsWith } from "./bytes.js?v=c16ffd9bbf";
-import { classify } from "../codeplug/detect.js?v=89bf988ad1";
+import { classify } from "../codeplug/detect.js?v=f2317c7c75";
 import { CodeplugImage, TFTP_SIZE } from "../codeplug/image.js?v=c16ffd9bbf";
 import { STOCK, RDT_MD380, RDT_UV380 } from "../codeplug/stock_tyt.js?v=89bf988ad1";
-import { DM32_STOCK } from "../codeplug/stock_baofeng.js?v=89bf988ad1";
+import { DM32_STOCK } from "../codeplug/stock_baofeng.js?v=f2317c7c75";
 
 // A stock TYT-family codeplug in a dump or memory image (docs/spec/codeplug-stock-tyt.md): its family, or null
 const stockLayout = (b) => {
@@ -154,7 +154,7 @@ async function fromStock(bytes, layout) {
 // An open-firmware codeplug image converted from a stock DM-32UV one
 async function fromDm32(bytes) {
 	const { empty, encode } = await codeplugModules();
-	const { detectStock, importStock } = await import("../codeplug/stock_baofeng.js");
+	const { detectStock, importStock } = await import("../codeplug/stock_baofeng.js?v=f2317c7c75");
 	if (detectStock(bytes) !== DM32_STOCK) throw fail("no_stock", "this file holds no stock codeplug this page can read");
 	const m = empty();
 	importStock(m, bytes);
