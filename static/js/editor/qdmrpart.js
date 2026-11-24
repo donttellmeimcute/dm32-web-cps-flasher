@@ -5,8 +5,8 @@
 // hold is listed afterwards.
 
 import { register } from "./extensions.js?v=c16ffd9bbf";
-import { importQdmr, exportQdmr, QdmrError } from "../codeplug/qdmr.js?v=89bf988ad1";
-import { datedName } from "./files.js?v=84230e23e2";
+import { importQdmr, exportQdmr, QdmrError } from "../codeplug/qdmr.js?v=e66b6edf06";
+import { datedName } from "./files.js?v=a97e97af2d";
 
 register({
 	saveItems(api) {

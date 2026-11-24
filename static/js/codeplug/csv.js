@@ -7,10 +7,11 @@
 // {row, column, code, params}, and the page words them.
 
 import { parseFreq, parseTone, mhz } from "./fields.js?v=c16ffd9bbf";
-import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=6276ed067d";
-import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=84230e23e2";
-import { setKind } from "./channelmodes.js?v=84230e23e2";
-import { kindName } from "./modes.js?v=84230e23e2";
+import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=f3daccc684";
+import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=1274c7a098";
+import { setKind } from "./channelmodes.js?v=24556515d7";
+import { kindName } from "./modes.js?v=2b5c5c629e";
+import { callOk } from "./mode_m17.js?v=e54b64a875";
 import { SCRAMBLER_KIND } from "./mode_nxdn.js";
 
 // --- RFC 4180 ---
@@ -308,6 +309,15 @@ const ranCol = (header, key, aliases) => ({
 // on a channel that is not YSF is reported as a bad value instead of being dropped silently. A blank cell keeps the
 // value, except TX DG-ID, which sends the RX DG-ID, and Destination, which calls ALL, as the editor's blanks do.
 const M17_KIND = 7, DSTAR_KIND = 9;
+const m17Col = (header, key, parse) => ({
+	header, key, aliases: [],
+	get: (r) => r.kind === M17_KIND ? r.params[key] : "",
+	set: (r, s) => {
+		if (!s.trim()) return;
+		if (r.kind !== M17_KIND) throw new Bad("bad_value", { value: s, allowed: "M17" });
+		r.params = { ...r.params, [key]: parse(s.trim()) };
+	},
+});
 const YSF_KIND = 6, DGID_MAX = 127, CALLSIGN_LEN = 10;
 const ysfCol = (header, key, aliases, get, set) => ({
 	header, aliases, key,
@@ -463,6 +473,18 @@ export const TABLES = {
 			}, undefined, ["TS", "Time Slot", "Slot"]),
 			ranCol("RX RAN", "rxRan", ["Receive RAN"]),
 			ranCol("TX RAN", "txRan", ["Transmit RAN"]),
+			m17Col("M17 CAN", "can", asInt(0, 15)),
+			m17Col("M17 Destination", "dest", (s) => {
+				if (!callOk(s)) throw new Bad("bad_value", { value: s, allowed: "A–Z, 0–9, / . - (1–9)" });
+				return s.toUpperCase();
+			}),
+			{ header: "Accept Invalid CRC", key: "acceptBadCrc", aliases: [],
+				get: (r) => r.kind === 1 ? yesNo(r.acceptBadCrc) : "",
+				set: (r, s) => {
+					if (!s.trim()) return;
+					if (r.kind !== 1) throw new Bad("bad_value", { value: s, allowed: "T3" });
+					r.acceptBadCrc = asBool(s);
+				} },
 			ysfDtCol(),
 			ysfDevCol(),
 			ysfDgidCol("RX DG-ID", "rxDgid", ["Receive DG-ID"]),
@@ -473,11 +495,11 @@ export const TABLES = {
 			ref("APRS", "aprs", "aprs", ["APRS Configuration"]),
 			c("DMR ID", "dmrId", asId, (r) => r.dmrId || "", ["Channel DMR ID"]),
 			{ header: "RX Only", key: "rxOnly", aliases: ["Forbid TX"],
-				get: (r) => yesNo(r.kind === SCRAMBLER_KIND || ([YSF_KIND, M17_KIND, DSTAR_KIND].includes(r.kind) ? !r.tagTx : r.rxOnly)),
+				get: (r) => yesNo(r.kind === SCRAMBLER_KIND || ([1, YSF_KIND, M17_KIND, DSTAR_KIND].includes(r.kind) ? !r.tagTx : r.rxOnly)),
 				set: (r, s) => {
-					if ([YSF_KIND, SCRAMBLER_KIND, M17_KIND, DSTAR_KIND].includes(r.kind) && !s.trim()) return;
+					if ([1, YSF_KIND, M17_KIND, SCRAMBLER_KIND, DSTAR_KIND].includes(r.kind) && !s.trim()) return;
 					const rxOnly = asBool(s);
-					if ([YSF_KIND, SCRAMBLER_KIND, M17_KIND, DSTAR_KIND].includes(r.kind)) r.tagTx = !rxOnly;
+					if ([1, YSF_KIND, M17_KIND, SCRAMBLER_KIND, DSTAR_KIND].includes(r.kind)) r.tagTx = !rxOnly;
 					else r.rxOnly = rxOnly;
 				} },
 			{ header: "NXDN Scrambler Key ID", key: "scramblerKeyId", aliases: [],

@@ -13,11 +13,11 @@ import {
 	ZONE_BITMAP, ZONE_DATA, ZONE_RECORD, CONTACTS, CONTACT_SIZE, decodeContact, encodeContact, LIST_COUNTS, LISTS,
 	LIST_SIZE, decodeList, encodeList, DTMF_CONTACTS, decodeDtmf, encodeDtmf, validDtmf, APRS_BASE, APRS_SIZE,
 	decodeAprs, encodeAprs, decodeGeneral, encodeGeneral, VFO, LUCZ,
-} from "./records.js?v=6276ed067d";
+} from "./records.js?v=f3daccc684";
 import { parseTone } from "./fields.js?v=c16ffd9bbf";
 import { readHeader } from "./iddb.js?v=c16ffd9bbf";
 import { decodeArea, keyValid, KEYS } from "./kv.js?v=c16ffd9bbf";
-import { decodeModes, encodeModes, syncModes, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=84230e23e2";
+import { decodeModes, encodeModes, syncModes, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=24556515d7";
 
 const REFS = ["contact", "rxList", "aprs"];
 
@@ -138,7 +138,7 @@ function same(a, b, keys) {
 const CHANNEL_KEYS = [
 	"name", "rxHz", "txHz", "mode", "power", "tot", "rxTone", "txTone", "bw", "rxOnly", "allSkip", "zoneSkip", "vox",
 	"squelch", "colorCode", "timeslot", "contact", "rxList", "aprs", "dmrId", "dmrPrivacy", "dmrPrivacyKey", "noBeep", "noEco", "dmo", "roam",
-	"aliasTs1", "aliasTs2", "useLocation", "lat", "lon", "sfr", "sfrA", "sfrB", "toneBurst",
+	"aliasTs1", "aliasTs2", "useLocation", "lat", "lon", "sfr", "sfrA", "sfrB", "toneBurst", "acceptBadCrc",
 ];
 
 function flatChannel(c) {
@@ -260,7 +260,7 @@ export function newChannel(fields = {}) {
 		txTone: "", bw: 12.5, rxOnly: false, allSkip: false, zoneSkip: false, vox: false, squelch: 0, colorCode: 1,
 		timeslot: 1, contact: null, rxList: null, aprs: null, dmrId: 0, noBeep: false, noEco: false, dmo: false,
 		roam: false, aliasTs1: 0, aliasTs2: 0, useLocation: false, lat: 0, lon: 0, sfr: false, sfrA: 0, sfrB: 0,
-		toneBurst: false, kind: 0, ...fields,
+		toneBurst: false, acceptBadCrc: false, kind: 0, ...fields,
 	};
 }
 

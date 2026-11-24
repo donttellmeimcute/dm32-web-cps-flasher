@@ -8,13 +8,13 @@
 // mode is offered for a new channel only when the radio reports it or the codeplug already holds it; with none, every
 // mode is offered (validation warns once a radio that lacks one connects).
 
-import { t3Kind, t3System } from "./mode_t3.js?v=c16ffd9bbf";
+import { t3Kind, t3System } from "./mode_t3.js?v=1a101b7bc6";
 import { p25Kind, p25TrunkKind, p25System } from "./mode_p25.js?v=6276ed067d";
 import { nxdnKind, nxdnScramblerKind } from "./mode_nxdn.js?v=6276ed067d";
 import { amKind } from "./mode_am.js?v=c16ffd9bbf";
 import { ysfKind } from "./mode_ysf.js?v=c16ffd9bbf";
 
-import { m17Kind } from "./mode_m17.js?v=84230e23e2";
+import { m17Kind } from "./mode_m17.js?v=e54b64a875";
 import { dstarKind } from "./mode_dstar.js?v=73b72f8d2a";
 
 // id, the C token, the short name the radio shows, the feature that runs it, its module

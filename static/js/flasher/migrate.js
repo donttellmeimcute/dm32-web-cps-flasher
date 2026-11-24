@@ -9,13 +9,13 @@
 // through the codeplug interface (writeConverted).
 
 import { CODEPLUG_SPAN } from "./backup.js?v=c16ffd9bbf";
-import { codeplugSectors } from "./restore.js?v=f2317c7c75";
-import { classify } from "../codeplug/detect.js?v=f2317c7c75";
-import { STOCK, detectStock, importStock } from "../codeplug/stock_tyt.js?v=89bf988ad1";
-import { empty, encode, decode } from "../codeplug/model.js?v=84230e23e2";
+import { codeplugSectors } from "./restore.js?v=103e20fe07";
+import { classify } from "../codeplug/detect.js?v=4436b923d7";
+import { STOCK, detectStock, importStock } from "../codeplug/stock_tyt.js?v=76466c6282";
+import { empty, encode, decode } from "../codeplug/model.js?v=1274c7a098";
 import { CodeplugImage } from "../codeplug/image.js?v=c16ffd9bbf";
-import { writeRanges, VFOS } from "../codeplug/transport.js?v=f2317c7c75";
-import { DM32_STOCK, detectStock as detectPaged, importStock as importPaged } from "../codeplug/stock_baofeng.js?v=f2317c7c75";
+import { writeRanges, VFOS } from "../codeplug/transport.js?v=a933792829";
+import { DM32_STOCK, detectStock as detectPaged, importStock as importPaged } from "../codeplug/stock_baofeng.js?v=705a8b996e";
 
 // The stock family a memory chip read holds, or null (a RadioFoundry codeplug, a blank one, or one not read here)
 export function stockLayoutOf(bytes) {

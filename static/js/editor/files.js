@@ -10,11 +10,11 @@ import { recordSize, extent, convert, readHeader } from "../codeplug/iddb.js?v=c
 import { openBundle, bundleFolder } from "../flasher/backup.js?v=c16ffd9bbf";
 import { unzip } from "../flasher/zip.js?v=c16ffd9bbf";
 import { equal, startsWith, toHex } from "../flasher/bytes.js?v=c16ffd9bbf";
-import { classify } from "../codeplug/detect.js?v=f2317c7c75";
-import { importStock, STOCK, RDT_MD380 } from "../codeplug/stock_tyt.js?v=89bf988ad1";
-import { DM32_STOCK, importStock as importDm32 } from "../codeplug/stock_baofeng.js?v=f2317c7c75";
-import { empty, encode } from "../codeplug/model.js?v=84230e23e2";
-import { KEY_BASE, KEY_MAX, withoutSecrets } from "../codeplug/channelmodes.js?v=84230e23e2";
+import { classify } from "../codeplug/detect.js?v=4436b923d7";
+import { importStock, STOCK, RDT_MD380 } from "../codeplug/stock_tyt.js?v=76466c6282";
+import { DM32_STOCK, importStock as importDm32 } from "../codeplug/stock_baofeng.js?v=705a8b996e";
+import { empty, encode } from "../codeplug/model.js?v=1274c7a098";
+import { KEY_BASE, KEY_MAX, withoutSecrets } from "../codeplug/channelmodes.js?v=24556515d7";
 import { areaForWrite, decodeArea, putArea, KV_ADDR, KV_SIZE } from "../codeplug/kv.js";
 
 // code: the editor.err.* text; params: what the file was, for the error report (never its contents)

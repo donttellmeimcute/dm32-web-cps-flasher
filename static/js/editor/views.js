@@ -6,11 +6,11 @@
 
 import { h, button } from "../flasher/dom.js?v=c16ffd9bbf";
 import { parseFreq, parseTone, mhz } from "../codeplug/fields.js?v=c16ffd9bbf";
-import { LIMITS, POWER_NAMES, DMR_PRIV } from "../codeplug/records.js?v=6276ed067d";
-import { refNumber, listenBand } from "../codeplug/model.js?v=84230e23e2";
+import { LIMITS, POWER_NAMES, DMR_PRIV } from "../codeplug/records.js?v=f3daccc684";
+import { refNumber, listenBand } from "../codeplug/model.js?v=1274c7a098";
 import { keyValid } from "../codeplug/kv.js?v=c16ffd9bbf";
-import { kindRow, kindName, offeredKinds } from "../codeplug/modes.js?v=84230e23e2";
-import { KEY_ALGS, validKeyHex, setKind } from "../codeplug/channelmodes.js?v=84230e23e2";
+import { kindRow, kindName, offeredKinds } from "../codeplug/modes.js?v=2b5c5c629e";
+import { KEY_ALGS, validKeyHex, setKind } from "../codeplug/channelmodes.js?v=24556515d7";
 import { specField } from "./modefields.js?v=c16ffd9bbf";
 
 // --- Parsers shared by the columns and the forms ---
@@ -435,6 +435,7 @@ export function channelForm(m, t, { features = null } = {}) {
 		dmr(sel("timeslot", "editor.col.ts", () => [[1, "1"], [2, "2"]])),
 		dmr(sel("contact", "editor.col.contact", () => refOptions(m.contacts, t))),
 		dmr(sel("rxList", "editor.col.rx_list", () => refOptions(m.rxLists, t))),
+		{ ...chk("acceptBadCrc", "editor.col.accept_bad_crc"), show: (r) => r.kind === 1, help: t("editor.col.accept_bad_crc_help") },
 		dmr(txt("dmrId", "editor.col.channel_id", dmrId(t), (v) => (v ? String(v) : ""))),
 		dmr(chk("dmo", "editor.col.dmo")),
 		sel("dmrPrivacy", "editor.col.dmr_privacy", () => [
