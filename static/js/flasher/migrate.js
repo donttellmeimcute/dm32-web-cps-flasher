@@ -14,7 +14,7 @@ import { classify } from "../codeplug/detect.js?v=4436b923d7";
 import { STOCK, detectStock, importStock } from "../codeplug/stock_tyt.js?v=76466c6282";
 import { empty, encode, decode } from "../codeplug/model.js?v=1274c7a098";
 import { CodeplugImage } from "../codeplug/image.js?v=c16ffd9bbf";
-import { writeRanges, VFOS } from "../codeplug/transport.js?v=a933792829";
+import { writeRanges, VFOS } from "../codeplug/transport.js?v=1932f7beff";
 import { DM32_STOCK, detectStock as detectPaged, importStock as importPaged } from "../codeplug/stock_baofeng.js?v=705a8b996e";
 
 // The stock family a memory chip read holds, or null (a RadioFoundry codeplug, a blank one, or one not read here)

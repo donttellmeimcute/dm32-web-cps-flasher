@@ -67,8 +67,12 @@ python3 "$GEN/p25_data.py" "$W/site"
 # Like the CSS, these are kept in the published repository and copied back here, so a regeneration does not undo them
 if [ -d "$OUT/static/css" ]; then cp "$OUT"/static/css/*.css "$W/site/static/css/"; fi
 cp "$OUT/static/img/radios/voxel-station.png" "$W/site/static/img/radios/"
-for f in csv.js stock_baofeng.js mode_m17.js mode_dstar.js mode_t3.js modes.js model.js records.js; do
+for f in csv.js stock_baofeng.js mode_m17.js mode_dstar.js mode_t3.js fastlink.js transport.js modes.js model.js records.js; do
 	if [ -f "$OUT/static/js/codeplug/$f" ]; then cp "$OUT/static/js/codeplug/$f" "$W/site/static/js/codeplug/"; fi
+done
+cp "$OUT/static/js/support.js" "$W/site/static/js/"
+for f in app.js c7000ui.js migrate.js; do
+	cp "$OUT/static/js/flasher/$f" "$W/site/static/js/flasher/"
 done
 for f in app.js views.js; do
 	cp "$OUT/static/js/editor/$f" "$W/site/static/js/editor/"
