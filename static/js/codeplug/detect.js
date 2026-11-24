@@ -8,7 +8,7 @@
 import {
 	LIMITS, CH_SIZE, bankBitmap, channelAddr, decodeChannel, zoneLayout, ZONE_BITMAP, ZONE_DATA, CONTACTS,
 	CONTACT_SIZE, decodeContact, LIST_COUNTS, LISTS, LIST_SIZE, GENERAL,
-} from "./records.js?v=89bf988ad1";
+} from "./records.js?v=21c0de0054";
 import { getBcdId } from "./fields.js?v=c16ffd9bbf";
 import { STOCK, stockBytes, stockEvidence, stockDmrId, RDT_MD380, RDT_UV380 } from "./stock_tyt.js?v=89bf988ad1";
 import { DM32_STOCK, stockEvidence as dm32Evidence } from "./stock_baofeng.js?v=89bf988ad1";

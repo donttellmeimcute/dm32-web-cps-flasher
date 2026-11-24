@@ -7,9 +7,9 @@
 // {row, column, code, params}, and the page words them.
 
 import { parseFreq, parseTone, mhz } from "./fields.js?v=c16ffd9bbf";
-import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=89bf988ad1";
+import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=21c0de0054";
 import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=89bf988ad1";
-import { setKind } from "./channelmodes.js?v=89bf988ad1";
+import { setKind } from "./channelmodes.js?v=21c0de0054";
 import { kindName } from "./modes.js?v=c16ffd9bbf";
 
 // --- RFC 4180 ---
@@ -155,14 +155,14 @@ const MODES = { fm: "FM", dmr: "DMR", nxdn: "NXDN", ysf: "YSF" };
 // A word a file may use for the mode, and the channel kind it means (0: a plain FM or DMR channel). Besides the
 // editor's own names these are the kind short names the editor itself exports (P25, P25T, T3, AM), so its own files
 // round-trip, and the stock CPS's Analog/Digital
-const MODE_WORDS = { fm: 0, analog: 0, digital: 0, nxdn: 4, ysf: 6, p25: 2, p25t: 3, t3: 1, am: 5 };
+const MODE_WORDS = { fm: 0, analog: 0, digital: 0, nxdn: 4, ysf: 6, c4fm: 6, fusion: 6, "system fusion": 6, "yaesu system fusion": 6, p25: 2, p25t: 3, t3: 1, am: 5 };
 const PLAIN_OF_WORD = { analog: "fm", digital: "dmr" };
 const MODE_ALLOWED = "FM, DMR, NXDN, YSF, P25, P25T, T3, AM";
 
 // A channel's mode, as a kind or a plain mode: a kind channel exports its kind's name (the base record stands in as
 // DMR, so MODES[mode] would read DMR for it), a plain one its mode. Setting it makes or unmakes the kind
 // (channelmodes.js setKind): NXDN or YSF gives the channel the kind's parameters, FM or DMR takes it back to plain.
-// A blank cell is the default mode and leaves the kind as it was, as before.
+// A blank cell leaves the mode on an existing channel; a new channel defaults to FM.
 const modeCol = {
 	header: "Mode", aliases: ["Channel Mode", "Channel Type", "Type"], key: "mode",
 	get: (r) => {
@@ -174,10 +174,7 @@ const modeCol = {
 	},
 	set: (r, s, m) => {
 		const v = s.trim().toLowerCase();
-		if (!v) {
-			r.mode = "fm";
-			return;
-		}
+		if (!v) return;
 		const kind = MODE_WORDS[v];
 		if (kind === undefined) throw new Bad("bad_value", { value: s.trim(), allowed: MODE_ALLOWED });
 		const key = Object.keys(MODES).find((k) => MODES[k].toLowerCase() === v) ?? PLAIN_OF_WORD[v] ?? "dmr";
@@ -460,7 +457,14 @@ export const TABLES = {
 			ref("RX Group List", "rxList", "rxLists", ["Group List", "RX List"]),
 			ref("APRS", "aprs", "aprs", ["APRS Configuration"]),
 			c("DMR ID", "dmrId", asId, (r) => r.dmrId || "", ["Channel DMR ID"]),
-			c("RX Only", "rxOnly", asBool, (r) => yesNo(r.rxOnly), ["Forbid TX"]),
+			{ header: "RX Only", key: "rxOnly", aliases: ["Forbid TX"],
+				get: (r) => yesNo(r.kind === YSF_KIND ? !r.tagTx : r.rxOnly),
+				set: (r, s) => {
+					if (r.kind === YSF_KIND && !s.trim()) return;
+					const rxOnly = asBool(s);
+					if (r.kind === YSF_KIND) r.tagTx = !rxOnly;
+					else r.rxOnly = rxOnly;
+				} },
 			c("All Skip", "allSkip", asBool, (r) => yesNo(r.allSkip), ["Scan Skip"]),
 			c("Zone Skip", "zoneSkip", asBool, (r) => yesNo(r.zoneSkip)),
 			c("VOX", "vox", asBool, (r) => yesNo(r.vox), ["VOX Function"]),
@@ -566,6 +570,12 @@ export function importTable(m, text, table = detect(text)) {
 	const { found, unknown } = mapHeader(spec, rows[0] || []);
 	const problems = [];
 	const keys = new Set(found.map((f) => f.col.key));
+	if (table === "channels") {
+		if (!spec.required.every((key) => keys.has(key))) throw new Bad("not_a_table");
+		// Read the mode and RX DG-ID before any dependent fields, in any column order.
+		const priority = { mode: 0, rxDgid: 1 };
+		found.sort((a, b) => (priority[a.col.key] ?? 2) - (priority[b.col.key] ?? 2));
+	}
 	const hasNumber = keys.has("number");
 	const old = m[table];
 	const taken = new Set();
@@ -589,15 +599,13 @@ export function importTable(m, text, table = detect(text)) {
 		else taken.add(rec);
 		const work = { ...rec };
 		let skip = false;
-		// Mode first: it makes or unmakes the channel's kind, and the kind's columns (RAN, DG-ID) read the kind
-		const ordered = [...found].sort((a, b) => (a.col.key === "mode" ? 0 : 1) - (b.col.key === "mode" ? 0 : 1));
-		for (const { col, index } of ordered) {
+		for (const { col, index } of found) {
 			try {
 				col.set(work, row[index] ?? "", m, (e) => problems.push({ row: i + 1, column: col.header, code: e.code, params: e.params }));
 			} catch (e) {
 				if (!(e instanceof Bad)) throw e;
-				// a new record without a usable required value (name, frequency, ID) would only be a default; skip it
-				const lost = fresh && spec.required.includes(col.key);
+				// A new channel with an invalid explicit mode must not be saved as default FM.
+				const lost = fresh && (spec.required.includes(col.key) || (table === "channels" && col.key === "mode"));
 				problems.push({ row: i + 1, column: col.header, code: e.code, params: e.params, skipped: lost });
 				skip ||= lost;
 			}

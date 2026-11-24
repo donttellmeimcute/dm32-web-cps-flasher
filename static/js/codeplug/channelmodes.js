@@ -16,9 +16,10 @@
 // fields, raw}], secret (the module's fields, {raw} for a type without, null for none), flagsRaw, raw}.
 // m.modeSettings: {kind id: the module's fields}.
 
-import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, KV_SIZE, KV_HDR, KEYS } from "./kv.js?v=c16ffd9bbf";
+import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, KV_SIZE, KV_HDR, KEYS, getKey, keyValid, keyValue } from "./kv.js";
+import { BOOT_IMAGE_KEY, bootImageValid } from "./bootimage.js";
 import { getName, putName } from "./fields.js?v=c16ffd9bbf";
-import { redactDmrBasicKeys } from "./records.js?v=89bf988ad1";
+import { redactDmrBasicKeys } from "./records.js?v=21c0de0054";
 import { KINDS, kindRow, typeRow, radioRuns } from "./modes.js?v=c16ffd9bbf";
 import { u16, u32, put16, put32, sameBytes, sameValue, nameCheck } from "./modebytes.js?v=c16ffd9bbf";
 
@@ -373,6 +374,18 @@ export function modeEntries(m, entries, baseNames = () => new Map()) {
 		if (v) set(key, v);
 		else del(key);
 	}
+	// Serialize the mode records, general settings, and image as one area. An edit can free space in one to use it in another.
+	if (m.general) {
+		for (const row of KEYS) {
+			const value = m.general[row.name] ?? null;
+			if (getKey(out, row) === value) continue;
+			if (value === null) del(row.key);
+			else if (keyValid(row, value)) set(row.key, keyValue(row, value));
+		}
+		const image = m.general.bootImage;
+		if (bootImageValid(image)) set(BOOT_IMAGE_KEY, image);
+		else if (image === null && bootImageValid(getValue(out, BOOT_IMAGE_KEY))) del(BOOT_IMAGE_KEY);
+	}
 	return out;
 }
 
@@ -391,8 +404,7 @@ export function encodeModes(m, b, baseNames) {
 export function modeAreaUse(m, b, baseNames) {
 	const area = decodeArea(b);
 	const entries = area.state === "valid" ? dedupe(area.entries) : [];
-	let out = modeEntries(m, entries, baseNames);
-	for (const row of KEYS) if (m.general?.[row.name] != null && !getValue(out, row.key)) out = [...out, { key: row.key, value: new Uint8Array(row.size) }];
+	const out = modeEntries(m, entries, baseNames);
 	const hdr = area.state === "valid" ? b[KV_ADDR + 5] : KV_HDR;
 	return { used: out.reduce((n, e) => n + 4 + e.value.length, 0), max: KV_SIZE - hdr };
 }
@@ -482,9 +494,10 @@ export function validateModes(m, err, warn, { features = null, baseNames } = {})
 	const any = systems.length || m.channels.some((c) => c.kind);
 	if (state === "newer") {
 		if (any) warn(S, null, null, "mode_area_newer");
+		if (m.general?.bootImage) err("general", null, "bootImage", "mode_area_newer");
 		return;
 	}
-	if (!any) return;
+	if (!any && !m.general?.bootImage) return;
 	const { used, max } = modeAreaUse(m, m.base.bytes, baseNames);
 	if (used > max) err(S, null, null, "settings_area_full", { used, max });
 }

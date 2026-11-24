@@ -4,7 +4,7 @@
 // File takes either back. An import is one undoable change, and its problems are listed by row and column.
 
 import { register } from "./extensions.js?v=c16ffd9bbf";
-import { exportTable, exportAll, importTable, importAll, TABLES, CsvError } from "../codeplug/csv.js?v=89bf988ad1";
+import { exportTable, exportAll, importTable, importAll, TABLES, CsvError } from "../codeplug/csv.js?v=21c0de0054";
 import { zip } from "../flasher/zip.js?v=c16ffd9bbf";
 import { datedName } from "./files.js?v=89bf988ad1";
 

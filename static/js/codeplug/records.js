@@ -9,7 +9,8 @@ import { EE, FL } from "./image.js?v=c16ffd9bbf";
 import {
 	getFreq, putFreq, getBcdId, putBcdId, getTone, putTone, getName, putName, getCoord, coordBytes, u16, put16,
 } from "./fields.js?v=c16ffd9bbf";
-import { decodeArea, getKey, putKeys, keyValid, KEYS } from "./kv.js?v=c16ffd9bbf";
+import { decodeArea, getKey, getValue, KEYS } from "./kv.js";
+import { BOOT_IMAGE_KEY, bootImageValid } from "./bootimage.js";
 
 export const LIMITS = {
 	channels: 1024, zones: 68, zoneChannels: 80, contacts: 1024, rxLists: 76, rxListContacts: 32,
@@ -343,6 +344,7 @@ export function encodeAprs(a, r) {
 export function decodeGeneral(b) {
 	const g = b.subarray(GENERAL, GENERAL + GENERAL_SIZE);
 	const kv = decodeArea(b).entries;
+	const bootImage = getValue(kv, BOOT_IMAGE_KEY);
 	return {
 		radioName: getName(g, 0, 8),
 		dmrId: getBcdId(g, 8),
@@ -350,6 +352,7 @@ export function decodeGeneral(b) {
 		privateHang: g[0x19] === 0xFF ? 0 : g[0x19],
 		bootLine1: getName(b, BOOT_TEXT, 16),
 		bootLine2: getName(b, BOOT_TEXT + 16, 16),
+		...(bootImageValid(bootImage) ? { bootImage } : {}),
 		...Object.fromEntries(KEYS.map((row) => [row.name, getKey(kv, row)])),
 	};
 }
@@ -366,12 +369,4 @@ export function encodeGeneral(s, b) {
 	if (was.privateHang !== s.privateHang) g[0x19] = s.privateHang & 0xFF;
 	if (was.bootLine1 !== s.bootLine1) putName(b, BOOT_TEXT, 16, s.bootLine1);
 	if (was.bootLine2 !== s.bootLine2) putName(b, BOOT_TEXT + 16, 16, s.bootLine2);
-	// the settings area only when one of its keys changed; an area of a newer version is never written (model.js
-	// validate() warns), nor is a value out of range (validate()'s error)
-	const vals = {};
-	for (const row of KEYS) {
-		const v = s[row.name] ?? null;
-		if (was[row.name] !== v && (v === null || keyValid(row, v))) vals[row.name] = v;
-	}
-	if (Object.keys(vals).length) putKeys(b, vals);
 }

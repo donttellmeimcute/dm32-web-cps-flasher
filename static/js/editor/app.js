@@ -10,7 +10,8 @@ import { equal } from "../flasher/bytes.js?v=c16ffd9bbf";
 import { SerialStream, serialSupported, serialApi, RFOUNDRY_USB, browserErrorKey, knownRadioPort } from "../flasher/link.js?v=c16ffd9bbf";
 import { CodeplugImage, IDDB_HEADER, EDITOR_REGIONS } from "../codeplug/image.js?v=c16ffd9bbf";
 import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=89bf988ad1";
-import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=89bf988ad1";
+import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=21c0de0054";
+import { BOOT_IMAGE_EDGE, packBootImage } from "../codeplug/bootimage.js";
 import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=89bf988ad1";
 import { FastError } from "../codeplug/fastlink.js?v=c16ffd9bbf";
 import { areaForWrite, KEYS } from "../codeplug/kv.js?v=c16ffd9bbf";
@@ -22,8 +23,8 @@ import { Grid } from "./grid.js?v=c16ffd9bbf";
 import { History } from "./undo.js?v=c16ffd9bbf";
 import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=6244577532";
 import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=89bf988ad1";
-import { drawBootPreview, BOOT_PREVIEW_WIDTH, BOOT_PREVIEW_HEIGHT } from "./bootpreview.js?v=798db71156";
-import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=89bf988ad1";
+import { drawBootPreview, BOOT_PREVIEW_WIDTH, BOOT_PREVIEW_HEIGHT } from "./bootpreview.js?v=21c0de0054";
+import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=21c0de0054";
 import { openFile, saveBytes, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=89bf988ad1";
 import { extensions } from "./extensions.js?v=c16ffd9bbf";
 import "./parts.js?v=89bf988ad1";
@@ -381,6 +382,41 @@ function openRecord(tab, r) {
 
 // --- Radio tab: the radio-wide settings, in sections ---
 
+function bootImageField(g) {
+	const current = S.model;
+	const err = h("span", { class: "small ed-err", "aria-live": "polite" });
+	const setImage = (bootImage) => change(t("editor.undo.edit"), () => {
+		S.model.general = { ...S.model.general, bootImage };
+	});
+	const input = h("input", { id: "g-boot-image", type: "file", accept: "image/png,image/jpeg,image/webp" });
+	input.addEventListener("change", async () => {
+		const file = input.files[0];
+		if (!file) return;
+		try {
+			const image = await createImageBitmap(file);
+			try {
+				const edge = BOOT_IMAGE_EDGE;
+				const canvas = h("canvas", { width: edge, height: edge });
+				const ctx = canvas.getContext("2d");
+				const scale = edge / Math.max(image.width, image.height);
+				const w = Math.max(1, Math.round(image.width * scale));
+				const hgt = Math.max(1, Math.round(image.height * scale));
+				ctx.drawImage(image, (edge - w) / 2, (edge - hgt) / 2, w, hgt);
+				if (S.model === current)
+					setImage(packBootImage(ctx.getImageData(0, 0, edge, edge).data));
+			} finally {
+				image.close();
+			}
+		} catch {
+			err.textContent = t("editor.general.boot_image_error");
+			input.value = "";
+		}
+	});
+	return h("div", { class: "form-row" }, h("label", { for: "g-boot-image" }, t("editor.general.boot_image")),
+		input, g.bootImage ? button(t("editor.general.boot_image_reset"), () => setImage(null), { quiet: true }) : null,
+		h("span", { class: "small muted" }, t("editor.general.boot_image_help")), err);
+}
+
 function radioTab() {
 	const g = S.model.general;
 	const field = (key, label, max, help, parse) => {
@@ -428,7 +464,7 @@ function radioTab() {
 	if (pctx) {
 		drawBootPreview(pctx, { line1: g.bootLine1 ?? "", line2: g.bootLine2 ?? "",
 			model: S.conn?.radio?.name ?? "DM-32UV", version: S.conn?.probe?.git ?? "",
-			photoLabel: t("editor.general.boot_preview_photo") });
+			photoLabel: t("editor.general.boot_preview_photo"), bootImage: g.bootImage });
 	}
 	const modeRows = modeSettingsPart(api(), features());
 	const keyRows = keyringPart(api(), features());
@@ -440,10 +476,11 @@ function radioTab() {
 			section(t("editor.general.section_boot"),
 				field("bootLine1", t("editor.general.boot1"), LIMITS.bootText, null, text(LIMITS.bootText)),
 				field("bootLine2", t("editor.general.boot2"), LIMITS.bootText, null, text(LIMITS.bootText)),
+				bootImageField(g),
 				h("div", { class: "form-note" },
 					h("p", { class: "small muted" }, t("editor.general.boot_preview")),
 					preview,
-					h("p", { class: "small muted" }, t("editor.general.boot_preview_note")))),
+					g.bootImage ? null : h("p", { class: "small muted" }, t("editor.general.boot_preview_note")))),
 			section(t("editor.general.section_times"),
 				field("groupHang", t("editor.general.group_hang"), 3, t("editor.general.hang_help"), num(0, 255)),
 				field("privateHang", t("editor.general.private_hang"), 3, t("editor.general.hang_help"), num(0, 255))),

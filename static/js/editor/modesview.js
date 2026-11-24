@@ -9,7 +9,7 @@
 import { formDialog, fallbackOptions } from "./views.js?v=89bf988ad1";
 import { specField, parseSpec, formatSpec, label } from "./modefields.js?v=c16ffd9bbf";
 import { SYSTEM_TYPES, typeRow, typeName, offeredTypes, offeredKinds } from "../codeplug/modes.js?v=c16ffd9bbf";
-import { newSystem, syncModes, SHARE, MODE_LIMITS, KEY_ALGS, KEY_MAX, keyAlg, keyBytes, validKeyHex, newKey } from "../codeplug/channelmodes.js?v=89bf988ad1";
+import { newSystem, syncModes, SHARE, MODE_LIMITS, KEY_ALGS, KEY_MAX, keyAlg, keyBytes, validKeyHex, newKey } from "../codeplug/channelmodes.js?v=21c0de0054";
 import { remove, assignNumbers } from "../codeplug/model.js?v=89bf988ad1";
 
 const SHARE_LEVELS = [SHARE.off, SHARE.identity, SHARE.whole];
