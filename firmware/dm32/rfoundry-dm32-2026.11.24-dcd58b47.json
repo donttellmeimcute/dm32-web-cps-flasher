@@ -2,18 +2,18 @@
   "format": "rfoundry-release/1",
   "board": "dm32",
   "board_name": "Baofeng DM-32UV",
-  "version": "2026.11.24-e20b1b4d",
-  "git": "e20b1b4d",
-  "git_full": "e20b1b4d15a1b2d92574422115ae54754342f774",
+  "version": "2026.11.24-dcd58b47",
+  "git": "dcd58b47",
+  "git_full": "dcd58b4795cbd0b18bde991236753bf3794f6e10",
   "image": {
-    "file": "rfoundry-dm32-2026.11.24-e20b1b4d.bin",
-    "size": 801604,
-    "sha256": "73ea78743cb379f14efb1def2d41906a060dcbf17be32f58f2113f41816c8a4a"
+    "file": "rfoundry-dm32-2026.11.24-dcd58b47.bin",
+    "size": 802756,
+    "sha256": "c5cf34a976dd03b7faa896d2a4387cc258ade0035b89464c663d0d64ec27d927"
   },
   "ranges": [
     {
       "addr": "0x0300C000",
-      "size": 801604
+      "size": 802756
     }
   ],
   "sectors": [
@@ -37,5 +37,5 @@
   "toolchain": "csky-elf-gcc (GCC) 14.3.0",
   "variant": "full",
   "off": "USB_SERIAL_REQUEST,VOICE_CAPTURE,NET_HTTP,NET_HTTP_GZIP,NET_WEBCTL,NET_RIGCTL,NET_APRSIS,NET_USRP,SNMP,SFR,SFR_DUALPATH_RX,SFR_CWID,BACKLIGHT_TEST,LANG_IT,LANG_FR,LANG_ZH,LANG_DEFAULT_ES,LANG_DEFAULT_IT,LANG_DEFAULT_FR,LANG_DEFAULT_ZH,RX_EXT_ON,VIBRATE,BCAST_FM,AIR_RAW",
-  "git_time": 1795552282
+  "git_time": 1795554411
 }
