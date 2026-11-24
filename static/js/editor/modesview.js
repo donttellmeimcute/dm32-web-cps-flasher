@@ -6,11 +6,11 @@
 // channels, plan rows) in a table per class, and its secret behind a button. What a type holds comes from its mode
 // module (codeplug/mode_*.js); no mode is named here.
 
-import { formDialog, fallbackOptions } from "./views.js?v=73b72f8d2a";
+import { formDialog, fallbackOptions } from "./views.js?v=84230e23e2";
 import { specField, parseSpec, formatSpec, label } from "./modefields.js?v=c16ffd9bbf";
-import { SYSTEM_TYPES, typeRow, typeName, offeredTypes, offeredKinds } from "../codeplug/modes.js?v=73b72f8d2a";
-import { newSystem, syncModes, SHARE, MODE_LIMITS, KEY_ALGS, KEY_MAX, keyAlg, keyBytes, validKeyHex, newKey, scramblerSeed, scramblerKeyHex } from "../codeplug/channelmodes.js?v=73b72f8d2a";
-import { remove, assignNumbers } from "../codeplug/model.js?v=73b72f8d2a";
+import { SYSTEM_TYPES, typeRow, typeName, offeredTypes, offeredKinds } from "../codeplug/modes.js?v=84230e23e2";
+import { newSystem, syncModes, SHARE, MODE_LIMITS, KEY_ALGS, KEY_MAX, keyAlg, keyBytes, validKeyHex, newKey, scramblerSeed, scramblerKeyHex } from "../codeplug/channelmodes.js?v=84230e23e2";
+import { remove, assignNumbers } from "../codeplug/model.js?v=84230e23e2";
 
 const SHARE_LEVELS = [SHARE.off, SHARE.identity, SHARE.whole];
 

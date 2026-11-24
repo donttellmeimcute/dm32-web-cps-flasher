@@ -148,5 +148,12 @@
 	"editor.stock_aes.imported": "Se importaron {n} clave(s) AES-256 para esta sesión.",
 	"editor.stock_aes.radio_conflict": "La escritura reemplazaría una clave AES-256 de la radio con el ID de cifrado {id}. Resuelve primero el conflicto en el llavero.",
 	"editor.stock_aes.radio_area": "El llavero de esta radio no puede recibir las claves AES-256 importadas.",
-	"editor.qdmr.note.stock_aes_rx_only": "Canales cifrados sin clave asociada: {n} quedan en solo recepción."
+	"editor.qdmr.note.stock_aes_rx_only": "Canales cifrados sin clave asociada: {n} quedan en solo recepción.",
+ "editor.m17.can": "Número de acceso al canal (CAN)",
+ "editor.m17.can_help": "0 a 15: el que se envía y el único CAN que se escucha (el monitor digital escucha todos).",
+ "editor.m17.dest": "Destino",
+ "editor.m17.dest_help": "El indicativo o reflector llamado, hasta 9 caracteres. Vacío o ALL: difusión.",
+ "editor.m17.src": "Indicativo de origen",
+ "editor.m17.src_help": "Tu indicativo, enviado en cada transmisión M17. Vacío: el nombre de la radio.",
+ "editor.problem.m17_call_chars": "Usa hasta 9 caracteres: A-Z, 0-9, - / . y espacio."
 }

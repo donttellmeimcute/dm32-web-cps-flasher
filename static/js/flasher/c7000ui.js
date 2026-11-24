@@ -1363,7 +1363,7 @@ async function bringChannels(c, status, left) {
 	let m, tr, conv;
 	const from = c.calArea ? "backup" : "radio";
 	try {
-		m = await import("./migrate.js?v=73b72f8d2a");
+		m = await import("./migrate.js?v=84230e23e2");
 		const { CpsSerial } = await import("../codeplug/transport.js?v=f2317c7c75");
 		tr = new CpsSerial(c.stream, { cable: true });
 		let stock = c.calArea;

@@ -148,5 +148,12 @@
 	"editor.stock_aes.imported": "Imported {n} AES-256 key(s) for this session.",
 	"editor.stock_aes.radio_conflict": "Writing would replace a destination AES-256 key with Encryption ID {id}. Resolve the keyring conflict first.",
 	"editor.stock_aes.radio_area": "This radio’s keyring cannot accept the imported AES-256 keys.",
-	"editor.qdmr.note.stock_aes_rx_only": "Encrypted channels without a matched key: {n} remain receive-only."
+	"editor.qdmr.note.stock_aes_rx_only": "Encrypted channels without a matched key: {n} remain receive-only.",
+ "editor.m17.can": "Channel access number (CAN)",
+ "editor.m17.can_help": "0 to 15: what is sent, and the only CAN heard (digital monitor hears every CAN).",
+ "editor.m17.dest": "Destination",
+ "editor.m17.dest_help": "The call sign or reflector called, up to 9 characters. Blank or ALL: broadcast.",
+ "editor.m17.src": "Source call sign",
+ "editor.m17.src_help": "Your call sign, sent on every M17 transmission. Blank: the radio's name.",
+ "editor.problem.m17_call_chars": "Use up to 9 characters: A-Z, 0-9, - / . and space."
 }

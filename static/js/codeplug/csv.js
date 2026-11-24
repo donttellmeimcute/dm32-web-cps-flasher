@@ -8,9 +8,9 @@
 
 import { parseFreq, parseTone, mhz } from "./fields.js?v=c16ffd9bbf";
 import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=6276ed067d";
-import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=73b72f8d2a";
-import { setKind } from "./channelmodes.js?v=73b72f8d2a";
-import { kindName } from "./modes.js?v=73b72f8d2a";
+import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=84230e23e2";
+import { setKind } from "./channelmodes.js?v=84230e23e2";
+import { kindName } from "./modes.js?v=84230e23e2";
 import { SCRAMBLER_KIND } from "./mode_nxdn.js";
 
 // --- RFC 4180 ---
@@ -156,9 +156,9 @@ const MODES = { fm: "FM", dmr: "DMR", nxdn: "NXDN", ysf: "YSF" };
 // A word a file may use for the mode, and the channel kind it means (0: a plain FM or DMR channel). Besides the
 // editor's own names these are the kind short names the editor itself exports (P25, P25T, T3, AM), so its own files
 // round-trip, and the stock CPS's Analog/Digital
-const MODE_WORDS = { fm: 0, analog: 0, digital: 0, nxdn: 4, ysf: 6, c4fm: 6, fusion: 6, "system fusion": 6, "yaesu system fusion": 6, p25: 2, p25t: 3, t3: 1, am: 5, "d-star": 9, dstar: 9 };
+const MODE_WORDS = { fm: 0, dmr: 0, analog: 0, digital: 0, nxdn: 4, ysf: 6, c4fm: 6, fusion: 6, "system fusion": 6, "yaesu system fusion": 6, p25: 2, p25t: 3, t3: 1, am: 5, m17: 7, "d-star": 9, dstar: 9 };
 const PLAIN_OF_WORD = { analog: "fm", digital: "dmr" };
-const MODE_ALLOWED = "FM, DMR, NXDN, NXDN Scrambler, YSF, P25, P25T, T3, AM, D-STAR";
+const MODE_ALLOWED = "FM, DMR, NXDN, NXDN Scrambler, YSF, P25, P25T, T3, AM, M17, D-STAR";
 
 // A channel's mode, as a kind or a plain mode: a kind channel exports its kind's name (the base record stands in as
 // DMR, so MODES[mode] would read DMR for it), a plain one its mode. Setting it makes or unmakes the kind
@@ -168,6 +168,7 @@ const modeCol = {
 	header: "Mode", aliases: ["Channel Mode", "Channel Type", "Type"], key: "mode",
 	get: (r) => {
 		if (r.kind === SCRAMBLER_KIND) return `NXDN ${r.params?.rate9600 === false ? "4800" : "9600"} Scrambler`;
+		if (r.kind === NXDN_KIND) return r.params?.rate9600 === false ? "NXDN 4800" : "NXDN 9600";
 		if (r.kind) {
 			const n = kindName(r.kind);
 			if (n !== "?") return n;
@@ -180,6 +181,11 @@ const modeCol = {
 		if (["nxdn scrambler", "nxdn-s", "nxdn 9600 scrambler", "nxdn 4800 scrambler"].includes(v)) {
 			setKind(m, r, SCRAMBLER_KIND);
 			r.params = { ...r.params, rate9600: v !== "nxdn 4800 scrambler" };
+			return;
+		}
+		if (["nxdn48", "nxdn96", "nxdn 4800", "nxdn 9600"].includes(v)) {
+			setKind(m, r, NXDN_KIND);
+			r.params = { ...r.params, rate9600: v === "nxdn96" || v === "nxdn 9600" };
 			return;
 		}
 		const kind = MODE_WORDS[v];
@@ -301,7 +307,7 @@ const ranCol = (header, key, aliases) => ({
 // YSF (mode_ysf.js): kind 6 (modes.js). A column of a YSF channel's parameters, blank on any other channel; a value
 // on a channel that is not YSF is reported as a bad value instead of being dropped silently. A blank cell keeps the
 // value, except TX DG-ID, which sends the RX DG-ID, and Destination, which calls ALL, as the editor's blanks do.
-const DSTAR_KIND = 9;
+const M17_KIND = 7, DSTAR_KIND = 9;
 const YSF_KIND = 6, DGID_MAX = 127, CALLSIGN_LEN = 10;
 const ysfCol = (header, key, aliases, get, set) => ({
 	header, aliases, key,
@@ -467,11 +473,11 @@ export const TABLES = {
 			ref("APRS", "aprs", "aprs", ["APRS Configuration"]),
 			c("DMR ID", "dmrId", asId, (r) => r.dmrId || "", ["Channel DMR ID"]),
 			{ header: "RX Only", key: "rxOnly", aliases: ["Forbid TX"],
-				get: (r) => yesNo(r.kind === SCRAMBLER_KIND || ([YSF_KIND, DSTAR_KIND].includes(r.kind) ? !r.tagTx : r.rxOnly)),
+				get: (r) => yesNo(r.kind === SCRAMBLER_KIND || ([YSF_KIND, M17_KIND, DSTAR_KIND].includes(r.kind) ? !r.tagTx : r.rxOnly)),
 				set: (r, s) => {
-					if ([YSF_KIND, SCRAMBLER_KIND, DSTAR_KIND].includes(r.kind) && !s.trim()) return;
+					if ([YSF_KIND, SCRAMBLER_KIND, M17_KIND, DSTAR_KIND].includes(r.kind) && !s.trim()) return;
 					const rxOnly = asBool(s);
-					if ([YSF_KIND, SCRAMBLER_KIND, DSTAR_KIND].includes(r.kind)) r.tagTx = !rxOnly;
+					if ([YSF_KIND, SCRAMBLER_KIND, M17_KIND, DSTAR_KIND].includes(r.kind)) r.tagTx = !rxOnly;
 					else r.rxOnly = rxOnly;
 				} },
 			{ header: "NXDN Scrambler Key ID", key: "scramblerKeyId", aliases: [],

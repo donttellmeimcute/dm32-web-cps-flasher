@@ -14,6 +14,7 @@ import { nxdnKind, nxdnScramblerKind } from "./mode_nxdn.js?v=6276ed067d";
 import { amKind } from "./mode_am.js?v=c16ffd9bbf";
 import { ysfKind } from "./mode_ysf.js?v=c16ffd9bbf";
 
+import { m17Kind } from "./mode_m17.js?v=84230e23e2";
 import { dstarKind } from "./mode_dstar.js?v=73b72f8d2a";
 
 // id, the C token, the short name the radio shows, the feature that runs it, its module
@@ -24,6 +25,7 @@ export const KINDS = [
 	{ id: 4, token: "NXDN", short: "NXDN", feature: "NXDN", module: nxdnKind },
 	{ id: 5, token: "AM", short: "AM", feature: "AM_RX", module: amKind },
 	{ id: 6, token: "YSF", short: "YSF", feature: "YSF", module: ysfKind },
+	{ id: 7, token: "M17", short: "M17", feature: "M17", module: m17Kind },
 	{ id: 8, token: "NXDN_SCRAMBLER", short: "NXDN-S", feature: "NXDN_SCRAMBLER", module: nxdnScramblerKind },
 	{ id: 9, token: "DSTAR", short: "D-STAR", feature: "DSTAR", module: dstarKind },
 ];
