@@ -10,6 +10,7 @@ import { parseFreq, parseTone, mhz } from "./fields.js?v=c16ffd9bbf";
 import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=f3daccc684";
 import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=1274c7a098";
 import { setKind } from "./channelmodes.js?v=24556515d7";
+import { dstarCallValid } from "./mode_dstar.js";
 import { kindName } from "./modes.js?v=2b5c5c629e";
 import { callOk } from "./mode_m17.js?v=e54b64a875";
 import { SCRAMBLER_KIND } from "./mode_nxdn.js";
@@ -309,6 +310,19 @@ const ranCol = (header, key, aliases) => ({
 // on a channel that is not YSF is reported as a bad value instead of being dropped silently. A blank cell keeps the
 // value, except TX DG-ID, which sends the RX DG-ID, and Destination, which calls ALL, as the editor's blanks do.
 const M17_KIND = 7, DSTAR_KIND = 9;
+const dstarCol = (header, key, aliases) => ({
+	header, key, aliases,
+	get: (r) => r.kind === DSTAR_KIND ? r.params?.[key] ?? "" : "",
+	set: (r, s) => {
+		const value = s.trim();
+		if (r.kind !== DSTAR_KIND) {
+			if (!value) return;
+			throw new Bad("bad_value", { value, allowed: "D-STAR" });
+		}
+		if (!dstarCallValid(key, value)) throw new Bad("bad_value", { value, allowed: header });
+		r.params = { ...r.params, [key]: value };
+	},
+});
 const m17Col = (header, key, parse) => ({
 	header, key, aliases: [],
 	get: (r) => r.kind === M17_KIND ? r.params[key] : "",
@@ -490,6 +504,9 @@ export const TABLES = {
 			ysfDgidCol("RX DG-ID", "rxDgid", ["Receive DG-ID"]),
 			ysfDgidCol("TX DG-ID", "txDgid", ["Transmit DG-ID"]),
 			ysfDestCol(),
+			dstarCol("D-STAR URCALL", "ur", ["URCALL"]),
+			dstarCol("D-STAR RPT1", "rpt1", ["RPT1"]),
+			dstarCol("D-STAR RPT2", "rpt2", ["RPT2"]),
 			ref("TX Contact", "contact", "contacts", ["Contact"]),
 			ref("RX Group List", "rxList", "rxLists", ["Group List", "RX List"]),
 			ref("APRS", "aprs", "aprs", ["APRS Configuration"]),
