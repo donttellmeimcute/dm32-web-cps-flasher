@@ -13,17 +13,16 @@ export function packBootImage(rgba) {
 	if (rgba.length !== BOOT_IMAGE_EDGE ** 2 * 4) throw new RangeError("Invalid image dimensions");
 	const image = new Uint8Array(BOOT_IMAGE_BYTES);
 	const luma = (i) => (0.2126 * rgba[i] + 0.7152 * rgba[i + 1] + 0.0722 * rgba[i + 2]) / 255;
-	let coverage = 0, brightness = 0, transparent = false;
+	let transparent = false, lightArtwork = true;
 	for (let i = 0; i < rgba.length; i += 4) {
-		const alpha = rgba[i + 3];
-		transparent ||= alpha < 255;
-		coverage += alpha;
-		brightness += luma(i) * alpha;
+		transparent ||= rgba[i + 3] < 255;
+		lightArtwork &&= rgba[i + 3] === 0 || luma(i) >= 2 / 3;
 	}
-	// A dark logo on a transparent background should use the theme foreground.
-	const invert = transparent && brightness < coverage / 2;
+	// Keep transparent white graphics legible as theme ink. Mixed tones retain their source polarity.
+	const whiteLogo = transparent && lightArtwork;
 	for (let i = 0; i < rgba.length; i += 4) {
-		const shade = (invert ? 1 - luma(i) : luma(i)) * rgba[i + 3] / 255;
+		// Shade 0 is the theme background and 3 is its ink. Alpha blends towards the background.
+		const shade = (whiteLogo ? luma(i) : 1 - luma(i)) * rgba[i + 3] / 255;
 		const pixel = i / 4;
 		image[pixel >> 2] |= Math.round(shade * 3) << (6 - 2 * (pixel & 3));
 	}

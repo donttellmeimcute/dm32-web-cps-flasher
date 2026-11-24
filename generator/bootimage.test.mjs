@@ -8,9 +8,10 @@ import { decodeArea, getValue, putArea, setValue } from "../static/js/codeplug/k
 
 test("a startup image round-trips alongside other settings and can be removed", () => {
 	const pixels = new Uint8ClampedArray(BOOT_IMAGE_EDGE ** 2 * 4);
-	pixels.set([255, 255, 255, 255, 170, 170, 170, 255, 85, 85, 85, 255, 255, 255, 255, 0]);
+	pixels.fill(255);
+	pixels.set([255, 255, 255, 255, 170, 170, 170, 255, 85, 85, 85, 255, 0, 0, 0, 255]);
 	const image = packBootImage(pixels);
-	assert.equal(image[0], 0xe4);
+	assert.equal(image[0], 0x1b);
 	const model = empty();
 	model.general.bootImage = image;
 	model.general.batteryTone = true;
@@ -35,14 +36,20 @@ test("an unknown startup image record is preserved by unrelated edits", () => {
 	assert.deepEqual(getValue(decodeArea(encode(model).bytes).entries, BOOT_IMAGE_KEY), Uint8Array.of(1, 2, 3));
 });
 
-test("a transparent black logo is visible and can replace obsolete mode records", () => {
+test("a transparent image keeps shadows and can replace obsolete mode records", () => {
 	const pixels = new Uint8ClampedArray(BOOT_IMAGE_EDGE ** 2 * 4);
-	pixels.set([0, 0, 0, 255]);
+	pixels.set([0, 0, 0, 255, 0, 0, 0, 128, 0, 0, 0, 0, 255, 255, 255, 255]);
 	const image = packBootImage(pixels);
-	assert.equal(image[0], 0xc0);
+	assert.equal(image[0], 0xe0);
 	const saved = encode(empty());
 	assert.ok(putArea(saved.bytes, setValue(decodeArea(saved.bytes).entries, 0x0400, new Uint8Array(3500))));
 	const model = decode(saved);
 	model.general.bootImage = image;
 	assert.deepEqual(decode(encode(model)).general.bootImage, image);
+});
+
+test("a transparent white logo uses the theme foreground", () => {
+	const pixels = new Uint8ClampedArray(BOOT_IMAGE_EDGE ** 2 * 4);
+	pixels.set([255, 255, 255, 255, 255, 255, 255, 128]);
+	assert.equal(packBootImage(pixels)[0], 0xe0);
 });
