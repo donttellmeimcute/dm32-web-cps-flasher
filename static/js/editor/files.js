@@ -5,17 +5,17 @@
 // stock TYT-family codeplug, docs/spec/codeplug-stock-tyt.md, or a stock DM-32UV one, dm32-stock-codeplug.md) is
 // converted, or reported as foreign.
 
-import { CodeplugImage, CODEPLUG_SPAN, TFTP_SIZE } from "../codeplug/image.js";
-import { recordSize, extent, convert, readHeader } from "../codeplug/iddb.js";
-import { openBundle, bundleFolder } from "../flasher/backup.js";
-import { unzip } from "../flasher/zip.js";
-import { equal, startsWith, toHex } from "../flasher/bytes.js";
-import { classify } from "../codeplug/detect.js";
-import { importStock, STOCK, RDT_MD380 } from "../codeplug/stock_tyt.js";
-import { DM32_STOCK, importStock as importDm32 } from "../codeplug/stock_baofeng.js";
-import { empty, encode } from "../codeplug/model.js";
-import { KEY_BASE, KEY_MAX, withoutSecrets } from "../codeplug/channelmodes.js?v=4e59cc1687";
-import { areaForWrite, decodeArea, putArea, KV_ADDR, KV_SIZE } from "../codeplug/kv.js?v=cc628ffe34";
+import { CodeplugImage, CODEPLUG_SPAN, TFTP_SIZE } from "../codeplug/image.js?v=c16ffd9bbf";
+import { recordSize, extent, convert, readHeader } from "../codeplug/iddb.js?v=c16ffd9bbf";
+import { openBundle, bundleFolder } from "../flasher/backup.js?v=c16ffd9bbf";
+import { unzip } from "../flasher/zip.js?v=c16ffd9bbf";
+import { equal, startsWith, toHex } from "../flasher/bytes.js?v=c16ffd9bbf";
+import { classify } from "../codeplug/detect.js?v=4436b923d7";
+import { importStock, STOCK, RDT_MD380 } from "../codeplug/stock_tyt.js?v=76466c6282";
+import { DM32_STOCK, importStock as importDm32 } from "../codeplug/stock_baofeng.js?v=705a8b996e";
+import { empty, encode } from "../codeplug/model.js?v=1274c7a098";
+import { KEY_BASE, KEY_MAX, withoutSecrets } from "../codeplug/channelmodes.js?v=3f45e6e761";
+import { areaForWrite, decodeArea, putArea, KV_ADDR, KV_SIZE } from "../codeplug/kv.js?v=fb7a4bee6f";
 
 // code: the editor.err.* text; params: what the file was, for the error report (never its contents)
 export class FileError extends Error {

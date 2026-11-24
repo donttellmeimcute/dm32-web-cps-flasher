@@ -16,12 +16,12 @@
 // fields, raw}], secret (the module's fields, {raw} for a type without, null for none), flagsRaw, raw}.
 // m.modeSettings: {kind id: the module's fields}.
 
-import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, KV_SIZE, KV_HDR, KEYS, getKey, keyValid, keyValue } from "./kv.js?v=cc628ffe34";
+import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, KV_SIZE, KV_HDR, KEYS, getKey, keyValid, keyValue } from "./kv.js?v=fb7a4bee6f";
 import { BOOT_IMAGE_KEY, bootImageValid } from "./bootimage.js";
-import { getName, putName } from "./fields.js";
-import { redactDmrBasicKeys } from "./records.js";
-import { KINDS, kindRow, typeRow, radioRuns } from "./modes.js";
-import { u16, u32, put16, put32, sameBytes, sameValue, nameCheck } from "./modebytes.js";
+import { getName, putName } from "./fields.js?v=c16ffd9bbf";
+import { redactDmrBasicKeys } from "./records.js?v=f3daccc684";
+import { KINDS, kindRow, typeRow, radioRuns } from "./modes.js?v=2b5c5c629e";
+import { u16, u32, put16, put32, sameBytes, sameValue, nameCheck } from "./modebytes.js?v=c16ffd9bbf";
 import { SCRAMBLER_ALG, SCRAMBLER_SEED_MAX } from "./mode_nxdn.js";
 
 export const MODE_KEY = { system: 0x0100, entry: 0x0200, secret: 0x0300, tag: 0x0400, setting: 0x0A00 };
