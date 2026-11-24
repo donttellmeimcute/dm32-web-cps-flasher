@@ -21,7 +21,7 @@ import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=89bf988ad1
 import { FakeCpsRadio } from "../codeplug/fakecps.js?v=c16ffd9bbf";
 import { Grid } from "./grid.js?v=c16ffd9bbf";
 import { History } from "./undo.js?v=c16ffd9bbf";
-import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=6244577532";
+import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=dbaabc57d9";
 import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=89bf988ad1";
 import { drawBootPreview, BOOT_PREVIEW_WIDTH, BOOT_PREVIEW_HEIGHT } from "./bootpreview.js?v=21c0de0054";
 import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=21c0de0054";
@@ -323,7 +323,7 @@ function renumber(tab) {
 
 function bulkSet(tab, g) {
 	const rows = g.selection();
-	const cols = bulkColumns(tab, S.model, t, { features: features() });
+	const cols = bulkColumns(tab, S.model, t, { features: features(), rows });
 	if (!cols.length) return;
 	const pickCol = h("select", { id: "bulk-field" }, ...cols.map((c, i) => h("option", { value: String(i) }, c.label)));
 	const slot = h("div", { class: "form-row" });

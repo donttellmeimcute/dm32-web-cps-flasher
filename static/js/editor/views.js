@@ -153,7 +153,29 @@ const refLabel = (v, t) => (v == null ? "" : typeof v === "number" ? t("editor.m
 
 // The columns Bulk Edit can set: every editable one but the name and number, which must differ per record. None on a
 // table whose members are edited in its own dialog (zones, RX lists): Bulk Edit isn't offered there
-export const bulkColumns = (table, m, t, opts) => columns(table, m, t, opts).filter((c) => c.readOnly !== true && c.key !== "name" && c.key !== "number");
+export function bulkColumns(table, m, t, { rows = [], ...opts } = {}) {
+	const out = columns(table, m, t, opts).filter((c) => c.readOnly !== true && c.key !== "name" && c.key !== "number");
+	if (table !== "channels" || rows.length === 0) return out;
+	const first = rows[0];
+	const token = first.kind ? kindRow(first.kind)?.token.toLowerCase() : first.mode;
+	const alg = ["dmr", "p25", "nxdn"].includes(token) ? KEY_ALGS.find((a) => a.token === token) : undefined;
+	if (!alg || !rows.every((r) => first.kind ? r.kind === first.kind : !r.kind && r.mode === "dmr")) return out;
+	const dmr = !first.kind;
+	out.push({
+		key: "bulkAes", label: t(`editor.keys.alg.${alg.token}`), type: "select",
+		options: () => aesOptions(m, t, alg, null, "editor.none"),
+		set: (r, id) => {
+			if (!dmr) {
+				r.params = { ...r.params, aes: id != null, keyId: id ?? 0 };
+			} else if (id != null || r.dmrPrivacy === DMR_PRIV.aes || r.dmrAesKid) {
+				r.dmrPrivacy = id != null ? DMR_PRIV.aes : DMR_PRIV.off;
+				r.dmrPrivacyKey = id ?? 0;
+				delete r.dmrAesKid;
+			}
+		},
+	});
+	return out;
+}
 
 export function columns(table, m, t, { features = null } = {}) {
 	const col = (key, label, type, parse, extra = {}) => ({
