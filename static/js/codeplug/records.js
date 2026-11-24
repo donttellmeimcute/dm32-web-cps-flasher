@@ -101,6 +101,7 @@ export function decodeChannel(r, memory = false) {
 		sfr: (l1 & 0x02) !== 0,
 		sfrA: r[0x25],
 		sfrB: r[0x2A] & ~0x40,
+		acceptBadCrc: (r[0x2A] & 0x30) === 0x20,
 		toneBurst: r[0x2A] !== 0xFF && (r[0x2A] & 0x40) !== 0,	// FM: SFR byte B bit 6, read without the SFR flag (7.3.3); 0xFF = not set
 	};
 }
@@ -155,6 +156,9 @@ export function encodeChannel(c, r, memory = false) {
 	}
 	r[0x25] = c.sfrA & 0xFF;
 	r[0x2A] = (c.sfrB & 0xBF) | (c.toneBurst ? 0x40 : 0);
+	// Retain the off pattern from an older writer unless the checkbox changed.
+	if (c.acceptBadCrc) r[0x2A] = (r[0x2A] & ~0x30) | 0x20;
+	else if ((r[0x2A] & 0x30) === 0x20) r[0x2A] &= ~0x30;
 	if (r[0x2A] === 0xFF) r[0x2A] = 0xCF;	// 0xFF reads as not set: the unused bits 5-4 cleared (as the firmware)
 	return r;
 }

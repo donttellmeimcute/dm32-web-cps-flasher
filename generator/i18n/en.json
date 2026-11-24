@@ -1,4 +1,11 @@
 {
+	"editor.t3.opt.followAll_help": "Plays calls on all of the system's talkgroups, not only the channel's RX group list. Digital monitor does the same while it is on.",
+	"editor.t3.opt.learnSystem_help": "Takes the first control channel heard as this system, whatever the model and NET say. Only while the radio listens: a system that transmits uses the identity above.",
+	"editor.t3.opt.followAll": "Follow every talkgroup",
+	"editor.t3.opt.learnSystem": "Learn the system from the air",
+	"editor.col.accept_bad_crc": "Accept Invalid CRC",
+	"editor.col.accept_bad_crc_help": "Listen only. Recheck control and voice headers flagged by the modem using their software CRC or error correction.",
+	"editor.problems.unique": "Assign unique name",
 	"editor.radio_err.programming_locked": "Programming is locked. On the radio, open Settings → My radio → Unlock or relock programming, enter your PIN, and try again.",
 	"flash.task.startup_image": "Change Startup Image",
 	"flash.task.startup_image.text": "Open the Radio tab of the Codeplug Editor to load an image.",

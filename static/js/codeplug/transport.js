@@ -12,7 +12,7 @@
 
 import { CodeplugImage, EDITOR_REGIONS, IDDB_HEADER, CODEPLUG_SPAN } from "./image.js?v=c16ffd9bbf";
 import { readHeader, extent, AREA1, AREA1_SIZE, AREA2 } from "./iddb.js?v=c16ffd9bbf";
-import { GENERAL, BOOT_TEXT } from "./records.js?v=6276ed067d";
+import { GENERAL, BOOT_TEXT } from "./records.js?v=f3daccc684";
 import { Link, probe, whyNoAnswer } from "../flasher/link.js?v=c16ffd9bbf";
 import { crc32, sleep } from "../flasher/bytes.js?v=c16ffd9bbf";
 import { encodeBlock } from "../flasher/lz4.js?v=c16ffd9bbf";

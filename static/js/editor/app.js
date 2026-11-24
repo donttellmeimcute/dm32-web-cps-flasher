@@ -9,25 +9,25 @@ import { h, t, ROOT, HOME, button, notice, download, progressBar, num as fmtNum,
 import { equal } from "../flasher/bytes.js?v=c16ffd9bbf";
 import { SerialStream, serialSupported, serialApi, RFOUNDRY_USB, browserErrorKey, knownRadioPort } from "../flasher/link.js?v=c16ffd9bbf";
 import { CodeplugImage, IDDB_HEADER, EDITOR_REGIONS } from "../codeplug/image.js?v=c16ffd9bbf";
-import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=84230e23e2";
-import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=6276ed067d";
+import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=1274c7a098";
+import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=f3daccc684";
 import { BOOT_IMAGE_EDGE, packBootImage } from "../codeplug/bootimage.js";
-import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=f2317c7c75";
+import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=a933792829";
 import { FastError } from "../codeplug/fastlink.js?v=c16ffd9bbf";
 import { areaForWrite, KEYS } from "../codeplug/kv.js?v=c16ffd9bbf";
 import { toSerial, CLICK_WAIT_MS } from "../flasher/netmode.js?v=c16ffd9bbf";
 import { convert as convertDb, readHeader as dbHeader } from "../codeplug/iddb.js?v=c16ffd9bbf";
-import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=84230e23e2";
+import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=7d2463a3f0";
 import { FakeCpsRadio } from "../codeplug/fakecps.js?v=f2317c7c75";
 import { Grid } from "./grid.js?v=c16ffd9bbf";
 import { History } from "./undo.js?v=c16ffd9bbf";
-import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=84230e23e2";
-import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=84230e23e2";
+import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=ad81416a2f";
+import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=f5f88f9183";
 import { drawBootPreview, BOOT_PREVIEW_WIDTH, BOOT_PREVIEW_HEIGHT } from "./bootpreview.js?v=21c0de0054";
-import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=84230e23e2";
-import { openFile, saveBytes, secretFreeBytes, stockAesAreaForWrite, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=84230e23e2";
+import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=24556515d7";
+import { openFile, saveBytes, secretFreeBytes, stockAesAreaForWrite, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=a97e97af2d";
 import { extensions } from "./extensions.js?v=c16ffd9bbf";
-import "./parts.js?v=84230e23e2";
+import "./parts.js?v=95f6fc69d5";
 import * as diag from "../diag.js?v=c16ffd9bbf";
 import { initReporting, reportedLine } from "../report.js?v=c16ffd9bbf";
 import { updateFor } from "../flasher/version.js?v=c16ffd9bbf";
@@ -515,8 +515,21 @@ function problemsTab(p) {
 			show(x.table);
 			S.grid?.g.focusRow(x.item);
 		}, { quiet: true }) : button(t("editor.problems.show"), () => show(x.table === "general" ? "radio" : x.table), { quiet: true });
+		const actions = [go];
+		if (x.table === "channels" && x.code === "duplicate") {
+			const label = t("editor.problems.unique");
+			actions.push(button(label, () => change(label, () => {
+				const names = new Set(S.model.channels.map((c) => c.name));
+				let candidate, n = 2;
+				do {
+					const suffix = " " + n++;
+					candidate = x.item.name.slice(0, LIMITS.name - suffix.length) + suffix;
+				} while (names.has(candidate));
+				x.item.name = candidate;
+			}), { quiet: true }));
+		}
 		return h("tr", {}, h("td", {}, h("span", { class: `badge ${x.level === "error" ? "badge-bad" : "badge-testing"}` }, t(`editor.level.${x.level}`))),
-			h("td", {}, what), h("td", {}, t(`editor.problem.${x.code}`, { ...x.params, field: x.field ? t(`editor.field.${x.field}`) : "" })), h("td", {}, go));
+			h("td", {}, what), h("td", {}, t(`editor.problem.${x.code}`, { ...x.params, field: x.field ? t(`editor.field.${x.field}`) : "" })), h("td", {}, ...actions));
 	});
 	return h("div", { class: "table-wrap" }, h("table", { class: "data" }, h("tbody", {}, ...rows)));
 }

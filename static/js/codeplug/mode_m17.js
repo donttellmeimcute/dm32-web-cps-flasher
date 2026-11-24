@@ -52,7 +52,7 @@ export function encodeIdentity(s, prev = null) {
 	return v;
 }
 
-const callOk = (s) => !s || (s.length <= CALLSIGN_LEN && ALPHABET.test(s));
+export const callOk = (s) => !s || (s.length <= CALLSIGN_LEN && ALPHABET.test(s));
 
 export const m17Kind = {
 	id: 7,

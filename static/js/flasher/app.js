@@ -30,7 +30,7 @@ import { verify, segments, forDevBuild } from "./manifest.js?v=c16ffd9bbf";
 import { Dfu, DfuError, NormalModeError, WebUsbTransport, checkKey, usbSupported } from "./dfu.js?v=c16ffd9bbf";
 import { Link, LinkError, CableError, SerialStream, RFOUNDRY_USB, RFOUNDRY_NET, probe, whyNoAnswer, noAnswerKey, serialSupported, serialApi, browserErrorKey, knownRadioPort } from "./link.js?v=c16ffd9bbf";
 import { readRadio, makeBundle, openBundle, bundleFolder, notBundle, bundleName, describeFirmware, CODEPLUG_SPAN } from "./backup.js?v=c16ffd9bbf";
-import { targets, planInternal, planStock, codeplugSectors, writeCodeplug, codeplugLayout } from "./restore.js?v=f2317c7c75";
+import { targets, planInternal, planStock, codeplugSectors, writeCodeplug, codeplugLayout } from "./restore.js?v=103e20fe07";
 import { Selection } from "./select.js?v=c16ffd9bbf";
 import { codecPresent, decideCodec, DecisionError } from "./decide.js?v=c16ffd9bbf";
 import { tooBig } from "./buildfit.js?v=c16ffd9bbf";
@@ -40,7 +40,7 @@ import { codecSegments, loadCodec, readCodec, saveCodec } from "./codecsave.js?v
 import { FakeRadio, simulation, randomBytes, rng } from "./fake.js?v=c16ffd9bbf";
 import { t, tOr, num, LANG, ROOT, HOME, h, download, filePicker, progressBar, stopBars, logBox, notice, button, spinner, panel, localTime, partNames, barsRunning } from "./dom.js?v=c16ffd9bbf";
 import { stepHistory } from "./stephistory.js?v=c16ffd9bbf";
-import * as c7ui from "./c7000ui.js?v=84230e23e2";
+import * as c7ui from "./c7000ui.js?v=0f819a0737";
 import { variantWarning, variantVerdict } from "./iapui.js?v=c16ffd9bbf";
 import { groups as variantGroups } from "./variant.js?v=c16ffd9bbf";
 import { FakeC7000, c7000Simulation, fakeC7000Options } from "./fakec7000.js?v=c16ffd9bbf";
@@ -2440,7 +2440,7 @@ async function bringChannels(status, { finish }) {
 	const saved = S.backupDone ? S.backupParts?.find((x) => x.what === "spi-flash")?.data : null;
 	let m;
 	try {
-		m = await import("./migrate.js?v=84230e23e2");
+		m = await import("./migrate.js?v=ca13703bba");
 	} catch (e) {
 		diag.error("flash/channels load", e);
 	}

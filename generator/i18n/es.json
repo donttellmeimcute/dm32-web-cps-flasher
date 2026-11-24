@@ -1,4 +1,11 @@
 {
+	"editor.t3.opt.followAll_help": "Reproduce las llamadas de todos los grupos del sistema, no solo los de la lista de grupos RX del canal. El monitor digital hace lo mismo mientras está activo.",
+	"editor.t3.opt.learnSystem_help": "Toma como este sistema el primer canal de control que oye, digan lo que digan el modelo y la NET. Solo mientras la radio escucha: un sistema que transmite usa la identidad de arriba.",
+	"editor.t3.opt.followAll": "Seguir todos los grupos",
+	"editor.t3.opt.learnSystem": "Aprender el sistema del aire",
+	"editor.col.accept_bad_crc": "Aceptar CRC inválido",
+	"editor.col.accept_bad_crc_help": "Solo escucha. El firmware vuelve a comprobar las cabeceras de control y voz marcadas por el módem mediante CRC o corrección de errores.",
+	"editor.problems.unique": "Asignar nombre único",
 	"editor.radio_err.programming_locked": "La programación está bloqueada. En la radio, abre Ajustes → Mi radio → Desbloquear o bloquear CPS, introduce tu PIN y vuelve a intentarlo.",
 	"flash.task.startup_image": "Cambiar imagen de inicio",
 	"flash.task.startup_image.text": "Abre la pestaña Radio del editor de codeplug para cargar una imagen.",
