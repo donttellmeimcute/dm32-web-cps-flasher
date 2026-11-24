@@ -7,10 +7,10 @@
 import { h, button } from "../flasher/dom.js?v=c16ffd9bbf";
 import { parseFreq, parseTone, mhz } from "../codeplug/fields.js?v=c16ffd9bbf";
 import { LIMITS, POWER_NAMES, DMR_PRIV } from "../codeplug/records.js?v=6276ed067d";
-import { refNumber, listenBand } from "../codeplug/model.js?v=89bf988ad1";
+import { refNumber, listenBand } from "../codeplug/model.js?v=73b72f8d2a";
 import { keyValid } from "../codeplug/kv.js?v=c16ffd9bbf";
-import { kindRow, kindName, offeredKinds } from "../codeplug/modes.js?v=6276ed067d";
-import { KEY_ALGS, validKeyHex, setKind } from "../codeplug/channelmodes.js?v=6276ed067d";
+import { kindRow, kindName, offeredKinds } from "../codeplug/modes.js?v=73b72f8d2a";
+import { KEY_ALGS, validKeyHex, setKind } from "../codeplug/channelmodes.js?v=73b72f8d2a";
 import { specField } from "./modefields.js?v=c16ffd9bbf";
 
 // --- Parsers shared by the columns and the forms ---

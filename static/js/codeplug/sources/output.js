@@ -6,7 +6,7 @@
 
 import * as iddb from "../iddb.js?v=c16ffd9bbf";
 import { LIMITS } from "../records.js?v=6276ed067d";
-import { newContact } from "../model.js?v=89bf988ad1";
+import { newContact } from "../model.js?v=73b72f8d2a";
 import { format } from "./radioid.js?v=c16ffd9bbf";
 import { foldLetters } from "../fields.js?v=c16ffd9bbf";
 
