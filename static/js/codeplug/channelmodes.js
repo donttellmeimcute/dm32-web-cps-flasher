@@ -16,12 +16,12 @@
 // fields, raw}], secret (the module's fields, {raw} for a type without, null for none), flagsRaw, raw}.
 // m.modeSettings: {kind id: the module's fields}.
 
-import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, KV_SIZE, KV_HDR, KEYS, getKey, keyValid, keyValue } from "./kv.js";
+import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, KV_SIZE, KV_HDR, KEYS, getKey, keyValid, keyValue } from "./kv.js?v=cc628ffe34";
 import { BOOT_IMAGE_KEY, bootImageValid } from "./bootimage.js";
-import { getName, putName } from "./fields.js?v=c16ffd9bbf";
-import { redactDmrBasicKeys } from "./records.js?v=f3daccc684";
-import { KINDS, kindRow, typeRow, radioRuns } from "./modes.js?v=2b5c5c629e";
-import { u16, u32, put16, put32, sameBytes, sameValue, nameCheck } from "./modebytes.js?v=c16ffd9bbf";
+import { getName, putName } from "./fields.js";
+import { redactDmrBasicKeys } from "./records.js";
+import { KINDS, kindRow, typeRow, radioRuns } from "./modes.js";
+import { u16, u32, put16, put32, sameBytes, sameValue, nameCheck } from "./modebytes.js";
 import { SCRAMBLER_ALG, SCRAMBLER_SEED_MAX } from "./mode_nxdn.js";
 
 export const MODE_KEY = { system: 0x0100, entry: 0x0200, secret: 0x0300, tag: 0x0400, setting: 0x0A00 };
@@ -33,6 +33,16 @@ const TAG_HDR = 5, TAG_FB = 4, SYS_HDR = 28, ENTRY_HDR = 4;
 
 const inFamily = (key, base, count) => key >= base && key < base + count;
 const find = (list, n) => list.find((x) => x.number === n) || n;
+
+// Tags and their systems travel with a codeplug opened from a file. Apply mode settings
+// supplied by the file too, while keeping the destination settings the file omits.
+export function channelModeRecord(key, value) {
+	return inFamily(key, MODE_KEY.tag, MODE_LIMITS.tags) ||
+		inFamily(key, MODE_KEY.system, MODE_LIMITS.systems) ||
+		inFamily(key, MODE_KEY.entry, MODE_LIMITS.entries) ||
+		inFamily(key, MODE_KEY.secret, MODE_LIMITS.systems) ||
+		(value != null && KINDS.some((kind) => kind.module.settings && key === MODE_KEY.setting + kind.id));
+}
 
 // --- Bytes ---
 

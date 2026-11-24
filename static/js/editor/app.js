@@ -15,7 +15,7 @@ import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=f3daccc684";
 import { BOOT_IMAGE_EDGE, packBootImage } from "../codeplug/bootimage.js";
 import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=1932f7beff";
 import { FastError } from "../codeplug/fastlink.js?v=d7aaac3b33";
-import { areaForWrite, KEYS } from "../codeplug/kv.js?v=c16ffd9bbf";
+import { areaForWrite, KEYS } from "../codeplug/kv.js?v=cc628ffe34";
 import { toSerial, CLICK_WAIT_MS } from "../flasher/netmode.js?v=c16ffd9bbf";
 import { convert as convertDb, readHeader as dbHeader } from "../codeplug/iddb.js?v=c16ffd9bbf";
 import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=7d2463a3f0";
@@ -25,8 +25,8 @@ import { History } from "./undo.js?v=c16ffd9bbf";
 import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=ad81416a2f";
 import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=f5f88f9183";
 import { drawBootPreview, BOOT_PREVIEW_WIDTH, BOOT_PREVIEW_HEIGHT } from "./bootpreview.js?v=21c0de0054";
-import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=24556515d7";
-import { openFile, saveBytes, secretFreeBytes, stockAesAreaForWrite, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=a97e97af2d";
+import { channelModeRecord, syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=4e59cc1687";
+import { openFile, saveBytes, secretFreeBytes, stockAesAreaForWrite, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=6e4d030510";
 import { extensions } from "./extensions.js?v=c16ffd9bbf";
 import "./parts.js?v=95f6fc69d5";
 import * as diag from "../diag.js?v=c16ffd9bbf";
@@ -63,6 +63,7 @@ const messages = h("div", { class: "ed-messages", "aria-live": "polite" });
 
 function load(model, name, { fromRadio = false, stockAes = false } = {}) {
 	S.model = model;
+	S.modelSource = fromRadio ? { connection: S.conn, uid: S.conn.uid } : null;
 	S.stockAes = stockAes;
 	S.fileName = name;
 	S.history.reset();
@@ -1028,11 +1029,14 @@ async function planWrite() {
 		// the same codeplug with this radio's own name, ID and boot text kept, and what each would send
 		// (compared byte for byte: two plans can send the same number of bytes. The second is planned only when there
 		// is something to keep: each plan is a pass over every block's CRC)
+		const hasModes = S.model.channels.some((channel) => channel.kind) || S.model.systems.length > 0;
+		const sameRadio = S.modelSource?.connection === c && S.modelSource.uid === c.uid;
+		const copyRecord = hasModes && !sameRadio ? channelModeRecord : null;
 		if (S.stockAes) {
-			const problem = stockAesAreaForWrite(file.bytes, c.image.bytes, S.model.base?.bytes);
+			const problem = stockAesAreaForWrite(file.bytes, c.image.bytes, S.model.base?.bytes, copyRecord);
 			if (problem) return say(t(`editor.stock_aes.${problem.code}`, { id: problem.id }), "bad");
 		} else {
-			areaForWrite(file.bytes, c.image.bytes, S.model.base?.bytes);
+			areaForWrite(file.bytes, c.image.bytes, S.model.base?.bytes, copyRecord);
 		}
 		const kept = keepIdentity(file, c.image);
 		const differs = IDENTITY.some(([a, b]) => kept.bytes.subarray(a, b).some((x, i) => x !== file.bytes[a + i]));
@@ -1118,6 +1122,7 @@ function writeChosen(c, { want }, iddb, prepared) {
 			if (iddb) c.dbKnown = true;
 			S.iddbChanged = false;
 			S.model.base = want;
+			S.modelSource = { connection: c, uid: c.uid };
 			S.model.iddb = dbHeader(want.bytes);	// format N when it went to a radio that reads only that
 			S.dirty = false;
 			refresh();
