@@ -157,8 +157,8 @@ def page(lang):
     icon = "data:image/svg+xml," + quote(icon.strip(), safe="")
     html = re.sub(r'src="[^"]*img/icon\.svg\?v=[^"]*"', f'src="{icon}"', html)
     note = {
-        "es": "<p class=\"notice\">Copia sin conexión del editor de codeplug: abre, edita y guarda archivos de codeplug, tablas CSV y YAML de qdmr. Para leer o escribir la radio por USB usa la aplicación instalada o el sitio.</p>",
-        "en": "<p class=\"notice\">Offline copy of the codeplug editor: open, edit and save codeplug files, CSV tables and qdmr YAML. To read or write the radio over USB use the installed app or the site.</p>",
+        "es": "<p class=\"notice ed-offline-note\">Copia sin conexión del editor de codeplug: abre, edita y guarda archivos de codeplug, tablas CSV y YAML de qdmr. Para leer o escribir la radio por USB usa la aplicación instalada o el sitio.</p>",
+        "en": "<p class=\"notice ed-offline-note\">Offline copy of the codeplug editor: open, edit and save codeplug files, CSV tables and qdmr YAML. To read or write the radio over USB use the installed app or the site.</p>",
     }[lang]
     html = html.replace('<div id="editor"', f"{note}\n\t<div id=\"editor\"", 1)
     return html

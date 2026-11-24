@@ -19,7 +19,9 @@ app.whenReady().then(() => {
 		title: "DM32 Codeplug Editor",
 	});
 	win.once("ready-to-show", () => win.show());
-	win.loadFile(page());
+	win.loadFile(page()).then(() =>
+		// this build has Web Serial: take the offline copy's "use the app or the site for USB" note out
+		win.webContents.executeJavaScript('document.querySelector(".ed-offline-note")?.remove()').catch(() => {}));
 	app.on("activate", () => BrowserWindow.getAllWindows().length || app.whenReady().then(() => win.loadFile(page())));
 });
 app.on("window-all-closed", () => app.quit());
