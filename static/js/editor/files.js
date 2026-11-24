@@ -14,8 +14,8 @@ import { classify } from "../codeplug/detect.js?v=4436b923d7";
 import { importStock, STOCK, RDT_MD380 } from "../codeplug/stock_tyt.js?v=76466c6282";
 import { DM32_STOCK, importStock as importDm32 } from "../codeplug/stock_baofeng.js?v=705a8b996e";
 import { empty, encode } from "../codeplug/model.js?v=1274c7a098";
-import { KEY_BASE, KEY_MAX, withoutSecrets } from "../codeplug/channelmodes.js?v=24556515d7";
-import { areaForWrite, decodeArea, putArea, KV_ADDR, KV_SIZE } from "../codeplug/kv.js";
+import { KEY_BASE, KEY_MAX, withoutSecrets } from "../codeplug/channelmodes.js?v=3f45e6e761";
+import { areaForWrite, decodeArea, putArea, KV_ADDR, KV_SIZE } from "../codeplug/kv.js?v=fb7a4bee6f";
 
 // code: the editor.err.* text; params: what the file was, for the error report (never its contents)
 export class FileError extends Error {
@@ -113,13 +113,13 @@ export function secretFreeBytes(image) {
 
 // Imported keys need to follow their on-air IDs, not the ring slots a fresh file happened to use. Preserve the
 // destination's unrelated keys and reject a conflicting ID before any write. The file isn't changed on a failure.
-export function stockAesAreaForWrite(file, radio, base) {
+export function stockAesAreaForWrite(file, radio, base, copyRecord = null) {
 	const entries = decodeArea(file).entries;
 	const isAes = ({ key, value }) => key >= KEY_BASE && key < KEY_BASE + KEY_MAX &&
 		value.length >= 5 && value[0] === 0xFF && value[1] === 0x25;
 	const incoming = entries.filter(isAes);
 	if (!incoming.length) {
-		areaForWrite(file, radio, base);
+		areaForWrite(file, radio, base, copyRecord);
 		return null;
 	}
 	const existing = decodeArea(radio);
@@ -139,7 +139,7 @@ export function stockAesAreaForWrite(file, radio, base) {
 	const prior = base?.slice(0, KV_ADDR + KV_SIZE);
 	const priorArea = prior && decodeArea(prior);
 	if (priorArea?.state === "valid") putArea(prior, priorArea.entries.filter((e) => !isAes(e)));
-	areaForWrite(staged, radio, prior);
+	areaForWrite(staged, radio, prior, copyRecord);
 	const merged = decodeArea(staged).entries;
 	for (const e of current) {
 		const kept = merged.find((k) => k.key === e.key);

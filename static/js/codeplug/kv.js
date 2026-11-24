@@ -186,21 +186,25 @@ const sameBytes = (a, b) => a === b || (a != null && b != null && a.length === b
 // - The edit changed it and the radio has a valid area: the radio's area with only the keys the edit changed, set or
 //   removed. A key the radio's menu or debug link changed since the file was read keeps the radio's value.
 // - The radio has no valid area, or no base is given (a file sent as it is): the file's.
+// copyRecord identifies file-owned records to apply even when unchanged from base.
 // Throws RangeError when the radio's keys and the edit's don't fit together
-export function areaForWrite(file, radio, base = null) {
+export function areaForWrite(file, radio, base = null, copyRecord = null) {
 	const sector = (b) => b.subarray(KV_ADDR, KV_ADDR + KV_SIZE);
 	const f = decodeArea(file), r = decodeArea(radio);
 	const edited = !base || !sector(file).every((x, i) => x === sector(base)[i]);
-	if (r.state === "newer" || !edited || f.state !== "valid") {
+	if (r.state === "newer" && copyRecord) {
+		throw new RangeError("The radio's codeplug settings format is newer and cannot store the selected channel modes.");
+	}
+	if (r.state === "newer" || (!edited && !copyRecord) || f.state !== "valid") {
 		sector(file).set(sector(radio));
 		return;
 	}
 	if (!base || r.state !== "valid") return;
 	const was = decodeArea(base).entries;
 	let entries = dedupe(r.entries);
-	for (const key of new Set([...was, ...f.entries].map((e) => e.key))) {
+	for (const key of new Set([...was, ...f.entries, ...(copyRecord ? r.entries : [])].map((e) => e.key))) {
 		const now = getValue(f.entries, key);
-		if (sameBytes(getValue(was, key), now)) continue;
+		if (!copyRecord?.(key, now) && sameBytes(getValue(was, key), now)) continue;
 		entries = now == null ? deleteValue(entries, key) : setValue(entries, key, now);
 	}
 	sector(file).set(encodeArea(entries, sector(radio)));

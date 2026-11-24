@@ -16,7 +16,7 @@
 // fields, raw}], secret (the module's fields, {raw} for a type without, null for none), flagsRaw, raw}.
 // m.modeSettings: {kind id: the module's fields}.
 
-import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, KV_SIZE, KV_HDR, KEYS, getKey, keyValid, keyValue } from "./kv.js";
+import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, KV_SIZE, KV_HDR, KEYS, getKey, keyValid, keyValue } from "./kv.js?v=fb7a4bee6f";
 import { BOOT_IMAGE_KEY, bootImageValid } from "./bootimage.js";
 import { getName, putName } from "./fields.js?v=c16ffd9bbf";
 import { redactDmrBasicKeys } from "./records.js?v=f3daccc684";
@@ -33,6 +33,16 @@ const TAG_HDR = 5, TAG_FB = 4, SYS_HDR = 28, ENTRY_HDR = 4;
 
 const inFamily = (key, base, count) => key >= base && key < base + count;
 const find = (list, n) => list.find((x) => x.number === n) || n;
+
+// Tags and their systems travel with a codeplug opened from a file. Apply mode settings
+// supplied by the file too, while keeping the destination settings the file omits.
+export function channelModeRecord(key, value) {
+	return inFamily(key, MODE_KEY.tag, MODE_LIMITS.tags) ||
+		inFamily(key, MODE_KEY.system, MODE_LIMITS.systems) ||
+		inFamily(key, MODE_KEY.entry, MODE_LIMITS.entries) ||
+		inFamily(key, MODE_KEY.secret, MODE_LIMITS.systems) ||
+		(value != null && KINDS.some((kind) => kind.module.settings && key === MODE_KEY.setting + kind.id));
+}
 
 // --- Bytes ---
 
