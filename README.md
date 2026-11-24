@@ -197,3 +197,14 @@ RadioFoundry. Static site, everything runs in the browser; Spanish at the root, 
   P25/NXDN derivative by lyra XE1POC. Site code MIT (`LICENSE`), firmware GPL-3.0-or-later (`firmware/LICENSES/`).
 - **Support:** want firmware for another radio? Gift one from my wishlist: <https://throne.com/lyraarsgoetia>.
   Support development on Ko-fi: <https://ko-fi.com/lyraarsgoetia> (also in every page's footer).
+
+## Editor de escritorio (Windows y Linux)
+
+`electron/` empaqueta el HTML offline único del editor como aplicación nativa, con Web Serial habilitado (lee y
+escribe la radio por el cable, cosa que el HTML suelto no puede). Los instaladores los construye
+`.github/workflows/desktop.yml` — instalador NSIS y .zip portable para Windows, AppImage y .deb para Linux — y
+están en [releases](https://github.com/donttellmeimcute/dm32-web-cps-flasher/releases) (tag `editor-v*`).
+
+```sh
+cd electron && npm install && npx electron-builder --win   # o --linux
+```
