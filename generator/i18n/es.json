@@ -172,5 +172,11 @@
  "editor.m17.dest_help": "El indicativo o reflector llamado, hasta 9 caracteres. Vacío o ALL: difusión.",
  "editor.m17.src": "Indicativo de origen",
  "editor.m17.src_help": "Tu indicativo, enviado en cada transmisión M17. Vacío: el nombre de la radio.",
- "editor.problem.m17_call_chars": "Usa hasta 9 caracteres: A-Z, 0-9, - / . y espacio."
+ "editor.problem.m17_call_chars": "Usa hasta 9 caracteres: A-Z, 0-9, - / . y espacio.",
+ "editor.dstar.ur_help": "Vacío envía CQCQCQ. Escribe E para probar el eco del hotspot.",
+ "editor.dstar.rpt1_help": "Indicativo y módulo del hotspot, por ejemplo N0CALL B. Para modo directo, deja vacíos ambos campos de repetidora.",
+ "editor.dstar.rpt2_help": "Indicativo de la puerta de enlace del hotspot, por ejemplo N0CALL G.",
+ "editor.problem.dstar_ur_chars": "Usa hasta ocho caracteres entre A–Z, 0–9, barra y espacio.",
+ "editor.problem.dstar_route_pair": "Completa RPT1 y RPT2 o deja ambos vacíos.",
+ "editor.problem.dstar_rpt_format": "Escribe el indicativo seguido de la letra del módulo, por ejemplo N0CALL B."
 }

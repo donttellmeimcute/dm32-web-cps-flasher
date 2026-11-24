@@ -53,11 +53,19 @@ test("M17 and D-STAR remain distinct across codeplug and CSV saves", () => {
 	}
 	m.channels[0].params = { can: 11, dest: "N0CALL/P" };
 	m.channels[1].tagTx = false;
+	m.channels[1].params = { ur: "e", rpt1: "N0ABC B", rpt2: "N0ABC G" };
 	const saved = decode(encode(m));
 	assert.deepEqual(saved.channels.map((c) => c.kind), [7, 9]);
+	assert.deepEqual(saved.channels[1].params, { ur: "       E", rpt1: "N0ABC  B", rpt2: "N0ABC  G" });
+	const form = channelForm(saved, (s) => s, {});
+	for (const label of ["URCALL", "RPT1", "RPT2"]) {
+		const field = form.find((f) => f.label === label);
+		assert.equal(field?.show(saved.channels[1]), true, label);
+		assert.equal(field?.show(saved.channels[0]), false, label);
+	}
 	assert.equal(validate(saved).some((p) => p.code === "mode_kind_unknown"), false);
 	assert.deepEqual(offeredKinds(empty(), "DSTAR").map((r) => r.id), [9]);
 	const csv = exportTable(saved, "channels"), reread = empty();
 	assert.deepEqual(importTable(reread, csv, "channels").problems, []);
-	assert.deepEqual(reread.channels.map((c) => [c.kind, c.tagTx, c.params]), saved.channels.map((c) => [c.kind, c.tagTx, c.params]));
+	assert.deepEqual(decode(encode(reread)).channels.map((c) => [c.kind, c.tagTx, c.params]), saved.channels.map((c) => [c.kind, c.tagTx, c.params]));
 });
