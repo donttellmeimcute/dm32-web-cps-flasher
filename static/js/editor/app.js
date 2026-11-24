@@ -5,6 +5,7 @@
 // written back to the radio. Everything runs in the page; the codeplug never leaves it unless the user puts it in a
 // bug report (report.js). The working codeplug is kept in this browser (IndexedDB) so a reload doesn't lose edits.
 
+import { supportAfterSuccess } from "../support.js?v=10ba9525e4";
 import { h, t, ROOT, HOME, button, notice, download, progressBar, num as fmtNum, date as fmtDate } from "../flasher/dom.js?v=c16ffd9bbf";
 import { equal } from "../flasher/bytes.js?v=c16ffd9bbf";
 import { SerialStream, serialSupported, serialApi, RFOUNDRY_USB, browserErrorKey, knownRadioPort } from "../flasher/link.js?v=c16ffd9bbf";
@@ -12,8 +13,8 @@ import { CodeplugImage, IDDB_HEADER, EDITOR_REGIONS } from "../codeplug/image.js
 import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=1274c7a098";
 import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=f3daccc684";
 import { BOOT_IMAGE_EDGE, packBootImage } from "../codeplug/bootimage.js";
-import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=a933792829";
-import { FastError } from "../codeplug/fastlink.js?v=c16ffd9bbf";
+import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=1932f7beff";
+import { FastError } from "../codeplug/fastlink.js?v=d7aaac3b33";
 import { areaForWrite, KEYS } from "../codeplug/kv.js?v=c16ffd9bbf";
 import { toSerial, CLICK_WAIT_MS } from "../flasher/netmode.js?v=c16ffd9bbf";
 import { convert as convertDb, readHeader as dbHeader } from "../codeplug/iddb.js?v=c16ffd9bbf";
@@ -102,11 +103,12 @@ function draftSoon() {
 // report: a failure worth a bug report gets the way to make one
 // report: the record of the error shown (diag.error's return): under the message, that it was sent automatically, or
 // how to report it
-function say(text, kind = "info", { report = null } = {}) {
+function say(text, kind = "info", { report = null, offerSupport = false } = {}) {
 	if (kind === "bad") diag.note(`shown: ${text}`);
 	const n = h("div", { class: `notice ${kind}` }, h("p", {}, text));
 	const line = report ? reportedLine(report) : null;
 	if (line) n.append(line);
+	if (offerSupport) supportAfterSuccess(n);
 	const close = button("×", () => n.remove(), { quiet: true });
 	close.setAttribute("aria-label", t("editor.dismiss"));
 	n.prepend(close);
@@ -608,10 +610,11 @@ function saveFile(kind) {
 function saveImage(kind, img) {
 	if (kind === "tftp") {
 		download("codeplug.bin", tftpBytes(img, iddbEnd(S.conn?.radio)));
-		say(t("editor.saved_tftp"), "info");
+		say(t("editor.saved_tftp"), "info", { offerSupport: true });
 		return;
 	}
 	download(`${datedName(S.fileName)}.bin`, saveBytes(img));
+	say(t("support.saved"), "ok", { offerSupport: true });
 	S.dirty = false;
 	refresh();
 	draftSoon();
@@ -826,6 +829,30 @@ async function sameCodeplug(c, img) {
 	return EDITOR_REGIONS.every(([a, b]) => equal(at(now, a, b), at(img, a, b)));
 }
 
+async function authorizeRead(c) {
+	if (c.transport.probe.version?.cps_read_pin !== "1") return true;
+	const pin = await new Promise((resolve) => {
+		let digits = null;
+		const input = h("input", { id: "read-pin", type: "password", inputmode: "numeric", maxlength: "6",
+			autocomplete: "off", pattern: "[0-9]{6}", required: true });
+		const d = dialog(t("editor.pin.title"), [h("label", { for: "read-pin" }, t("editor.pin.label")), input],
+			t("editor.read"), (close) => {
+				if (!input.reportValidity()) return;
+				digits = new TextEncoder().encode(input.value);
+				input.value = "";
+				close();
+			}, () => { input.value = ""; resolve(digits); });
+		input.addEventListener("keydown", (e) => {
+			if (e.key === "Enter") { e.preventDefault(); d.querySelector(".confirm-actions button:last-child").click(); }
+		});
+		input.focus();
+	});
+	if (!pin) return false;
+	try { await c.transport.beginProtectedRead(pin); }
+	catch (e) { pin.fill(0); throw e; }
+	return true;
+}
+
 function readSkippedIddb() {
 	return exclusive(async () => {
 		const c = S.conn;
@@ -833,6 +860,7 @@ function readSkippedIddb() {
 			if (!c?.image || !S.iddbSkipped || S.iddbChanged) return;
 			const [was, known] = [c.image, c.dbKnown];
 			await onLine(c);
+			if (!await authorizeRead(c)) return;
 			// firmware that doesn't give its chip UID: the codeplug read again (with the fast protocol only the blocks that
 			// changed move) and unchanged is the same radio
 			if (!c.image && !c.uid && await sameCodeplug(c, was)) {
@@ -861,6 +889,8 @@ function readSkippedIddb() {
 			draftSoon();
 		} catch (e) {
 			await fail("read ID database", e);
+		} finally {
+			S.conn?.transport.endProtectedRead();
 		}
 	});
 }
@@ -871,6 +901,7 @@ async function readRadio() {
 			const c = await connect();
 			if (!c) return;
 			await onLine(c);
+			if (!await authorizeRead(c)) return;
 			// the ID database can be megabytes: its header first, and a long read of it offered, not made. Then one read
 			// (one progress bar) of the codeplug and, when wanted, the database
 			const cached = !!c.image && c.dbKnown;
@@ -899,7 +930,7 @@ async function readRadio() {
 			c.dbKnown = !db || readDb;
 			S.iddbSkipped = db && !readDb ? { count: db.count, bytes: dbBytes, seconds } : null;
 			if (S.iddbSkipped) refresh();
-			say(t("editor.read_done", { radio: c.radio.name, channels: S.model.channels.length, contacts: S.model.contacts.length }), "ok");
+			say(t("editor.read_done", { radio: c.radio.name, channels: S.model.channels.length, contacts: S.model.contacts.length }), "ok", { offerSupport: true });
 			// the database's format against what this radio's firmware reads (iddb-compact.md 6)
 			const fmt = S.model.iddb?.format;
 			if (fmt === "C" && !c.transport.compact) {
@@ -913,6 +944,8 @@ async function readRadio() {
 			offerUpdate(c);
 		} catch (e) {
 			await fail("read codeplug", e);
+		} finally {
+			S.conn?.transport.endProtectedRead();
 		}
 	});
 	if (S.dirty) confirmDialog(t("editor.read_confirm"), t("editor.read"), go);
@@ -972,6 +1005,8 @@ async function planWrite() {
 	try {
 		const c = await connect();
 		if (!c) return;
+		await c.transport.identify(S.radios);
+		if (c.transport.probe.version?.programming_locked === "1") throw new TransportError("programming_locked");
 		stage = "prepare radio";
 		if (!await ensureStorage(c)) return;
 		stage = "encode codeplug";
@@ -1086,7 +1121,7 @@ function writeChosen(c, { want }, iddb, prepared) {
 			S.model.iddb = dbHeader(want.bytes);	// format N when it went to a radio that reads only that
 			S.dirty = false;
 			refresh();
-			say(prepared + t("editor.write_done", { radio: c.radio.name, bytes: fmtNum(res.bytes) }), "ok");
+			say(prepared + t("editor.write_done", { radio: c.radio.name, bytes: fmtNum(res.bytes) }), "ok", { offerSupport: true });
 		} catch (e) {
 			await fail(step, e);
 		}

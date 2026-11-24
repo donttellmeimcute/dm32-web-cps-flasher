@@ -16,7 +16,7 @@ import { GENERAL, BOOT_TEXT } from "./records.js?v=f3daccc684";
 import { Link, probe, whyNoAnswer } from "../flasher/link.js?v=c16ffd9bbf";
 import { crc32, sleep } from "../flasher/bytes.js?v=c16ffd9bbf";
 import { encodeBlock } from "../flasher/lz4.js?v=c16ffd9bbf";
-import { FastLink, FastError, BLOCK, REASON } from "./fastlink.js?v=c16ffd9bbf";
+import { FastLink, FastError, BLOCK, REASON } from "./fastlink.js?v=d7aaac3b33";
 import { note } from "../diag.js?v=c16ffd9bbf";
 
 export class TransportError extends Error {
@@ -148,7 +148,7 @@ export class CpsSerial {
 			throw new TransportError(why.kind === "openfw" ? "openfw" : why.kind === "other" ? "not_rfoundry"
 				: this.cable ? "no_answer_cable" : "no_answer", why);
 		}
-		if (p.version?.programming_locked === "1") throw new TransportError("programming_locked");
+		if (p.version?.programming_locked === "1" && p.version?.cps_read_pin !== "1") throw new TransportError("programming_locked");
 		const radio = radios.find((r) => r.codeplug?.names?.some((n) => n.toLowerCase() === String(p.board || "").toLowerCase()));
 		if (!radio) throw new TransportError("unknown_radio", { board: p.board || "?" });
 		this.radio = radio;
@@ -157,6 +157,11 @@ export class CpsSerial {
 		const features = String(p.features || "").split(",");
 		this.compact = features.includes("IDDB_COMPACT");
 		this.fast = null;
+		if (p.version?.programming_locked === "1") {
+			this.flash = null;
+			this.fl = null;
+			return { radio, probe: p };
+		}
 		if (features.includes("CPS_FAST") && !this.noFast) {
 			const fl = new FastLink(this.link);
 			const info = await fl.info().catch(() => null);
@@ -171,10 +176,35 @@ export class CpsSerial {
 		return { radio, probe: p };
 	}
 
+	// Only INFO, SUMS and READ can carry the read PIN. Other programming operations
+	// continue to require a local unlock. Keep the PIN only for this single transfer.
+	async beginProtectedRead(pinBytes) {
+		this.endProtectedRead();
+		this.fl = new FastLink(this.link);
+		this.fl.readPin = pinBytes;
+		try {
+			const info = await this.fl.info();
+			if (!info || info.block !== BLOCK) throw new TransportError("read_pin_refused");
+			this.fast = info;
+		} catch (e) {
+			this.endProtectedRead();
+			throw e;
+		}
+	}
+
+	endProtectedRead() {
+		if (!this.fl?.readPin) return;
+		this.fl.readPin.fill(0);
+		this.fl.readPin = null;
+		this.fl = null;
+		this.fast = null;
+	}
+
 	// Which radio is on the line now: the board again (identify) and the chip UID, null when the radio doesn't say.
 	// A programming cable stays open while the radio on it is swapped, so a write can't trust what an earlier read saw
 	async who(radios) {
 		await this.identify(radios);
+		if (this.probe.version?.programming_locked === "1") return null;
 		try {
 			return (await this.link.chip())?.uid ?? null;
 		} catch {
@@ -258,7 +288,7 @@ export class CpsSerial {
 			try {
 				return await fast();
 			} catch (e) {
-				if (!(e instanceof FastError && e.reason === REASON.RANGE)) throw e;
+				if (this.fl?.readPin || !(e instanceof FastError && e.reason === REASON.RANGE)) throw e;
 				note("fast protocol refused a block: the CPS takes over", { error: e.message });
 			}
 		}
@@ -518,6 +548,7 @@ export class CpsSerial {
 	}
 
 	async close() {
+		this.endProtectedRead();
 		try {
 			await this.stream.close?.();
 		} catch {

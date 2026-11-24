@@ -21,15 +21,11 @@
 <link rel="apple-touch-icon" href="../static/img/favicon-lyra.png?v=c5918d4d68">
 <link rel="stylesheet" href="../static/css/tokens.css?v=c5918d4d68">
 <link rel="stylesheet" href="../static/css/site.css?v=6276ed067d">
-<link rel="stylesheet" href="../static/css/station.css?v=cda02e3c31">
+<link rel="stylesheet" href="../static/css/station.css?v=8773b7eb05">
 <script>try{var t=localStorage.getItem("rfoundry-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 </head>
 <body class="page-home" data-root="../" data-home="../en/" data-gl-more="More">
 <a class="skip" href="#main">Skip to content</a>
-<div class="support-bar"><div class="wrap support-row"><span>Find this useful? Support the project:</span>
-<a class="kofi-btn" href="https://ko-fi.com/lyraarsgoetia" target="_blank" rel="noopener" aria-label="Support lyra XE1POC on Ko-fi: development of the firmware and flasher (opens in a new tab)"><span aria-hidden="true">☕</span> Support me on Ko-fi</a>
-<a class="throne-btn" href="https://throne.com/lyraarsgoetia" target="_blank" rel="noopener" aria-label="lyra XE1POC&#x27;s Throne wishlist: gift a radio and get firmware for it (opens in a new tab)"><span aria-hidden="true">♥</span> Gift me a radio on Throne</a>
-</div></div>
 <header class="site-header">
 	<div class="wrap header-row">
 		<a class="brand" href="../en/index.html">
@@ -37,6 +33,7 @@
 			<span>DM32 <b>Web CPS &amp; Flasher</b></span>
 		</a>
 		<div class="header-tools">
+			<a class="support-nav" href="#support-project"><span aria-hidden="true">♥</span> <span>Support</span></a>
 			<details class="lang-switch"><summary aria-label="Language" title="Language">EN</summary><nav aria-label="Language"><a href="../index.html" lang="es" hreflang="es" data-hint="Este sitio también está en español." data-go="Ver en español" data-no="No, gracias">Español</a><a href="../en/index.html" aria-current="true" lang="en" hreflang="en" data-hint="This site is also in English." data-go="View in English" data-no="No, thanks">English</a></nav></details>
 			<button class="theme-toggle" type="button" aria-label="Switch light and dark" title="Switch light and dark">◐</button>
 			<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
@@ -51,7 +48,7 @@
 	<div class="wrap hero-layout">
 		<div class="hero-copy">
 			<p class="eyebrow">BAOFENG  /  DM-32UV</p>
-			<h1>Program<br>your radio.</h1>
+			<h1>Program<br><em>your radio.</em></h1>
 			<p class="lead">Install NXDN-P25-DM32 firmware and edit your codeplug directly in the browser. Your radio data and backups stay on your computer.</p>
 			<div class="actions">
 				<a class="btn btn-primary" href="../en/flash/index.html">Open flasher <span aria-hidden="true">→</span></a>
@@ -59,7 +56,7 @@
 			</div>
 			<p class="hero-requirements">Needs Chrome or Edge on a desktop computer (Web Serial) and the radio&#x27;s programming cable.</p>
 		</div>
-		<figure class="station-art" aria-hidden="true"><img src="../static/img/radios/voxel-station.png" width="550" height="420" alt=""></figure>
+		<figure class="station-art" aria-hidden="true"><span class="signal-field"><i></i><i></i><i></i></span><img src="../static/img/radios/voxel-station.png" width="550" height="420" alt=""></figure>
 	</div>
 </section>
 
@@ -67,17 +64,17 @@
 	<div class="release-card">
 		<div>
 			<h2 id="served-firmware"><span class="release-dot" aria-hidden="true"></span>Firmware served by this flasher</h2>
-			<p class="release-name">NXDN-P25-DM32 <code id="fw-version">2026.11.24-4e10c758</code></p>
+			<p class="release-name">NXDN-P25-DM32 <code id="fw-version">2026.11.24-173c35d6</code></p>
 		</div>
 		<dl class="release-meta">
-			<div><dt>Image size</dt><dd id="fw-size">801680 B</dd></div>
-			<div><dt>SHA-256</dt><dd><code id="fw-sha256">5ec5f0f042f6fac1863332b938caf39c56226a3790f157601aadec3bf9311b38</code></dd></div>
+			<div><dt>Image size</dt><dd id="fw-size">803032 B</dd></div>
+			<div><dt>SHA-256</dt><dd><code id="fw-sha256">3f2858582c7597df01efda3c46478e7892f547501d02e326a63d08bb792dff24</code></dd></div>
 		</dl>
 		<div class="release-links">
-			<a class="btn" id="fw-image" href="../firmware/dm32/rfoundry-dm32-2026.11.24-4e10c758.bin" download>Download .bin <span aria-hidden="true">↓</span></a>
+			<a class="btn" id="fw-image" href="../firmware/dm32/rfoundry-dm32-2026.11.24-173c35d6.bin" download>Download .bin <span aria-hidden="true">↓</span></a>
 			<div>
-				<a id="fw-manifest" href="../firmware/dm32/rfoundry-dm32-2026.11.24-4e10c758.json">Manifest</a>
-				<a id="fw-notes" href="https://github.com/donttellmeimcute/DM32-nxdn-p25/releases/tag/v2026.11.24-4e10c758">Release notes</a>
+				<a id="fw-manifest" href="../firmware/dm32/rfoundry-dm32-2026.11.24-173c35d6.json">Manifest</a>
+				<a id="fw-notes" href="https://github.com/donttellmeimcute/DM32-nxdn-p25/releases/tag/v2026.11.24-173c35d6">Release notes</a>
 			</div>
 		</div>
 	</div>
@@ -99,9 +96,25 @@
 	</div>
 </section>
 
+<section class="wrap creator-wrap" aria-labelledby="support-project">
+  <div class="creator-card">
+    <div class="heart-stage" aria-hidden="true"><span class="heart-shadow"></span><span class="heart-block"></span></div>
+    <div class="creator-copy">
+      <h2 id="support-project" tabindex="-1">Help build the next release.</h2>
+      <p>I’m Lyra. If these tools helped you, buying me a coffee supports firmware development and testing on real radios.</p>
+      <div class="creator-actions">
+        <a class="support-primary" href="https://ko-fi.com/lyraarsgoetia" target="_blank" rel="noopener noreferrer" data-thanks="Was this helpful? Buy me a coffee on Ko-fi"><span aria-hidden="true">♥</span> Buy me a coffee <span aria-hidden="true">↗</span></a>
+        <a class="support-secondary" href="https://throne.com/lyraarsgoetia" target="_blank" rel="noopener noreferrer">See gear on Throne <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="wrap home-section" aria-labelledby="modes-title">
 	<h2 id="modes-title">Radio modes</h2>
 	<ul class="mode-list">
+		<li><b>D-STAR</b><span>DV digital voice</span></li>
+		<li><b>M17</b><span>Codec2 digital voice</span></li>
 		<li><b>YSF</b><span>C4FM voice in V/D-1, DN and VW</span></li>
 		<li><b>NXDN</b><span>Conventional digital voice</span></li>
 		<li><b>P25</b><span>Conventional voice and trunking</span></li>
@@ -145,7 +158,7 @@
 			<a href="https://ko-fi.com/lyraarsgoetia" target="_blank" rel="noopener" aria-label="Support lyra XE1POC on Ko-fi: development of the firmware and flasher (opens in a new tab)">Support me on Ko-fi</a>
 			<a href="https://throne.com/lyraarsgoetia" target="_blank" rel="noopener" aria-label="lyra XE1POC&#x27;s Throne wishlist: gift a radio and get firmware for it (opens in a new tab)">Gift me a radio on Throne</a>
 		</div>
-		<p class="build-stamp"><a href="https://github.com/donttellmeimcute/DM32-nxdn-p25/commits/main">Changelog</a> · NXDN-P25-DM32 2026.11.24-4e10c758 · <time datetime="2026-11-24T15:56Z">2026-11-24 15:56 UTC</time></p>
+		<p class="build-stamp"><a href="https://github.com/donttellmeimcute/DM32-nxdn-p25/commits/main">Changelog</a> · NXDN-P25-DM32 2026.11.24-173c35d6 · <time datetime="2026-11-24T16:16Z">2026-11-24 16:16 UTC</time></p>
 	</div>
 </footer>
 <script type="module" src="../static/js/site.js?v=20261118r1"></script>

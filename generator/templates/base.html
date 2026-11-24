@@ -17,14 +17,11 @@
 <link rel="apple-touch-icon" href="{{root}}static/img/favicon-lyra.png?v={{ assets }}">
 <link rel="stylesheet" href="{{root}}static/css/tokens.css?v={{ assets }}">
 <link rel="stylesheet" href="{{root}}static/css/site.css?v={{ assets }}">
+<link rel="stylesheet" href="{{root}}static/css/station.css?v={{ assets }}">
 <script>try{var t=localStorage.getItem("rfoundry-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 </head>
 <body class="page-{{ page_class }}" data-root="{{root}}" data-home="{{ home }}" data-gl-more="{{t glossary.more}}">
 <a class="skip" href="#main">{{t nav.skip}}</a>
-<div class="support-bar"><div class="wrap support-row"><span>{{t support.bar}}</span>
-<a class="kofi-btn" href="https://ko-fi.com/lyraarsgoetia" target="_blank" rel="noopener" aria-label="{{t support.kofi_aria}}"><span aria-hidden="true">☕</span> {{t support.kofi}}</a>
-<a class="throne-btn" href="https://throne.com/lyraarsgoetia" target="_blank" rel="noopener" aria-label="{{t support.throne_aria}}"><span aria-hidden="true">♥</span> {{t support.throne}}</a>
-</div></div>
 <header class="site-header">
 	<div class="wrap header-row">
 		<a class="brand" href="{{home}}index.html">
@@ -32,6 +29,7 @@
 			<span>DM32 <b>Web CPS &amp; Flasher</b></span>
 		</a>
 		<div class="header-tools">
+			<a class="support-nav" href="#support-project"><span aria-hidden="true">♥</span> <span>{{t support.nav}}</span></a>
 			{{{ languages }}}
 			<button class="theme-toggle" type="button" aria-label="{{t nav.theme}}" title="{{t nav.theme}}">◐</button>
 			<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">{{t nav.menu}}</button>
@@ -43,6 +41,19 @@
 </header>
 <main id="main">
 {{{ content }}}
+<section class="wrap creator-wrap" aria-labelledby="support-project">
+  <div class="creator-card">
+    <div class="heart-stage" aria-hidden="true"><span class="heart-shadow"></span><span class="heart-block"></span></div>
+    <div class="creator-copy">
+      <h2 id="support-project" tabindex="-1">{{t support.title}}</h2>
+      <p>{{t support.text}}</p>
+      <div class="creator-actions">
+        <a class="support-primary" href="https://ko-fi.com/lyraarsgoetia" target="_blank" rel="noopener noreferrer" data-thanks="{{t support.thanks}}"><span aria-hidden="true">♥</span> {{t support.coffee}} <span aria-hidden="true">↗</span></a>
+        <a class="support-secondary" href="https://throne.com/lyraarsgoetia" target="_blank" rel="noopener noreferrer">{{t support.gear}} <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </div>
+</section>
 </main>
 <footer class="site-footer">
 	{{{ footer }}}

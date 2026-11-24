@@ -65,10 +65,14 @@ export class FastLink {
 		for (;;) {
 			this.s.clear();
 			const seq = this.next();
-			const f = frame(CMD, seq, Uint8Array.from(payload));
+			const guarded = this.readPin && [OP.INFO, OP.SUMS, OP.READ].includes(payload[0]);
+			const wirePayload = guarded ? Uint8Array.of(10, ...this.readPin, ...payload) : Uint8Array.from(payload);
+			const f = frame(CMD, seq, wirePayload);
+			if (guarded) wirePayload.fill(0);
 			this.wire += f.length;
 			this.requests++;
-			await this.s.write(f);
+			try { await this.s.write(f); }
+			finally { if (guarded) f.fill(0); }
 			const [r] = await this.answers([seq], timeout);
 			// a radio that went away while it was asked (unplugged, restarted) is a lost connection, as a write to it
 			// would say (link.js SerialStream.write), not a radio that won't answer

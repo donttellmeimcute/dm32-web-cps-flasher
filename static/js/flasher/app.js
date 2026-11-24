@@ -17,6 +17,7 @@
 // on its stock firmware (no hardware; for trying the flow), #sim=<board> for one that already runs RadioFoundry, #sim for the
 // first radio on stock firmware. The fake is built from the board's data.
 
+import { supportAfterSuccess } from "../support.js?v=10ba9525e4";
 import { hex, sha256, toHex, fromHex, startsWith, sleep } from "./bytes.js?v=c16ffd9bbf";
 import { unzip } from "./zip.js?v=c16ffd9bbf";
 import * as stockfw from "./stockfw.js?v=c16ffd9bbf";
@@ -40,7 +41,7 @@ import { codecSegments, loadCodec, readCodec, saveCodec } from "./codecsave.js?v
 import { FakeRadio, simulation, randomBytes, rng } from "./fake.js?v=c16ffd9bbf";
 import { t, tOr, num, LANG, ROOT, HOME, h, download, filePicker, progressBar, stopBars, logBox, notice, button, spinner, panel, localTime, partNames, barsRunning } from "./dom.js?v=c16ffd9bbf";
 import { stepHistory } from "./stephistory.js?v=c16ffd9bbf";
-import * as c7ui from "./c7000ui.js?v=0f819a0737";
+import * as c7ui from "./c7000ui.js?v=a7a6c68202";
 import { variantWarning, variantVerdict } from "./iapui.js?v=c16ffd9bbf";
 import { groups as variantGroups } from "./variant.js?v=c16ffd9bbf";
 import { FakeC7000, c7000Simulation, fakeC7000Options } from "./fakec7000.js?v=c16ffd9bbf";
@@ -2413,6 +2414,7 @@ function doneView() {
 				if (openfwRecognizedNow() && openfw.complete(S.openfwRead)) await prepareStorage(status);
 				await channels();
 			}
+			if (good) supportAfterSuccess(status);
 		} catch (e) {
 			await dropSerial();
 			check.disabled = false;
@@ -2440,7 +2442,7 @@ async function bringChannels(status, { finish }) {
 	const saved = S.backupDone ? S.backupParts?.find((x) => x.what === "spi-flash")?.data : null;
 	let m;
 	try {
-		m = await import("./migrate.js?v=ca13703bba");
+		m = await import("./migrate.js?v=33b8ca7869");
 	} catch (e) {
 		diag.error("flash/channels load", e);
 	}
