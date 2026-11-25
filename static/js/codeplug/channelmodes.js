@@ -20,7 +20,7 @@ import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, 
 import { BOOT_IMAGE_KEY, bootImageValid } from "./bootimage.js";
 import { getName, putName } from "./fields.js?v=c16ffd9bbf";
 import { redactDmrBasicKeys } from "./records.js?v=f3daccc684";
-import { KINDS, kindRow, typeRow, radioRuns } from "./modes.js?v=2b5c5c629e";
+import { KINDS, kindRow, typeRow, radioRuns } from "./modes.js?v=d0af9dc2fd";
 import { u16, u32, put16, put32, sameBytes, sameValue, nameCheck } from "./modebytes.js?v=c16ffd9bbf";
 import { SCRAMBLER_ALG, SCRAMBLER_SEED_MAX } from "./mode_nxdn.js";
 

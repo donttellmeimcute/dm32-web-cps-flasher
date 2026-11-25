@@ -31,15 +31,14 @@ function packCall(v, off, s) {
 // --- Conventional channel (2) ---
 
 export function decodeConv(b) {
-	const f = u8(b, 0);
+	const f = b?.length ? b[0] : NARROW;
 	let rx = u8(b, 1);
 	if (rx > DGID_MAX) rx = 0;
 	const t = u8(b, 2);
 	const dt = f & DT_MASK;
 	return {
 		dt,
-		// The firmware uses narrow deviation for every data type except Voice FR.
-		narrow: dt !== DT_VW || (f & NARROW) !== 0,
+		narrow: (f & NARROW) !== 0,
 		rxDgid: rx,
 		txDgid: (t & TX_DGID_SET) !== 0 ? t & DGID_MAX : rx,
 		// a destination of all spaces or all zeros reads as ALL
@@ -95,9 +94,6 @@ export const ysfKind = {
 	],
 	validate(c, p, problem) {
 		if (p.dest && (p.dest.length > CALLSIGN_LEN || /[^ -~]/.test(p.dest))) problem.warn("dest", "ysf_dest_chars");
-		// DN, V/D-1 and Data FR are narrow; only VW is wide (Yaesu 4.2.1). A mismatch is usually a channel
-		// left on the old Wide default, which real YSF radios and hotspots do not expect for DN.
-		if ((p.dt === DT_VW) === p.narrow) problem.warn("narrow", "ysf_dev_mismatch");
 	},
 	settings: {
 		key: "ysf",

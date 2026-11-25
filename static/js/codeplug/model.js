@@ -17,7 +17,7 @@ import {
 import { parseTone } from "./fields.js?v=c16ffd9bbf";
 import { readHeader } from "./iddb.js?v=c16ffd9bbf";
 import { decodeArea, keyValid, KEYS } from "./kv.js?v=c16ffd9bbf";
-import { decodeModes, encodeModes, syncModes, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=24556515d7";
+import { decodeModes, encodeModes, syncModes, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=d0af9dc2fd";
 
 const REFS = ["contact", "rxList", "aprs"];
 
