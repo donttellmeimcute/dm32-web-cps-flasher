@@ -26,9 +26,9 @@ import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel,
 import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=d0af9dc2fd";
 import { drawBootPreview, BOOT_PREVIEW_WIDTH, BOOT_PREVIEW_HEIGHT } from "./bootpreview.js?v=21c0de0054";
 import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=d0af9dc2fd";
-import { openFile, saveBytes, secretFreeBytes, stockAesAreaForWrite, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=d0af9dc2fd";
+import { openFile, saveBytes, secretFreeBytes, stockAesAreaForWrite, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=10f57c6e70";
 import { extensions } from "./extensions.js?v=c16ffd9bbf";
-import "./parts.js?v=d0af9dc2fd";
+import "./parts.js?v=10f57c6e70";
 import * as diag from "../diag.js?v=c16ffd9bbf";
 import { initReporting, reportedLine } from "../report.js?v=c16ffd9bbf";
 import { updateFor } from "../flasher/version.js?v=c16ffd9bbf";

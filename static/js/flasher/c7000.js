@@ -18,7 +18,7 @@
 
 import { concat, crc32, sha256, u32le, le32, startsWith } from "./bytes.js?v=c16ffd9bbf";
 import { byCodeSha, checkWords } from "./codecmap.js?v=c16ffd9bbf";
-import { ECC } from "./stub.js?v=c16ffd9bbf";
+import { ECC } from "./stub.js?v=10f57c6e70";
 
 // code: as stockfw.js StockError's, for the page's explanation (explain.js) and the error report; "image" is a
 // RadioFoundry image the codec slot can't take (the user's own build), not a vendor file

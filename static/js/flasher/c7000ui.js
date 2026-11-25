@@ -18,25 +18,25 @@
 import { h, t, notice, button, panel, progressBar, logBox, download, filePicker, localTime, partNames } from "./dom.js?v=c16ffd9bbf";
 import { hex, sha256, sleep } from "./bytes.js?v=c16ffd9bbf";
 import { SerialStream, Link, CableError, probe, serialSupported, serialApi, knownRadioPort, grantedPorts } from "./link.js?v=c16ffd9bbf";
-import { Stub, stubImages, univForBoard, StubError, DONE_LED, MEM, ROM_REPEAT, hasRomFlag } from "./stub.js?v=c16ffd9bbf";
-import * as c7 from "./c7000.js?v=c16ffd9bbf";
-import { openVendorFile, describe as describeVendorFile, analysisCandidate, whyNot } from "./vendorfile.js?v=c16ffd9bbf";
+import { Stub, stubImages, univForBoard, StubError, DONE_LED, MEM, ROM_REPEAT, hasRomFlag } from "./stub.js?v=10f57c6e70";
+import * as c7 from "./c7000.js?v=10f57c6e70";
+import { openVendorFile, describe as describeVendorFile, analysisCandidate, whyNot } from "./vendorfile.js?v=10f57c6e70";
 import { pickProblem } from "./explain.js?v=c16ffd9bbf";
-import { upgradeSlot } from "./c7000v1.js?v=c16ffd9bbf";
+import { upgradeSlot } from "./c7000v1.js?v=10f57c6e70";
 import { radioTop, hasNoScreen } from "./radiotop.js?v=c16ffd9bbf";
 import { putBlob, getBlob } from "./codecsave.js?v=c16ffd9bbf";
-import { makeBundle, describeFirmware, bundleName } from "./backup.js?v=c16ffd9bbf";
+import { makeBundle, describeFirmware, bundleName } from "./backup.js?v=10f57c6e70";
 import { register } from "./backends.js?v=c16ffd9bbf";
-import { makeStockRoutes, variantVerdict, noCodecNotice } from "./iapui.js?v=c16ffd9bbf";
+import { makeStockRoutes, variantVerdict, noCodecNotice } from "./iapui.js?v=10f57c6e70";
 import { confirmNoCodec } from "./nocodec.js?v=c16ffd9bbf";
 import { versionText, writable } from "./variant.js?v=c16ffd9bbf";
-import { Usmart, stockVersion, stockName } from "./usmart.js?v=c16ffd9bbf";
+import { Usmart, stockVersion, stockName } from "./usmart.js?v=10f57c6e70";
 import { Iap, checkInstallImage } from "./iap.js?v=c16ffd9bbf";
 import { BfLoader } from "./bfloader.js?v=c16ffd9bbf";
 import { errorNotice, reportLine, reportButton } from "../report.js?v=c16ffd9bbf";
 import * as diag from "../diag.js?v=c16ffd9bbf";
 import { fromSerialInfo, isCh340 } from "./adapter.js?v=c16ffd9bbf";
-import * as crumbs from "./trail.js?v=c16ffd9bbf";
+import * as crumbs from "./trail.js?v=10f57c6e70";
 
 // USB-serial chips found in programming cables (tools/serial_loader.py USB_SERIAL), for the port chooser
 export const CABLES = [0x0403, 0x1A86, 0x10C4, 0x067B].map((usbVendorId) => ({ usbVendorId }));
@@ -330,6 +330,7 @@ function connectPanel(onReady, { onUpdateMode = null, restart = false } = {}) {
 				c.rfoundry = p;
 				if (!S().board.debuglink_names.includes(p.board))
 					return cableStep({ text: t("flash.err.wrong_board", { board: p.board, name: S().board.name }) });
+				if (await Stub.rfoundryUsesCodecWindow(link, p.features)) return rfoundryFailure(null, true);
 				const offer = await Stub.rfoundryOffer(link);
 				if (offer) return fromRFoundry(offer);
 				return await restartRFoundry();
@@ -396,11 +397,17 @@ function connectPanel(onReady, { onUpdateMode = null, restart = false } = {}) {
 			c.how = "rfoundry";
 			await ready(t("flash.c7.connect.found_rfoundry_stub"), stub);
 		} catch (e) {
-			failed(() => {
-				show({ led: "off", screen: "rfoundry" }, errorNotice(t("flash.c7.connect.rfoundry_failed", { error: ctx.errorText(e) })));
-				act(button(t("flash.c7.connect.power_instead"), () => powerCycle(), { primary: true }));
-			});
+			failed(() => rfoundryFailure(e, e.code === "stub-transfer"));
 		}
+	};
+
+	const rfoundryFailure = (error, useFm) => {
+		show({ led: "off", screen: "rfoundry" },
+			error ? errorNotice(ctx.errorText(error)) : null,
+			useFm ? notice(t("flash.c7.connect.rfoundry_switch_fm"), "info") : null);
+		act(button(t("flash.iap.none.again"), find, { primary: useFm }),
+			toIap && button(t("flash.iap.none.update_mode"), toIap, { primary: !useFm }),
+			button(t("flash.iap.none.power_on"), () => powerCycle(), { quiet: useFm || !!toIap, primary: !useFm && !toIap }));
 	};
 
 	// RadioFoundry without the stub hand-over: its CPS reboot (C 0, C 6 1) is a soft reset, and a soft reset runs the boot ROM,
@@ -1363,7 +1370,7 @@ async function bringChannels(c, status, left) {
 	let m, tr, conv;
 	const from = c.calArea ? "backup" : "radio";
 	try {
-		m = await import("./migrate.js?v=d0af9dc2fd");
+		m = await import("./migrate.js?v=10f57c6e70");
 		const { CpsSerial } = await import("../codeplug/transport.js?v=1932f7beff");
 		tr = new CpsSerial(c.stream, { cable: true });
 		let stock = c.calArea;

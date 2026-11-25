@@ -409,6 +409,20 @@ export class Stub {
 		return { load: u32le(r, 4), size: u32le(r, 8), chunk: Math.min(r[12] | (r[13] << 8), 59) };
 	}
 
+	// These C7000 modes can lend the codec's RAM to a live modem, so the page must check before requesting STUB INFO.
+	static async rfoundryUsesCodecWindow(link, features) {
+		const enabled = features.split(/[ ,]+/);
+		if (!enabled.includes("M17") && !enabled.includes("DSTAR")) return false;
+		try {
+			const coreView = await link.request(0x09, new Uint8Array([0]));
+			const mode = new TextDecoder().decode(coreView.subarray(5)).match(/^mode=([^\r\n]+)$/m)?.[1];
+			// Older D-STAR builds have no name for its mode in the debug view.
+			return mode === "m17" || mode === "dstar" || (mode === "?" && enabled.includes("DSTAR"));
+		} catch {
+			return false;	// stub-only firmware can omit the debug view
+		}
+	}
+
 	// entry: where RadioFoundry jumps (the offered load address unless the stub runs elsewhere, as the STM32F4 one does)
 	async enterFromRFoundry(image, progress = () => {}, { entry = null } = {}) {
 		const link = new Link(this.s);
@@ -422,7 +436,7 @@ export class Stub {
 					if (!(e instanceof LinkError) || /status/.test(e.message)) break;
 				}
 			}
-			throw new StubError(`RadioFoundry refused ${what} (${last?.message})`);
+			throw Object.assign(new StubError(`RadioFoundry refused ${what} (${last?.message})`), { status: last?.status });
 		};
 		const offer = await Stub.rfoundryOffer(link, { strict: true });
 		if (!offer) throw new StubError("this RadioFoundry build cannot hand over to the loader (built without CONFIG_STUB_ENTRY)");
@@ -434,8 +448,12 @@ export class Stub {
 			await dl(concat(new Uint8Array([2]), le32(off), image.subarray(off, off + offer.chunk)), `the chunk at ${off}`);
 			progress(Math.min(off + offer.chunk, image.length), image.length);
 		}
-		// Refused (7) with reason 1: the radio's watchdog runs and this loader doesn't feed it (an older copy of the site)
-		await dl(concat(new Uint8Array([3]), le32(STUB_MAGIC)), "to start the loader (image incomplete or CRC mismatch; status 7: this firmware needs a newer loader, reload the page)");
+		try {
+			await dl(concat(new Uint8Array([3]), le32(STUB_MAGIC)), "to start the RAM loader");
+		} catch (e) {
+			if (e.status === 2) throw new StubError("RadioFoundry could not verify the loader in RAM (incomplete transfer or CRC mismatch, status 2)", "stub-transfer");
+			throw e;
+		}
 		this.log("RadioFoundry is jumping to the stub");
 		this.jumped = true;
 		await this.afterJump();
@@ -630,7 +648,8 @@ export class Stub {
 	}
 
 	// Read [start, end) of a memory. The radio sends each sector blank (a flag), LZ4-compressed or raw with its CRC-32;
-	// a sector that doesn't match is asked for again, uncompressed from the second try. A record carries no address, so
+	// after two read errors the failing sector is requested alone and uncompressed. A NOR sector that still fails
+	// is read in smaller SPI transfers and checked against its CRC. A stream record carries no address, so
 	// one left over from a request cut short could pass for another sector: at the end every sector is checked against
 	// the radio's own CRCs (op 07) and read again until it matches. A NAND sector whose ECC fails is taken as the chip
 	// holds it (nandRaw), without a CRC to check it by; this.ecc lists them after the read. progress(done, total, stats)
@@ -643,7 +662,7 @@ export class Stub {
 		const full = new Uint8Array(hi - lo);
 		const stats = { blank: 0, packed: 0, wire: 0 };
 		const ecc = m.nand ? new Set() : null;
-		await this.readSectors(m, full, lo, lo, hi, { compress, signal, stats, ecc,
+		await this.readSectors(mem, full, lo, lo, hi, { compress, signal, stats, ecc,
 			progress: (sa) => progress(Math.min(sa, end) - start, end - start, stats), onRetry });
 		for (let pass = 0; ; pass++) {
 			const bad = await this.verify(mem, full, lo, () => {}, { ecc });
@@ -651,7 +670,7 @@ export class Stub {
 			if (pass >= this.retries) throw new StubError(`0x${bad[0].toString(16)}: the read does not match the radio's checksum after ${pass + 1} tries`);
 			this.log(`${bad.length} sector(s) read wrong (first 0x${bad[0].toString(16)}), reading them again`);
 			this.retried += bad.length;
-			for (const sa of bad) await this.readSectors(m, full, lo, sa, sa + SECTOR, { compress: false, signal, stats, ecc, onRetry });
+			for (const sa of bad) await this.readSectors(mem, full, lo, sa, sa + SECTOR, { compress: false, signal, stats, ecc, onRetry });
 		}
 		this.stats = stats;
 		this.ecc = ecc ? [...ecc].sort((a, b) => a - b) : [];
@@ -660,14 +679,15 @@ export class Stub {
 	}
 
 	// Sectors [from, to) into full (which starts at base), resuming where a damaged frame stopped
-	async readSectors(m, full, base, from, to, { compress, signal, stats, ecc = null, progress = () => {}, onRetry = () => {} }) {
-		let sa = from, fails = 0, want = compress;
+	async readSectors(mem, full, base, from, to, { compress, signal, stats, ecc = null, progress = () => {}, onRetry = () => {} }) {
+		const m = MEM[mem];
+		let sa = from, fails = 0;
 		while (sa < to) {
 			if (signal?.aborted) throw new StubError("stopped");
-			const count = Math.min(PACK, (to - sa) / SECTOR);
+			const count = fails >= 2 ? 1 : Math.min(PACK, (to - sa) / SECTOR);
 			try {
 				this.s.clear();
-				const payload = concat(be32(m.base), memArgs(m, true), be32(sa), new Uint8Array([count, want ? 1 : 0]));
+				const payload = concat(be32(m.base), memArgs(m, true), be32(sa), new Uint8Array([count, compress && fails < 2 ? 1 : 0]));
 				await this.s.write(concat(new Uint8Array([0x02, 0x09, 0, payload.length, sum8(payload), 0x03]), payload));
 				for (let i = 0; i < count; i++) {
 					const [status, r] = await this.readFrame(i === 0 ? 3000 : 1500);
@@ -685,7 +705,6 @@ export class Stub {
 					full.set(sec, sa - base);
 					sa += SECTOR;
 					fails = 0;
-					want = compress;
 					progress(sa);
 				}
 			} catch (e) {
@@ -696,21 +715,50 @@ export class Stub {
 					this.log(`0x${sa.toString(16)}: the NAND's ECC can't correct this sector; kept as the chip holds it`);
 					sa += SECTOR;
 					fails = 0;
-					want = compress;
 					progress(sa);
 					continue;
 				}
 				if (!(e instanceof FrameError)) throw e;
 				fails++;
 				this.retried++;
-				if (fails > this.retries) throw new StubError(`0x${sa.toString(16)}: no clean read after ${fails} tries (${e.message})`);
+				if (fails > this.retries) {
+					const message = `0x${sa.toString(16)}: no clean read after ${fails} tries (${e.message})`;
+					if (m.nand || this.s.lost) throw new StubError(message);
+					this.log(`${message}; reading the sector in ${CHUNK}-byte SPI transfers`);
+					await this.drain();
+					try {
+						full.set(await this.readNorSector(mem, sa, signal), sa - base);
+					} catch (error) {
+						if (signal?.aborted) throw error;
+						throw new StubError(`${message}; smaller SPI reads failed (${error.message})`);
+					}
+					stats.wire += SECTOR;
+					sa += SECTOR;
+					fails = 0;
+					progress(sa);
+					continue;
+				}
 				this.log(`0x${sa.toString(16)}: ${e.message}, resuming here (${fails} of ${this.retries})`);
 				// the first retry is routine; from the second the user is told, and the next good sector clears it (progress)
 				if (fails >= 2) onRetry(fails, this.retries, sa);
 				await this.drain();
-				want = compress && fails < 2;
 			}
 		}
+	}
+
+	// Read a NOR sector through short, read-only SPI exchanges and verify it against the addressed sector's CRC.
+	async readNorSector(mem, addr, signal) {
+		const sector = new Uint8Array(SECTOR);
+		for (let offset = 0; offset < SECTOR; offset += CHUNK) {
+			if (signal?.aborted) throw new StubError("stopped");
+			const at = addr + offset;
+			const cmd = new Uint8Array([0x03, at >> 16, (at >> 8) & 0xFF, at & 0xFF]);
+			sector.set(await this.spi(mem, cmd, CHUNK, { retries: 1 }), offset);
+		}
+		if (signal?.aborted) throw new StubError("stopped");
+		const [{ crc }] = await this.sums(mem, addr, 1);
+		if (crc32(sector) !== crc) throw new FrameError("sector does not match the radio's CRC");
+		return sector;
 	}
 
 	// The 4 KB at addr of the SPI NAND as the chip holds it, whatever its ECC says, by generic SPI requests: for each 2 KB
