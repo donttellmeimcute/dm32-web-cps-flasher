@@ -918,8 +918,9 @@ function simLinks() {
 // update: a radio that runs RadioFoundry, reached once, its build kept
 
 // The newest release of the radio (or the version link's): what the update installs
-const updateVersion = () => VERSION_REF ? versionShort()
-	: selectedFirmwareRelease()?.version || defaultRef(S.data.site.branch);
+const updateVersion = () => S.firmwarePreset === "custom"
+	? S.firmware?.manifest.version || t("flash.preset.custom")
+	: VERSION_REF ? versionShort() : selectedFirmwareRelease()?.version || defaultRef(S.data.site.branch);
 
 // One port chooser for every radio: RadioFoundry's USB port or a programming cable. Whatever answers names the radio, and
 // the radio's backend takes the connection from there (c7000ui.js adoptCable: no second chooser)
@@ -966,9 +967,14 @@ async function connectForUpdate(status) {
 	S.current = currentBuild(p, r, S.data.releases.filter((x) => x.board === r.id), S.data.reported, record);
 	S.decided = {};
 	planUpdate(S.current, S.selection, S.decided);
-	// a build the radio doesn't say: the build step, starting from the closest variant
-	S.firmwarePreset = S.current.preset || "full";
-	if (!firmwareReleases().some((r) => firmwarePresetId(r) === S.firmwarePreset)) S.firmwarePreset = "full";
+	if (p.version?.preset === "custom") {
+		S.firmwarePreset = "custom";
+		S.omittedModules = new Set(OPTIONAL_BUILD_MODULES.filter(([id]) =>
+			S.current.off?.includes(id.toUpperCase().replaceAll("-", "_"))).map(([id]) => id));
+	} else {
+		S.firmwarePreset = S.current.preset || "full";
+		if (!firmwareReleases().some((r) => firmwarePresetId(r) === S.firmwarePreset)) S.firmwarePreset = "full";
+	}
 	S.editBuild = false;
 	diag.note("update: radio", { board: p.board, git: p.git, git_time: p.version?.git_time ?? null, said: p.version?.preset ?? null,
 		start: p.version?.start ?? null, record: record ? (record.from_update ? "update" : "yes") : "no", build: S.current.kind,
@@ -1088,20 +1094,22 @@ function updateView() {
 			h("span", {}, h("b", {}, t("flash.update.backup")), h("span", { class: "why" }, t("flash.update.backup_text"))), h("span"));
 		// the STM32 radios' backup is the one before an install; the HR_C7000 radios' comes in their check step
 		const backupPanel = S.updateBackup && !c7ui.isC7000(S.radio, fb()) && !S.backupDone ? backupNow({ when: "before", onDone: draw }) : null;
+		const custom = S.firmwarePreset === "custom";
 		out.replaceChildren(panel(t("flash.update.title"),
 			h("dl", { class: "kv-list" },
 				h("dt", {}, t("flash.update.radio")), h("dd", {}, S.radio.name),
 				h("dt", {}, t("flash.update.version")), h("dd", {}, t("flash.update.from_to", { from: firmwareName(p.version), to: updateVersion() }))),
-			firmwarePresetPicker(draw), backup, backupPanel, image, status));
+			firmwarePresetPicker(draw), custom ? customFirmwareOptions(draw) : null, backup, backupPanel, image, status));
 		const busy = building && !S.build.error;
 		const go = async () => {
+			if (!S.firmware && custom) return;
 			if (S.editBuild) return next();
 			if (!S.firmware && S.sim) await ensureFirmware();
 			if (!S.firmware && !S.sim) await requestBuild(draw);
 			if (S.firmware) next();
 		};
 		S.forward(button(busy ? [spinner(), t("flash.nav.building")] : t(S.editBuild ? "flash.update.to_build" : "flash.update.go"), go,
-			{ primary: true, disabled: busy || (S.updateBackup && !!backupPanel) }));
+			{ primary: true, disabled: busy || (custom && !S.firmware) || (S.updateBackup && !!backupPanel) }));
 	};
 	draw();
 	return out;
@@ -1169,6 +1177,8 @@ function selectRadio(r) {
 	S.buildOptions = {};
 	S.firmwarePreset = "full";
 	S.omittedModules.clear();
+	S.ownManifest = null;
+	S.ownImageRequest = null;
 	S.variant = null;	// the hardware variant is read from the radio again
 	S.stockRead = null;
 }
@@ -1181,8 +1191,7 @@ const firmwareReleases = () => S.data.releases.filter((r) => r.board === S.radio
 const selectedFirmwareRelease = () => firmwareReleases().find((r) => firmwarePresetId(r) === S.firmwarePreset);
 
 function firmwarePresetPicker(redraw) {
-	const releases = firmwareReleases();
-	if (releases.length < 2) return null;
+	const presets = [...new Set([...firmwareReleases().map(firmwarePresetId), "custom"])];
 	return h("label", { class: "form-row" },
 		h("span", {}, t("flash.preset.label")),
 		h("select", { disabled: !!S.build && !S.build.error, onchange: (e) => {
@@ -1190,24 +1199,31 @@ function firmwarePresetPicker(redraw) {
 			S.firmware = null;
 			S.build = null;
 			S.c7want = null;
+			S.ownManifest = null;
+			S.ownImageRequest = null;
 			redraw();
-		} }, releases.map((r) => {
-			const id = firmwarePresetId(r);
-			return h("option", { value: id, selected: id === S.firmwarePreset },
-				tOr(`flash.preset.${id}`, id));
-		})));
+		} }, presets.map((id) => h("option", { value: id, selected: id === S.firmwarePreset },
+			tOr(`flash.preset.${id}`, id)))));
 }
 
 const OPTIONAL_BUILD_MODULES = [
-	["p25", "P25"], ["nxdn", "NXDN"], ["ysf", "System Fusion"], ["m17", "M17"],
+	["p25", "P25"], ["nxdn", "NXDN"], ["ysf", "YSF (System Fusion)"], ["m17", "M17"],
 	["dstar", "D-STAR"], ["aprs", "APRS"], ["mdc1200", "MDC-1200"], ["rssi-graph", "RSSI"],
 ];
 
-function customFirmwareOptions() {
+function ownFirmwareFields(redraw) {
+	return [
+		filePicker(t("flash.build.own_manifest"), ".json", async (f) => { S.ownManifest = JSON.parse(new TextDecoder().decode(f.data)); }),
+		filePicker(t("flash.build.own_image"), ".bin", (f) => loadOwnImage(f, redraw)),
+	];
+}
+
+function customFirmwareOptions(redraw) {
 	const cmd = h("code", {});
 	const controls = new Map();
 	const render = () => {
-		cmd.textContent = ["python3 tools/build_current.py", ...[...S.omittedModules].map((id) => `--without ${id}`)].join(" ");
+		const omitted = OPTIONAL_BUILD_MODULES.filter(([id]) => S.omittedModules.has(id));
+		cmd.textContent = ["python3 tools/build_current.py", ...omitted.map(([id]) => `--without ${id}`)].join(" ");
 		for (const [id, input] of controls) {
 			const missing = id === "dstar" && S.omittedModules.has("p25") ||
 				id === "m17" && ["p25", "nxdn", "ysf"].every((mode) => S.omittedModules.has(mode)) ||
@@ -1220,48 +1236,57 @@ function customFirmwareOptions() {
 		const input = h("input", { type: "checkbox", onchange: () => {
 			if (input.checked) S.omittedModules.delete(id);
 			else S.omittedModules.add(id);
-			render();
+			S.ownManifest = null;
+			S.ownImageRequest = null;
+			if (S.firmware) {
+				S.firmware = null;
+				S.c7want = null;
+				redraw();
+			} else {
+				render();
+			}
 		} });
 		controls.set(id, input);
 		return h("label", { class: "toggle" }, input, h("span", {}, label));
 	});
 	render();
-	return h("details", { class: "small" }, h("summary", {}, t("flash.preset.custom")),
-		h("p", {}, t("flash.preset.custom_help")),
-		rows, h("pre", {}, cmd));
+	return h("div", {},
+		h("p", {}, t("flash.preset.custom_help"), " ",
+			h("a", { href: "https://github.com/donttellmeimcute/DM32-nxdn-p25#compilar" }, t("flash.preset.instructions"))),
+		h("fieldset", {}, h("legend", {}, t("flash.preset.modules")), rows),
+		h("pre", {}, cmd), ownFirmwareFields(redraw));
 }
 
 function buildView() {
 	const wrap = h("div", { class: "flasher" });
 	const go = async () => {
+		if (!S.firmware && S.firmwarePreset === "custom") return;
 		if (!S.firmware && S.sim) await ensureFirmware();
 		if (!S.firmware && !S.sim) await requestBuild(draw);
 		if (S.firmware) next();
 	};
 	const draw = () => {
+		const custom = S.firmwarePreset === "custom";
 		const rel = selectedFirmwareRelease();
 		const busy = !!S.build && !S.build.error;
 		S.forward(button(busy ? [spinner(), t("flash.fw.loading")] : t(`flash.nav.to_${stepsFor()[S.step + 1]}`), go,
-			{ primary: true, disabled: busy || (!rel && !S.firmware && !S.sim) }));
+			{ primary: true, disabled: busy || (!S.firmware && (custom || (!rel && !S.sim))) }));
 		const image = S.firmware ? notice(t("flash.build.image_ready", { what: S.firmware.source }), "ok")
 			: S.build?.error ? buildErrorNotice(S.build.error)
 			: busy ? h("p", { class: "muted", role: "status" }, spinner(), S.build.text)
-			: S.sim ? h("p", { class: "small muted" }, t("flash.sim.image")) : null;
+			: S.sim && !custom ? h("p", { class: "small muted" }, t("flash.sim.image")) : null;
 		wrap.replaceChildren(panel(t("flash.fw.title"),
 			firmwarePresetPicker(draw),
-			rel ? h("dl", { class: "kv-list" },
+			custom ? customFirmwareOptions(draw) : rel ? h("dl", { class: "kv-list" },
 				h("dt", {}, t("flash.fw.version")), h("dd", {}, (rel.name || rel.version)),
 				h("dt", {}, t("flash.fw.size")), h("dd", {}, t("flash.fw.kb", { n: Math.round(rel.size / 1024) })),
 				h("dt", {}, "SHA-256"), h("dd", {}, h("code", { class: "small" }, rel.sha256)))
 				: notice(t("flash.build.no_image"), "bad"),
-			h("p", {}, t("flash.fw.lead")),
+			custom ? null : h("p", {}, t("flash.fw.lead")),
 			h("p", { class: "small muted" }, t("flash.fw.codec")),
-			customFirmwareOptions(),
 			image,
-			h("details", { class: "small" }, h("summary", {}, t("flash.build.self_title")),
-				h("p", {}, t("flash.fw.self_text")),
-				filePicker(t("flash.build.own_image"), ".bin", (f) => loadOwnImage(f, draw)),
-				filePicker(t("flash.build.own_manifest"), ".json", async (f) => { S.ownManifest = JSON.parse(new TextDecoder().decode(f.data)); }))));
+			custom ? null : h("details", { class: "small" }, h("summary", {}, t("flash.build.self_title")),
+				h("p", {}, t("flash.fw.self_text")), ownFirmwareFields(draw))));
 	};
 	draw();
 	return wrap;
@@ -1371,11 +1396,14 @@ function fitText(fit) {
 const buildErrorNotice = (err) => (err.el ||= err.fit ? notice(err.text, "bad") : errorNotice(err.text, { rec: err.rec }));
 
 async function loadOwnImage(f, redraw) {
+	const request = S.ownImageRequest = Symbol();
+	const manifest = S.ownManifest;
 	// The radio's original firmware file, picked where the RadioFoundry image goes (OPENDIGITALRADIO-15: a backup's
 	// stock-firmware.bin): not an error but the codec step's file. One for this radio is kept for that step; either way
 	// the user is told to choose a build here
 	if (startsWith(f.data, fb().magic)) {
 		const st = await pickedStock(f);
+		if (request !== S.ownImageRequest) return;
 		const kept = stockForRadio(st) && !st.problem;
 		if (kept) S.stock = st;
 		alert(t(kept ? "flash.build.stock_kept" : "flash.err.stock_as_image", { radio: S.radio.name }));
@@ -1384,10 +1412,13 @@ async function loadOwnImage(f, redraw) {
 	try {
 		// an image merged with its codec (tools/hrc7000_codec.py): the backend keeps the codec, the rest is the image
 		if (backend().ownImage) f = { ...f, data: await backend().ownImage(fb(), S.radio.flash.board, f.data) };
-		const m = S.ownManifest || await forDevBuild(S.board, f.data);
+		if (request !== S.ownImageRequest) return;
+		const m = manifest || await forDevBuild(S.board, f.data);
 		const board = await verify(m, f.data, fb(), S.board.id);
+		if (request !== S.ownImageRequest) return;
 		S.firmware = { manifest: m, image: f.data, source: f.name, origin: "own", board };
 	} catch (e) {
+		if (request !== S.ownImageRequest) return;
 		const text = errorText(e);
 		alert(reportingActive() && diag.currentError()?.eventId ? `${text}\n\n${t("report.reported_short")}` : text);
 	}
