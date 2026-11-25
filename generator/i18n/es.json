@@ -71,7 +71,7 @@
 	"flash.preset.multimode": "Multimodo · FM, DMR, P25, NXDN, YSF",
 	"flash.preset.dmr-fm": "DMR + FM",
 	"flash.preset.custom": "Elegir funciones para compilar localmente",
-	"flash.preset.custom_help": "Deja marcados los módulos que quieras. Ejecuta el comando en el repositorio del firmware y carga abajo el rfoundry_dm32.bin resultante. D-STAR requiere P25. M17 requiere P25, NXDN o YSF.",
+	"flash.preset.custom_help": "Deja marcados los módulos que quieras. Ejecuta el comando en el repositorio del firmware y carga abajo el rfoundry_dm32.bin resultante. D-STAR requiere P25. M17 requiere P25, NXDN o YSF. MDC-1200 requiere APRS.",
 	"flash.fw.lead": "Elige una variante. El flasher verifica su tamaño y SHA-256 antes de escribirla.",
 	"flash.fw.codec": "La imagen no lleva el códec AMBE: los siguientes pasos lo toman de tu radio o del archivo de firmware original que elijas, y lo combinan aquí, en el navegador.",
 	"flash.fw.loading": "Descargando el firmware…",

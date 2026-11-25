@@ -1210,7 +1210,8 @@ function customFirmwareOptions() {
 		cmd.textContent = ["python3 tools/build_current.py", ...[...S.omittedModules].map((id) => `--without ${id}`)].join(" ");
 		for (const [id, input] of controls) {
 			const missing = id === "dstar" && S.omittedModules.has("p25") ||
-				id === "m17" && ["p25", "nxdn", "ysf"].every((mode) => S.omittedModules.has(mode));
+				id === "m17" && ["p25", "nxdn", "ysf"].every((mode) => S.omittedModules.has(mode)) ||
+				id === "mdc1200" && S.omittedModules.has("aprs");
 			input.checked = !missing && !S.omittedModules.has(id);
 			input.disabled = missing;
 		}
