@@ -7,7 +7,7 @@
 // the flasher is version 2 only. To remove it, delete this file, its test and its one use in c7000ui.js.
 
 import { crc32, sha256, u32le } from "./bytes.js?v=c16ffd9bbf";
-import { codecMap, slotBytes } from "./c7000.js?v=c16ffd9bbf";
+import { codecMap, slotBytes } from "./c7000.js?v=379de153e9";
 
 const V1 = 1, ENTRIES = 7;
 

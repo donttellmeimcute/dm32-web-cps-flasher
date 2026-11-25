@@ -19,7 +19,7 @@
 
 import { equal, hex, sha256 } from "./bytes.js?v=c16ffd9bbf";
 import { zip, unzip } from "./zip.js?v=c16ffd9bbf";
-import { debugLinkReader } from "./readers.js?v=c16ffd9bbf";
+import { debugLinkReader } from "./readers.js?v=379de153e9";
 import { parseRadioInfo, flashBytes } from "./link.js?v=c16ffd9bbf";
 
 export const FORMAT = "rfoundry-backup/1";

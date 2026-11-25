@@ -15,7 +15,7 @@
 import { sha256, u32le, startsWith } from "./bytes.js?v=c16ffd9bbf";
 import { unzip } from "./zip.js?v=c16ffd9bbf";
 import * as stockfw from "./stockfw.js?v=c16ffd9bbf";
-import * as c7 from "./c7000.js?v=c16ffd9bbf";
+import * as c7 from "./c7000.js?v=379de153e9";
 
 const MAX_DEPTH = 3;	// zips inside zips
 const MIN_SIZE = 64 * 1024;	// smaller than any firmware image or readout

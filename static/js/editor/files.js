@@ -7,7 +7,7 @@
 
 import { CodeplugImage, CODEPLUG_SPAN, TFTP_SIZE } from "../codeplug/image.js?v=c16ffd9bbf";
 import { recordSize, extent, convert, readHeader } from "../codeplug/iddb.js?v=c16ffd9bbf";
-import { openBundle, bundleFolder } from "../flasher/backup.js?v=c16ffd9bbf";
+import { openBundle, bundleFolder } from "../flasher/backup.js?v=379de153e9";
 import { unzip } from "../flasher/zip.js?v=c16ffd9bbf";
 import { equal, startsWith, toHex } from "../flasher/bytes.js?v=c16ffd9bbf";
 import { classify } from "../codeplug/detect.js?v=4436b923d7";

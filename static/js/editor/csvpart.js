@@ -6,7 +6,7 @@
 import { register } from "./extensions.js?v=c16ffd9bbf";
 import { exportTable, exportAll, importTable, importAll, TABLES, CsvError } from "../codeplug/csv.js?v=d0af9dc2fd";
 import { zip } from "../flasher/zip.js?v=c16ffd9bbf";
-import { datedName } from "./files.js?v=d0af9dc2fd";
+import { datedName } from "./files.js?v=379de153e9";
 
 const TABLE_TABS = Object.keys(TABLES);
 

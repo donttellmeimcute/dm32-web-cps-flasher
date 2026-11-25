@@ -4,7 +4,7 @@
 // recognize a file; a converter turns one format into another. Converters with status "planned" are listed so users
 // see what's coming; only "ready" ones run. Adding a conversion is adding an entry here with a convert() function.
 
-import { openBundle, CODEPLUG_SPAN } from "./backup.js?v=c16ffd9bbf";
+import { openBundle, CODEPLUG_SPAN } from "./backup.js?v=379de153e9";
 import { startsWith } from "./bytes.js?v=c16ffd9bbf";
 import { classify } from "../codeplug/detect.js?v=4436b923d7";
 import { CodeplugImage, TFTP_SIZE } from "../codeplug/image.js?v=c16ffd9bbf";
