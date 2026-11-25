@@ -55,7 +55,23 @@ jobs:
             --pattern "rfoundry-dm32-$VERSION.bin" --pattern "rfoundry-dm32-$VERSION.json" --pattern SHA256SUMS
           sha256sum -c SHA256SUMS
           cd "$GITHUB_WORKSPACE"
-          python3 tools/set_firmware.py "$RUNNER_TEMP/fw/rfoundry-dm32-$VERSION.json"
+          MANIFEST="$RUNNER_TEMP/fw/rfoundry-dm32-$VERSION.json"
+          OLDER=$(python3 - "$MANIFEST" <<'PY'
+          import json
+          import sys
+
+          with open("data/releases.json", encoding="utf-8") as f:
+              current = json.load(f)["releases"][0]
+          with open(sys.argv[1], encoding="utf-8") as f:
+              incoming = json.load(f)
+          print("true" if (incoming.get("git_time") or 0) < (current.get("git_time") or 0) else "false")
+          PY
+          )
+          if [ "$OLDER" = true ]; then
+            echo "Keeping the newer firmware already on the site"
+            exit 0
+          fi
+          python3 tools/set_firmware.py "$MANIFEST"
           git add -A firmware/dm32 data/releases.json
           git add -u -- "*.html"
           git -c user.name=donttellmeimcute -c user.email=24362190+donttellmeimcute@users.noreply.github.com \
