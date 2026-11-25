@@ -391,15 +391,39 @@ const backend = () => backendOf(S.radio);
 // A radio without a display: what the page tells the user to look at can't be its screen
 const noScreen = () => hasNoScreen(S.radio);
 
+const SYNCED_RELEASE_ROOT = "https://raw.githubusercontent.com/donttellmeimcute/dm32-web-cps-flasher/main/";
+
+async function loadReleaseCatalog(fresh = false) {
+	// The sync workflow updates the Git branch before a Pages deployment can serve the same firmware files.
+	const roots = [ROOT, SYNCED_RELEASE_ROOT];
+	const catalogs = await Promise.allSettled(roots.map(async (releaseRoot) => {
+		const query = fresh ? `?check=${Date.now()}` : "";
+		const res = await fetch(`${releaseRoot}data/releases.json${query}`, {
+			cache: fresh || releaseRoot === SYNCED_RELEASE_ROOT ? "no-store" : "default",
+			signal: AbortSignal.timeout(4500),
+		});
+		if (!res.ok) throw new Error(`releases.json: HTTP ${res.status}`);
+		const { releases } = await res.json();
+		if (!Array.isArray(releases)) throw new Error("Invalid firmware catalog");
+		return { releases, releaseRoot };
+	}));
+	const valid = catalogs.filter((result) => result.status === "fulfilled").map((result) => result.value);
+	if (!valid.length) throw catalogs[0].reason;
+	return valid.sort((left, right) => (right.releases[0]?.git_time || 0) - (left.releases[0]?.git_time || 0)
+		|| right.releases.length - left.releases.length)[0];
+}
+
 async function loadData() {
 	const get = async (name) => (await fetch(`${ROOT}data/${name}`)).json();
-	const [radios, features, variants, fb, releases, site] = await Promise.all(
-		["radios.json", "features.json", "variants.json", "flash-boards.json", "releases.json", "site.json"].map(get));
+	const [radios, features, variants, fb, site, catalog] = await Promise.all([
+		...["radios.json", "features.json", "variants.json", "flash-boards.json", "site.json"].map(get),
+		loadReleaseCatalog(),
+	]);
 	// repository texts in the page's language where the catalog overrides them (feature.<SWITCH>.*, variant.<id>.*)
 	const feats = features.features.map((f) => ({ ...f, title: tOr(`feature.${f.name}.title`, f.title), help: tOr(`feature.${f.name}.help`, f.help) }));
 	const vars = variants.variants.map((v) => ({ ...v, title: tOr(`variant.${v.id}.title`, v.title), summary: tOr(`variant.${v.id}.summary`, v.summary) }));
 	return { radios: radios.radios, features: feats, groups: features.groups, reported: features.reported || [],
-		variants: vars, fb, releases: releases.releases, site };
+		variants: vars, fb, site, ...catalog };
 }
 
 const fb = () => (S.sim ? S.sim.fb : S.data.fb);
@@ -919,7 +943,7 @@ function simLinks() {
 
 // The newest release of the radio (or the version link's): what the update installs
 const updateVersion = () => S.firmwarePreset === "custom"
-	? S.firmware?.manifest.version || t("flash.preset.custom")
+	? S.firmware?.manifest.version || selectedFirmwareRelease()?.version || t("flash.preset.custom")
 	: VERSION_REF ? versionShort() : selectedFirmwareRelease()?.version || defaultRef(S.data.site.branch);
 
 // One port chooser for every radio: RadioFoundry's USB port or a programming cable. Whatever answers names the radio, and
@@ -1102,14 +1126,14 @@ function updateView() {
 			firmwarePresetPicker(draw), custom ? customFirmwareOptions(draw) : null, backup, backupPanel, image, status));
 		const busy = building && !S.build.error;
 		const go = async () => {
-			if (!S.firmware && custom) return;
+			if (!S.firmware && custom && !selectedFirmwareRelease()) return;
 			if (S.editBuild) return next();
 			if (!S.firmware && S.sim) await ensureFirmware();
 			if (!S.firmware && !S.sim) await requestBuild(draw);
 			if (S.firmware) next();
 		};
 		S.forward(button(busy ? [spinner(), t("flash.nav.building")] : t(S.editBuild ? "flash.update.to_build" : "flash.update.go"), go,
-			{ primary: true, disabled: busy || (custom && !S.firmware) || (S.updateBackup && !!backupPanel) }));
+			{ primary: true, disabled: busy || (custom && !S.firmware && !selectedFirmwareRelease()) || (S.updateBackup && !!backupPanel) }));
 	};
 	draw();
 	return out;
@@ -1188,10 +1212,20 @@ function selectRadio(r) {
 
 const firmwarePresetId = (release) => release.variant || "full";
 const firmwareReleases = () => S.data.releases.filter((r) => r.board === S.radio.id);
-const selectedFirmwareRelease = () => firmwareReleases().find((r) => firmwarePresetId(r) === S.firmwarePreset);
+function selectedFirmwareRelease() {
+	if (S.firmwarePreset !== "custom") return firmwareReleases().find((r) => firmwarePresetId(r) === S.firmwarePreset);
+	return firmwareReleases().find((release) => {
+		if (!isStandardPreset(firmwarePresetId(release)) && !firmwarePresetId(release).startsWith("modes-")) return false;
+		const enabled = new Set((release.features || "").split(","));
+		return OPTIONAL_BUILD_MODULES.every(([id]) =>
+			enabled.has(id.toUpperCase().replaceAll("-", "_")) === moduleEnabled(id));
+	});
+}
+
+const isStandardPreset = (id) => ["full", "multimode", "dmr-fm"].includes(id);
 
 function firmwarePresetPicker(redraw) {
-	const presets = [...new Set([...firmwareReleases().map(firmwarePresetId), "custom"])];
+	const presets = [...new Set([...firmwareReleases().map(firmwarePresetId).filter(isStandardPreset), "custom"])];
 	return h("label", { class: "form-row" },
 		h("span", {}, t("flash.preset.label")),
 		h("select", { disabled: !!S.build && !S.build.error, onchange: (e) => {
@@ -1211,6 +1245,15 @@ const OPTIONAL_BUILD_MODULES = [
 	["dstar", "D-STAR"], ["aprs", "APRS"], ["mdc1200", "MDC-1200"], ["rssi-graph", "RSSI"],
 ];
 
+function moduleMissingDependency(id) {
+	const omitted = S.omittedModules;
+	return (id === "dstar" && omitted.has("p25")) ||
+		(id === "m17" && ["p25", "nxdn", "ysf"].every((mode) => omitted.has(mode))) ||
+		(id === "mdc1200" && omitted.has("aprs"));
+}
+
+const moduleEnabled = (id) => !S.omittedModules.has(id) && !moduleMissingDependency(id);
+
 function ownFirmwareFields(redraw) {
 	return [
 		filePicker(t("flash.build.own_manifest"), ".json", async (f) => { S.ownManifest = JSON.parse(new TextDecoder().decode(f.data)); }),
@@ -1219,48 +1262,44 @@ function ownFirmwareFields(redraw) {
 }
 
 function customFirmwareOptions(redraw) {
-	const cmd = h("code", {});
-	const controls = new Map();
-	const render = () => {
-		const omitted = OPTIONAL_BUILD_MODULES.filter(([id]) => S.omittedModules.has(id));
-		cmd.textContent = ["python3 tools/build_current.py", ...omitted.map(([id]) => `--without ${id}`)].join(" ");
-		for (const [id, input] of controls) {
-			const missing = id === "dstar" && S.omittedModules.has("p25") ||
-				id === "m17" && ["p25", "nxdn", "ysf"].every((mode) => S.omittedModules.has(mode)) ||
-				id === "mdc1200" && S.omittedModules.has("aprs");
-			input.checked = !missing && !S.omittedModules.has(id);
-			input.disabled = missing;
-		}
-	};
-	const rows = OPTIONAL_BUILD_MODULES.map(([id, label]) => {
-		const input = h("input", { type: "checkbox", onchange: () => {
-			if (input.checked) S.omittedModules.delete(id);
-			else S.omittedModules.add(id);
-			S.ownManifest = null;
-			S.ownImageRequest = null;
-			if (S.firmware) {
+	const precompiled = selectedFirmwareRelease();
+	const busy = !!S.build && !S.build.error;
+	const controls = OPTIONAL_BUILD_MODULES.map(([id, label]) => {
+		const fieldId = `firmware-mode-${id}`;
+		const input = h("input", {
+			id: fieldId, type: "checkbox", checked: moduleEnabled(id), disabled: busy || moduleMissingDependency(id),
+			onchange: () => {
+				if (input.checked) S.omittedModules.delete(id);
+				else S.omittedModules.add(id);
 				S.firmware = null;
+				S.build = null;
 				S.c7want = null;
+				S.ownManifest = null;
+				S.ownImageRequest = null;
 				redraw();
-			} else {
-				render();
-			}
-		} });
-		controls.set(id, input);
+				document.getElementById(fieldId)?.focus();
+			},
+		});
 		return h("label", { class: "toggle" }, input, h("span", {}, label));
 	});
-	render();
-	return h("div", {},
+	const omitted = OPTIONAL_BUILD_MODULES.filter(([id]) => S.omittedModules.has(id));
+	const cmd = ["python3 tools/build_current.py", ...omitted.map(([id]) => `--without ${id}`)].join(" ");
+	const own = h("details", { class: "small", open: !precompiled },
+		h("summary", {}, t("flash.build.self_title")),
 		h("p", {}, t("flash.preset.custom_help"), " ",
 			h("a", { href: "https://github.com/donttellmeimcute/DM32-nxdn-p25#compilar" }, t("flash.preset.instructions"))),
-		h("fieldset", {}, h("legend", {}, t("flash.preset.modules")), rows),
-		h("pre", {}, cmd), ownFirmwareFields(redraw));
+		h("pre", {}, h("code", {}, cmd)), ownFirmwareFields(redraw));
+	return h("div", {},
+		h("fieldset", {}, h("legend", {}, t("flash.preset.modules")), controls),
+		precompiled ? h("p", { role: "status" }, t("flash.preset.custom_ready", { version: precompiled.version }))
+			: h("p", { role: "status" }, t("flash.preset.custom_missing")),
+		busy ? null : own);
 }
 
 function buildView() {
 	const wrap = h("div", { class: "flasher" });
 	const go = async () => {
-		if (!S.firmware && S.firmwarePreset === "custom") return;
+		if (!S.firmware && S.firmwarePreset === "custom" && !selectedFirmwareRelease()) return;
 		if (!S.firmware && S.sim) await ensureFirmware();
 		if (!S.firmware && !S.sim) await requestBuild(draw);
 		if (S.firmware) next();
@@ -1270,7 +1309,7 @@ function buildView() {
 		const rel = selectedFirmwareRelease();
 		const busy = !!S.build && !S.build.error;
 		S.forward(button(busy ? [spinner(), t("flash.fw.loading")] : t(`flash.nav.to_${stepsFor()[S.step + 1]}`), go,
-			{ primary: true, disabled: busy || (!S.firmware && (custom || (!rel && !S.sim))) }));
+			{ primary: true, disabled: busy || (!S.firmware && !rel && (custom || !S.sim)) }));
 		const image = S.firmware ? notice(t("flash.build.image_ready", { what: S.firmware.source }), "ok")
 			: S.build?.error ? buildErrorNotice(S.build.error)
 			: busy ? h("p", { class: "muted", role: "status" }, spinner(), S.build.text)
@@ -1363,13 +1402,11 @@ async function requestBuild(redraw) {
 	S.build = { selection: key, text: t("flash.fw.loading") };
 	redraw();
 	try {
-		const catalog = await fetch(`${ROOT}data/releases.json?check=${Date.now()}`, { cache: "no-store" });
-		if (!catalog.ok) throw new Error(`releases.json: HTTP ${catalog.status}`);
-		S.data.releases = (await catalog.json()).releases || [];
+		Object.assign(S.data, await loadReleaseCatalog(true));
 		const rel = selectedFirmwareRelease();
 		if (!rel) throw new Error(t("flash.build.no_image"));
 		const get = async (url) => {
-			const r = await fetch(ROOT + url, { cache: "no-cache" });
+			const r = await fetch(S.data.releaseRoot + url, { cache: "no-cache" });
 			if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
 			return r;
 		};
