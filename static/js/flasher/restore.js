@@ -18,7 +18,7 @@
 import { RESTORE, makePlan } from "./plan.js?v=c16ffd9bbf";
 import { overlapping as protectOverlap } from "./protect.js?v=c16ffd9bbf";
 import { stockApplication } from "./stockfw.js?v=c16ffd9bbf";
-import { CODEPLUG_SPAN } from "./backup.js?v=379de153e9";
+import { CODEPLUG_SPAN } from "./backup.js?v=10f57c6e70";
 import { TFTP_SIZE } from "../codeplug/image.js?v=c16ffd9bbf";
 import { classify } from "../codeplug/detect.js?v=4436b923d7";
 

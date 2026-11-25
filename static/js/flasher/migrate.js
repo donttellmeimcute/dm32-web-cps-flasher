@@ -8,8 +8,8 @@
 // RadioFoundry's codeplug (codeplug/stock_baofeng.js): the install converts the read its check step took and writes it
 // through the codeplug interface (writeConverted).
 
-import { CODEPLUG_SPAN } from "./backup.js?v=379de153e9";
-import { codeplugSectors } from "./restore.js?v=379de153e9";
+import { CODEPLUG_SPAN } from "./backup.js?v=10f57c6e70";
+import { codeplugSectors } from "./restore.js?v=10f57c6e70";
 import { classify } from "../codeplug/detect.js?v=4436b923d7";
 import { STOCK, detectStock, importStock } from "../codeplug/stock_tyt.js?v=76466c6282";
 import { empty, encode, decode } from "../codeplug/model.js?v=d0af9dc2fd";

@@ -10,8 +10,8 @@
 import { BLOCK, FIRST_BLOCK } from "./plan.js?v=c16ffd9bbf";
 import { concat, crc32, equal, fromHex, le32, sha256, u16be, u32le } from "./bytes.js?v=c16ffd9bbf";
 import { frame, parseFrames } from "./link.js?v=c16ffd9bbf";
-import { STUB_MAGIC } from "./stub.js?v=379de153e9";
-import { APP_BASE, F4_MAGIC, f405Sectors } from "./f4stub.js?v=379de153e9";
+import { STUB_MAGIC } from "./stub.js?v=10f57c6e70";
+import { APP_BASE, F4_MAGIC, f405Sectors } from "./f4stub.js?v=10f57c6e70";
 import { moveCode, moveBranches, putBl, relocate } from "./codecmap.js?v=c16ffd9bbf";
 import { carve, descriptor, forms, place, placedWindows } from "./stockfw.js?v=c16ffd9bbf";
 

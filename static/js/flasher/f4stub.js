@@ -16,7 +16,7 @@
 // in DFU at power-on, so an update cut short leaves a radio the bootloader route finishes.
 
 import { be32, concat, crc32, equal, fromHex, sleep, toHex, u32le } from "./bytes.js?v=c16ffd9bbf";
-import { FrameError, OK, Stub, StubError, unpack } from "./stub.js?v=379de153e9";
+import { FrameError, OK, Stub, StubError, unpack } from "./stub.js?v=10f57c6e70";
 import * as protect from "./protect.js?v=c16ffd9bbf";
 
 export const BLOCK = 4096, FLASH_BASE = 0x08000000, APP_BASE = 0x0800C000, STUB_RUN = 0x20000000;

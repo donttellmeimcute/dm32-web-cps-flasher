@@ -3,8 +3,8 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { FakeC7000 } from "../static/js/flasher/fakec7000.js";
-import { SECTOR, Stub } from "../static/js/flasher/stub.js";
+import { FakeC7000 } from "../static/js/flasher/fakec7000.js?v=10f57c6e70";
+import { SECTOR, Stub } from "../static/js/flasher/stub.js?v=10f57c6e70";
 
 const failingSector = 0x1C6000;
 const start = failingSector - SECTOR;

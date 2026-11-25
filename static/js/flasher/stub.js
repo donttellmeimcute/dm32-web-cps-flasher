@@ -409,6 +409,20 @@ export class Stub {
 		return { load: u32le(r, 4), size: u32le(r, 8), chunk: Math.min(r[12] | (r[13] << 8), 59) };
 	}
 
+	// These C7000 modes can lend the codec's RAM to a live modem, so the page must check before requesting STUB INFO.
+	static async rfoundryUsesCodecWindow(link, features) {
+		const enabled = features.split(/[ ,]+/);
+		if (!enabled.includes("M17") && !enabled.includes("DSTAR")) return false;
+		try {
+			const coreView = await link.request(0x09, new Uint8Array([0]));
+			const mode = new TextDecoder().decode(coreView.subarray(5)).match(/^mode=([^\r\n]+)$/m)?.[1];
+			// Older D-STAR builds have no name for its mode in the debug view.
+			return mode === "m17" || mode === "dstar" || (mode === "?" && enabled.includes("DSTAR"));
+		} catch {
+			return false;	// stub-only firmware can omit the debug view
+		}
+	}
+
 	// entry: where RadioFoundry jumps (the offered load address unless the stub runs elsewhere, as the STM32F4 one does)
 	async enterFromRFoundry(image, progress = () => {}, { entry = null } = {}) {
 		const link = new Link(this.s);
@@ -422,7 +436,7 @@ export class Stub {
 					if (!(e instanceof LinkError) || /status/.test(e.message)) break;
 				}
 			}
-			throw new StubError(`RadioFoundry refused ${what} (${last?.message})`);
+			throw Object.assign(new StubError(`RadioFoundry refused ${what} (${last?.message})`), { status: last?.status });
 		};
 		const offer = await Stub.rfoundryOffer(link, { strict: true });
 		if (!offer) throw new StubError("this RadioFoundry build cannot hand over to the loader (built without CONFIG_STUB_ENTRY)");
@@ -434,8 +448,12 @@ export class Stub {
 			await dl(concat(new Uint8Array([2]), le32(off), image.subarray(off, off + offer.chunk)), `the chunk at ${off}`);
 			progress(Math.min(off + offer.chunk, image.length), image.length);
 		}
-		// Refused (7) with reason 1: the radio's watchdog runs and this loader doesn't feed it (an older copy of the site)
-		await dl(concat(new Uint8Array([3]), le32(STUB_MAGIC)), "to start the loader (image incomplete or CRC mismatch; status 7: this firmware needs a newer loader, reload the page)");
+		try {
+			await dl(concat(new Uint8Array([3]), le32(STUB_MAGIC)), "to start the RAM loader");
+		} catch (e) {
+			if (e.status === 2) throw new StubError("RadioFoundry could not verify the loader in RAM (incomplete transfer or CRC mismatch, status 2)", "stub-transfer");
+			throw e;
+		}
 		this.log("RadioFoundry is jumping to the stub");
 		this.jumped = true;
 		await this.afterJump();

@@ -28,10 +28,10 @@ import { concat, crc32, le32, sha256, sleep, u32le } from "./bytes.js?v=c16ffd9b
 import { frame, parseFrames } from "./link.js?v=c16ffd9bbf";
 import { ACK, NAK, CRC_REQ, STX, EOT, BLOCK, HEADER_BLOCK, xmodem } from "./bfloader.js?v=c16ffd9bbf";
 import { encodeBlock } from "./lz4.js?v=c16ffd9bbf";
-import { CRASH_BOOT_SOFT, CRASH_SOFT_MARK, STUB_MAGIC, SSI_PROG, SYS_SOFT_RSTN, TIMER2_VALUE, WDT_EN, ROM_FLAG, hasRomFlag } from "./stub.js?v=379de153e9";
-import { HIJACK, STUB_WINDOW, BUILDS, FLASH_BASE } from "./usmart.js?v=379de153e9";
-import { rng, randomBytes } from "./fake.js?v=379de153e9";
-import { sigBytes } from "./c7000.js?v=379de153e9";
+import { CRASH_BOOT_SOFT, CRASH_SOFT_MARK, STUB_MAGIC, SSI_PROG, SYS_SOFT_RSTN, TIMER2_VALUE, WDT_EN, ROM_FLAG, hasRomFlag } from "./stub.js?v=10f57c6e70";
+import { HIJACK, STUB_WINDOW, BUILDS, FLASH_BASE } from "./usmart.js?v=10f57c6e70";
+import { rng, randomBytes } from "./fake.js?v=10f57c6e70";
+import { sigBytes } from "./c7000.js?v=10f57c6e70";
 
 const SECTOR = 4096, OK = 0x05, BADSUM = 0x0A, BADOP = 0x0B;
 const sum8 = (b) => b.reduce((a, x) => (a + x) & 0xFF, 0);
