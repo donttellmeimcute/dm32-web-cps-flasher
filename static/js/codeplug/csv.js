@@ -8,7 +8,7 @@
 
 import { parseFreq, parseTone, mhz } from "./fields.js?v=c16ffd9bbf";
 import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=f3daccc684";
-import { newChannel, newContact, remove, assignNumbers } from "./model.js?v=d0af9dc2fd";
+import { newChannel, newContact, remove, assignNumbers, applyLowFm } from "./model.js?v=0bfc9c5ae1";
 import { setKind } from "./channelmodes.js?v=d0af9dc2fd";
 import { dstarCallValid } from "./mode_dstar.js";
 import { kindName } from "./modes.js?v=d0af9dc2fd";
@@ -683,6 +683,7 @@ export function importTable(m, text, table = detect(text)) {
 			skip = true;
 		}
 		if (skip) continue;
+		if (table === "channels" && !work.kind) applyLowFm(m, work);
 		Object.assign(rec, work);
 		if (fresh) added++;
 		else updated++;

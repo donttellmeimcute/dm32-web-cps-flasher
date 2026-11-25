@@ -187,5 +187,8 @@
  "editor.dstar.rpt2_help": "Indicativo de la puerta de enlace del hotspot, por ejemplo N0CALL G.",
  "editor.problem.dstar_ur_chars": "Usa hasta ocho caracteres entre A–Z, 0–9, barra y espacio.",
  "editor.problem.dstar_route_pair": "Completa RPT1 y RPT2 o deja ambos vacíos.",
- "editor.problem.dstar_rpt_format": "Escribe el indicativo seguido de la letra del módulo, por ejemplo N0CALL B."
+ "editor.problem.dstar_rpt_format": "Escribe el indicativo seguido de la letra del módulo, por ejemplo N0CALL B.",
+ "editor.band.low_fm": "FM de solo recepción (66–88 MHz). Selecciona 12.5 kHz o 25 kHz en Ancho de banda.",
+ "editor.problem.listen_dmr_low_fm": "La banda de 66–88 MHz recibe en FM. Cambia el modo a FM.",
+ "editor.problem.listen_tx_low_fm": "La banda de 66–88 MHz es de solo recepción. Activa Solo RX."
 }

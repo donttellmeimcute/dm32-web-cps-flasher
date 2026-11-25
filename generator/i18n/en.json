@@ -187,5 +187,8 @@
  "editor.dstar.rpt2_help": "Hotspot gateway callsign, for example N0CALL G.",
  "editor.problem.dstar_ur_chars": "Use up to eight characters from A–Z, 0–9, slash and space.",
  "editor.problem.dstar_route_pair": "Fill in both RPT1 and RPT2, or leave both blank.",
- "editor.problem.dstar_rpt_format": "Enter a callsign followed by its module letter, for example N0CALL B."
+ "editor.problem.dstar_rpt_format": "Enter a callsign followed by its module letter, for example N0CALL B.",
+ "editor.band.low_fm": "Receive-only FM (66–88 MHz). Select 12.5 kHz or 25 kHz under Bandwidth.",
+ "editor.problem.listen_dmr_low_fm": "The 66–88 MHz band receives in FM. Set the mode to FM.",
+ "editor.problem.listen_tx_low_fm": "The 66–88 MHz band is receive-only. Turn on RX Only."
 }

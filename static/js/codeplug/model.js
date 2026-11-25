@@ -17,7 +17,7 @@ import {
 import { parseTone } from "./fields.js?v=c16ffd9bbf";
 import { readHeader } from "./iddb.js?v=c16ffd9bbf";
 import { decodeArea, keyValid, KEYS } from "./kv.js?v=c16ffd9bbf";
-import { decodeModes, encodeModes, syncModes, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=d0af9dc2fd";
+import { decodeModes, encodeModes, syncModes, setKind, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=d0af9dc2fd";
 
 const REFS = ["contact", "rxList", "aprs"];
 
@@ -287,14 +287,20 @@ export function remove(m, table, items) {
 
 // --- Receive-only bands ---
 
-// The bands an FM channel only listens on (docs/spec/airband-and-broadcast.md): the air band, received in AM, and
-// broadcast FM, played on the broadcast receiver. The frequency decides; the codeplug stores an FM channel. A radio
-// without the receiver for one hears nothing there, and none transmits there. "air", "bcast" or null
-export const AIR_HZ = [108000000, 137000000], BCAST_HZ = [65000000, 108000000];
+// DM-32UV uses the analog channel receiver for 66–88 MHz, the broadcast tuner above 88 MHz, and AM in the air band.
+export const AIR_HZ = [108000000, 137000000], BCAST_HZ = [88000000, 108000000];
 export function listenBand(hz) {
+	if (hz >= 66000000 && hz <= BCAST_HZ[0]) return "low_fm";
 	if (hz >= AIR_HZ[0] && hz < AIR_HZ[1]) return "air";
-	if (hz >= BCAST_HZ[0] && hz < BCAST_HZ[1]) return "bcast";
+	if (hz > BCAST_HZ[0] && hz < BCAST_HZ[1]) return "bcast";
 	return null;
+}
+
+export function applyLowFm(m, c) {
+	if (listenBand(c.rxHz) !== "low_fm") return;
+	setKind(m, c, 0, "fm");
+	c.rxOnly = true;
+	c.txHz = c.rxHz;
 }
 
 // --- Validation ---
@@ -325,7 +331,7 @@ export function validate(m, { bands = null, features = null } = {}) {
 		if (c.name.length > LIMITS.name) err("channels", c, "name", "too_long", { max: LIMITS.name });
 		for (const f of ["rxHz", "txHz"]) {
 			if (!(c[f] > 0 && c[f] < 1e9)) err("channels", c, f, "bad_freq");
-			else if (bands && !bands.some(([lo, hi]) => c[f] >= lo && c[f] <= hi)) warn("channels", c, f, "out_of_band");
+			else if (bands && listenBand(c[f]) !== "low_fm" && !bands.some(([lo, hi]) => c[f] >= lo && c[f] <= hi)) warn("channels", c, f, "out_of_band");
 		}
 		for (const f of ["rxTone", "txTone"]) if (parseTone(c[f]) === null) err("channels", c, f, "bad_tone");
 		if (c.colorCode < 0 || c.colorCode > 15) err("channels", c, "colorCode", "range", { min: 0, max: 15 });
@@ -336,7 +342,9 @@ export function validate(m, { bands = null, features = null } = {}) {
 		// rule above already guards on kind the same way.
 		if (band && c.mode === "dmr" && !c.kind) warn("channels", c, "mode", `listen_dmr_${band}`);
 		const txBand = listenBand(c.txHz);
-		if (txBand && !c.rxOnly) warn("channels", c, "rxOnly", `listen_tx_${txBand}`);
+		if ((band === "low_fm" || txBand === "low_fm") && !c.rxOnly)
+			warn("channels", c, "rxOnly", "listen_tx_low_fm");
+		else if (txBand && !c.rxOnly) warn("channels", c, "rxOnly", `listen_tx_${txBand}`);
 		for (const k of REFS) if (typeof c[k] === "number") warn("channels", c, k, "dangling", { number: c[k] });
 		if (c.dmrId > 0xFFFFFF) err("channels", c, "dmrId", "id_range");
 	}
