@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 # Installs the latest DM32-nxdn-p25 release on this site: when its version differs from data/releases.json, the
-# release's rfoundry-dm32-<version>.bin and manifest are checked against its SHA256SUMS and put in place by
+# release's firmware images and manifests are checked against its SHA256SUMS and put in place by
 # tools/set_firmware.py (which refuses an image with the codec), and the change is committed. GitHub Pages then serves
 # it and the flasher offers it. Runs every 15 minutes, by hand (Actions > Sync firmware), or when the firmware
 # repository's Firmware workflow asks for it.
@@ -52,7 +52,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/fw"
           cd "$RUNNER_TEMP/fw"
           gh release download "$TAG" --repo donttellmeimcute/DM32-nxdn-p25 \
-            --pattern "rfoundry-dm32-$VERSION.bin" --pattern "rfoundry-dm32-$VERSION.json" --pattern SHA256SUMS
+            --pattern "rfoundry-dm32-*.bin" --pattern "rfoundry-dm32-*.json" --pattern SHA256SUMS
           sha256sum -c SHA256SUMS
           cd "$GITHUB_WORKSPACE"
           MANIFEST="$RUNNER_TEMP/fw/rfoundry-dm32-$VERSION.json"
@@ -71,7 +71,7 @@ jobs:
             echo "Keeping the newer firmware already on the site"
             exit 0
           fi
-          python3 tools/set_firmware.py "$MANIFEST"
+          python3 tools/set_firmware.py "$RUNNER_TEMP"/fw/rfoundry-dm32-*"$VERSION".json
           git add -A firmware/dm32 data/releases.json
           git add -u -- "*.html"
           git -c user.name=donttellmeimcute -c user.email=24362190+donttellmeimcute@users.noreply.github.com \

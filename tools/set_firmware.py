@@ -5,7 +5,7 @@
 tools/release.py in the firmware tree, the image next to it), copies both into firmware/dm32/ (removing the old ones)
 and rewrites data/releases.json, the list the flasher installs from, and firmware/dm32/SHA256SUMS.
 
-    python tools/set_firmware.py path/to/rfoundry-dm32-<version>.json
+    python tools/set_firmware.py path/to/rfoundry-dm32-<version>.json [variant.json ...]
 
 Refuses a manifest for another radio, one that says it includes the codec, an image that doesn't match it, and an
 image that would reach the codec's flash window: this repository must never carry the AMBE codec.
@@ -24,7 +24,7 @@ PAGES = ("index.html", "404.html", "flash/index.html", "codeplug/index.html",
 	 "en/index.html", "en/404.html", "en/flash/index.html", "en/codeplug/index.html")
 
 
-def main(man_path):
+def read_release(man_path):
 	with open(man_path, encoding="utf-8") as f:
 		m = json.load(f)
 	if m.get("format") != "rfoundry-release/1" or m.get("board") != "dm32":
@@ -39,26 +39,45 @@ def main(man_path):
 	if m["codec"]["included"] or "codec" in name or any(end > int(w["addr"], 16) for w in m["codec"]["windows"]):
 		sys.exit("refused: %s would carry or reach the codec" % name)
 	base = name[:-len(".bin")]
-	for old in os.listdir(DIR):
-		if old.startswith("rfoundry-dm32-"):
-			os.remove(os.path.join(DIR, old))
-	with open(os.path.join(DIR, name), "wb") as f:	# from memory: the old files may have been the ones given
-		f.write(image)
-	text = json.dumps(m, indent=2) + "\n"
-	with open(os.path.join(DIR, base + ".json"), "w", encoding="utf-8", newline="\n") as f:
-		f.write(text)
-	with open(os.path.join(DIR, "SHA256SUMS"), "w", encoding="ascii", newline="\n") as f:
-		f.write("%s  %s\n%s  %s.json\n" % (sha, name, hashlib.sha256(text.encode()).hexdigest(), base))
-	# the entry site/rfoundrysite/build.py release_list() writes
+	# The same entry shape as site/rfoundrysite/build.py release_list().
 	entry = {"board": "dm32", "variant": m.get("variant", "full"), "version": m["version"], "name": "NXDN-P25-DM32 " + m["version"], "git": m.get("git"),
 		 "git_time": m.get("git_time"), "features": m.get("features", ""), "off": m.get("off"),
 		 "image": "firmware/dm32/" + name, "manifest": "firmware/dm32/%s.json" % base,
 		 "size": len(image), "sha256": sha}
+	return entry, m, image
+
+
+def main(man_paths):
+	releases = [read_release(path) for path in man_paths]
+	releases.sort(key=lambda value: value[0]["variant"] != "full")
+	full = releases[0][0]
+	presets = {entry["variant"] for entry, _, _ in releases}
+	names = {entry["image"] for entry, _, _ in releases}
+	if full["variant"] != "full" or len(presets) != len(releases) or len(names) != len(releases):
+		sys.exit("expected one full image and at most one image per variant")
+	if any(m.get("git_full") != releases[0][1].get("git_full") or e["version"] != full["version"] for e, m, _ in releases):
+		sys.exit("all variants must come from the same firmware release")
+	for old in os.listdir(DIR):
+		if old.startswith("rfoundry-dm32-"):
+			os.remove(os.path.join(DIR, old))
+	sums = []
+	for entry, m, image in releases:
+		name = os.path.basename(entry["image"])
+		manifest_name = os.path.basename(entry["manifest"])
+		with open(os.path.join(DIR, name), "wb") as f:
+			f.write(image)
+		text = json.dumps(m, indent=2) + "\n"
+		with open(os.path.join(DIR, manifest_name), "w", encoding="utf-8", newline="\n") as f:
+			f.write(text)
+		sums.append("%s  %s\n%s  %s\n" %
+			    (entry["sha256"], name, hashlib.sha256(text.encode()).hexdigest(), manifest_name))
+	with open(os.path.join(DIR, "SHA256SUMS"), "w", encoding="ascii", newline="\n") as f:
+		f.writelines(sums)
 	with open(os.path.join(ROOT, "data", "releases.json"), "w", encoding="utf-8", newline="\n") as f:
-		f.write(json.dumps({"releases": [entry]}, indent=1, ensure_ascii=False) + "\n")
-	pages = stamp_pages(entry)
-	print("firmware/dm32/%s (%d bytes, %s), data/releases.json and %d pages updated" %
-	      (name, len(image), m["version"], pages))
+		f.write(json.dumps({"releases": [e for e, _, _ in releases]}, indent=1, ensure_ascii=False) + "\n")
+	pages = stamp_pages(full)
+	print("%s, %d firmware variants, data/releases.json and %d pages updated" %
+	      (full["version"], len(releases), pages))
 
 
 # The footer's stamp ("Changelog · <site git> · <site build time>") stayed at the last site build, so after a firmware
@@ -113,6 +132,6 @@ def stamp_pages(entry):
 
 
 if __name__ == "__main__":
-	if len(sys.argv) != 2:
+	if len(sys.argv) < 2:
 		sys.exit(__doc__)
-	main(sys.argv[1])
+	main(sys.argv[1:])
