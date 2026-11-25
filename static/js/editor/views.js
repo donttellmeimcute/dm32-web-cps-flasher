@@ -7,7 +7,7 @@
 import { h, button } from "../flasher/dom.js?v=c16ffd9bbf";
 import { parseFreq, parseTone, mhz } from "../codeplug/fields.js?v=c16ffd9bbf";
 import { LIMITS, POWER_NAMES, DMR_PRIV } from "../codeplug/records.js?v=f3daccc684";
-import { refNumber, listenBand } from "../codeplug/model.js?v=d0af9dc2fd";
+import { refNumber, listenBand, applyLowFm } from "../codeplug/model.js?v=0bfc9c5ae1";
 import { keyValid } from "../codeplug/kv.js?v=c16ffd9bbf";
 import { kindRow, kindName, offeredKinds } from "../codeplug/modes.js?v=d0af9dc2fd";
 import { KEY_ALGS, validKeyHex, setKind } from "../codeplug/channelmodes.js?v=d0af9dc2fd";
@@ -49,15 +49,19 @@ const freq = (t) => (r, k, v) => {
 
 // An RX frequency in a receive-only band (model.js listenBand) makes the channel RX only, with TX on RX (no stray TX
 // frequency left from before)
-const rxFreq = (t) => (r, k, v) => {
+const rxFreq = (m, t) => (r, k, v) => {
 	const err = freq(t)(r, k, v);
-	if (!err && listenBand(r.rxHz)) {
+	if (!err && ownFreqs(r) && listenBand(r.rxHz)) {
 		r.rxOnly = true;
 		r.txHz = r.rxHz;
+		applyLowFm(m, r);
 	}
 	return err;
 };
 const listening = (value) => !!listenBand(parseFreq(value("rxHz")));
+const isLowFm = (r) => ownFreqs(r) && listenBand(r.rxHz) === "low_fm";
+const typingLowFm = (r, value) => ownFreqs(r) &&
+	listenBand(value ? parseFreq(value("rxHz")) : r.rxHz) === "low_fm";
 
 // The mode as the radio shows it: an FM channel in the air band is received in AM
 // A channel of a kind (channel-modes.md): the kind's short name
@@ -66,7 +70,13 @@ const kindText = (id, t) => {
 	const key = `editor.mode_name.${kindRow(id)?.token}`, s = kindRow(id) ? t(key) : key;
 	return s === key ? kindName(id) : s;
 };
-const modeText = (r, t) => (r.kind ? kindText(r.kind, t) : r.mode === "dmr" ? "DMR" : listenBand(r.rxHz) ? t(`editor.mode.${listenBand(r.rxHz)}`) : "FM");
+const modeText = (r, t) => {
+	const band = listenBand(r.rxHz);
+	if (isLowFm(r)) return "FM";
+	if (r.kind) return kindText(r.kind, t);
+	if (r.mode === "dmr") return "DMR";
+	return band ? t(`editor.mode.${band}`) : "FM";
+};
 
 // A channel's Mode, in its form and in the table: FM, DMR and the kinds offered (modes.js), the channel's own kind too.
 // The value is "fm", "dmr" or "k<kind>"
@@ -93,7 +103,7 @@ const recordField = (r, key) => !r.kind || !!kindMod(r)?.recordFields?.includes(
 // Frequencies of its own: a trunked kind's are its system's
 const ownFreqs = (r) => !r.kind || kindMod(r)?.ownFreqs !== false;
 // Receive only: for a channel of a kind, its tag's transmit allowed turned round (the record is receive only)
-const rxOnlyGet = (r) => (r.kind ? !r.tagTx : r.rxOnly);
+const rxOnlyGet = (r) => isLowFm(r) || (r.kind ? !r.tagTx : r.rxOnly);
 const rxOnlySet = (r, v) => {
 	// Column setters return an error string or nothing, never the assigned Boolean: Bulk Edit treats truthy as an error.
 	if (r.kind) r.tagTx = !v;
@@ -201,19 +211,25 @@ export function columns(table, m, t, { features = null } = {}) {
 	const own = (c) => ({ ...c, readOnly: (r) => !ownFreqs(r) });
 	const num = { key: "number", label: "#", type: "number", get: (r) => r.number, readOnly: true, width: "3.5rem", format: (v) => v ?? "–" };
 	switch (table) {
-	case "channels":
+	case "channels": {
+		const mode = modeColumn(m, t, features);
 		return [
 			num,
 			col("name", "editor.col.name", "text", name(LIMITS.name)(t)),
-			{ ...col("mode", "editor.col.mode", "select", pick), ...modeColumn(m, t, features), readOnly: false, format: (v, r) => modeText(r, t) },
+			{
+				...col("mode", "editor.col.mode", "select", pick), ...mode, readOnly: isLowFm,
+				set: (r, v) => { if (!isLowFm(r)) mode.set(r, v); }, format: (v, r) => modeText(r, t),
+			},
 			own(col("rxHz", "editor.col.rx", "text", (r, k, v) => {
 				// a simplex channel stays simplex: TX follows RX when they were the same
 				const was = r.rxHz;
-				const err = rxFreq(t)(r, k, v);
+				const err = rxFreq(m, t)(r, k, v);
 				if (!err && r.txHz === was) r.txHz = r.rxHz;
 				return err;
 			}, { format: mhz, numeric: true })),
-			own(col("txHz", "editor.col.tx", "text", freq(t), { format: mhz, numeric: true })),
+			col("txHz", "editor.col.tx", "text", (r, k, v) => {
+				if (!isLowFm(r)) return freq(t)(r, k, v);
+			}, { format: mhz, numeric: true, readOnly: (r) => !ownFreqs(r) || isLowFm(r) }),
 			col("power", "editor.col.power", "select", pick, { options: () => powerOptions(t) }),
 			only("fm", col("bw", "editor.col.bw", "select", pick, { options: () => [[12.5, "12.5"], [25, "25"]] })),
 			only("fm", col("rxTone", "editor.col.rx_tone", "text", tone(t), { format: (v) => toneText(v, t), editValue: (v) => v })),
@@ -222,9 +238,13 @@ export function columns(table, m, t, { features = null } = {}) {
 			only("dmr", col("timeslot", "editor.col.ts", "select", pick, { options: () => [[1, "1"], [2, "2"]] })),
 			only("dmr", col("contact", "editor.col.contact", "select", pick, { options: () => refOptions(m.contacts, t), format: (v) => refLabel(v, t), sortValue: (r) => refLabel(r.contact, t) })),
 			only("dmr", col("rxList", "editor.col.rx_list", "select", pick, { options: () => refOptions(m.rxLists, t), format: (v) => refLabel(v, t), sortValue: (r) => refLabel(r.rxList, t) })),
-			{ ...col("rxOnly", "editor.col.rx_only", "bool", bool), get: rxOnlyGet, set: (r, v) => rxOnlySet(r, v) },
+			{
+				...col("rxOnly", "editor.col.rx_only", "bool", bool), get: rxOnlyGet, readOnly: isLowFm,
+				set: (r, v) => { if (!isLowFm(r)) rxOnlySet(r, v); },
+			},
 			col("zoneSkip", "editor.col.zone_skip", "bool", bool),
 		];
+	}
 	case "zones":
 		return [
 			col("name", "editor.col.name", "text", name(LIMITS.name)(t)),
@@ -332,8 +352,8 @@ export function channelForm(m, t, { features = null } = {}) {
 	const txt = (key, label, parse, format) => ({ key, label: t(label), type: "text", parse, format });
 	// the FM and DMR parts show only for a channel of that mode; the other mode's values are kept as they are. A
 	// channel of a kind shows the DMR record fields its module uses
-	const fm = (f) => ({ ...f, show: (r) => r.mode === "fm" && !r.kind });
-	const dmr = (f) => ({ ...f, show: (r) => r.mode === "dmr" && recordField(r, f.key) && (!f.show || f.show(r)) });
+	const fm = (f) => ({ ...f, show: (r, value) => typingLowFm(r, value) || (r.mode === "fm" && !r.kind) });
+	const dmr = (f) => ({ ...f, show: (r, value) => !typingLowFm(r, value) && r.mode === "dmr" && recordField(r, f.key) && (!f.show || f.show(r)) });
 	const sfr = (f, label, options) => dmr({ ...sfrField(...f), label: t(label), type: "select", options, show: (r) => r.sfr && !r.kind });
 	const kinds = offeredKinds(m, features);
 	const mode = modeColumn(m, t, features);
@@ -404,12 +424,14 @@ export function channelForm(m, t, { features = null } = {}) {
 	return [
 		{ group: t("editor.form.basic") },
 		txt("name", "editor.col.name", name(LIMITS.name)(t)),
-		sel("mode", "editor.col.mode", mode.options, { get: mode.get, set: mode.set }),
+		sel("mode", "editor.col.mode", mode.options, {
+			get: mode.get, set: mode.set, show: (r, value) => !typingLowFm(r, value),
+		}),
 		{ type: "note", key: "kindNote", text: (value, w) => (w?.kind && !ownFreqs(w) ? t("editor.modes.freqs_system") : "") },
 		sel("power", "editor.col.power", () => powerOptions(t)),
 		// in a receive-only band TX follows RX, locked (rxFreq)
 		{ type: "pair", key: "freqs", show: ownFreqs, disabled: (w, value) => listening(value),
-			fields: [txt("rxHz", "editor.col.rx", rxFreq(t), mhz), { ...txt("txHz", "editor.col.tx", freq(t), mhz), disabled: (w, value) => listening(value), follows: "rxHz" }], buttons: [
+			fields: [txt("rxHz", "editor.col.rx", rxFreq(m, t), mhz), { ...txt("txHz", "editor.col.tx", freq(t), mhz), disabled: (w, value) => listening(value), follows: "rxHz" }], buttons: [
 			["→", t("editor.freq.rx_to_tx"), ([rx]) => [rx, rx]],
 			["⇄", t("editor.freq.swap"), ([rx, tx]) => [tx, rx]],
 			["←", t("editor.freq.tx_to_rx"), ([, tx]) => [tx, tx]],
@@ -421,8 +443,8 @@ export function channelForm(m, t, { features = null } = {}) {
 		txt("tot", "editor.col.tot", tot(t), (v) => (v ? String(v) : t("editor.tot.default"))),
 		// a receive-only band makes the channel RX only on save (rxFreq): the box shows it as the RX frequency is typed
 		{ ...chk("rxOnly", "editor.col.rx_only"), implied: listening, get: rxOnlyGet, set: rxOnlySet },
-		{ group: t("editor.form.mode_params"), show: (r) => !!r.kind },
-		...kindFields,
+		{ group: t("editor.form.mode_params"), show: (r, value) => !!r.kind && !typingLowFm(r, value) },
+		...kindFields.map((f) => ({ ...f, show: (r, value) => !typingLowFm(r, value) && f.show(r) })),
 		fm({ group: t("editor.form.analog") }),
 		fm(sel("bw", "editor.col.bw", () => [[12.5, "12.5 kHz"], [25, "25 kHz"]])),
 		fm(txt("rxTone", "editor.col.rx_tone", tone(t), (v) => v)),
@@ -589,7 +611,7 @@ export function formDialog(title, fields, record, t, onSave, opts = {}) {
 				continue;
 			}
 			if (f.type === "group" || f.type === "custom") {
-				if (f.show) row.hidden = !f.show(work);
+				if (f.show) row.hidden = !f.show(work, value);
 				continue;
 			}
 			if (f.type === "note") {
@@ -613,7 +635,7 @@ export function formDialog(title, fields, record, t, onSave, opts = {}) {
 				input.disabled = on;
 			}
 			if (f.type === "bool") (f.set ? f.set(work, input.checked) : (work[f.key] = input.checked));
-			if (f.show) row.hidden = !f.show(work);
+			if (f.show) row.hidden = !f.show(work, value);
 			if (typeof f.label === "function") label.textContent = f.label(work);
 			if (f.disabled) {
 				input.disabled = f.disabled(work, value);
