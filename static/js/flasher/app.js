@@ -141,7 +141,8 @@ const initialState = () => ({
 	startLang: null,	// the Radio language picked on the build step; null: on an installation the page's (langsuggest.js)
 	langAdded: null,	// the language pack that pick put in the build, taken out again when the pick changes
 	customPicked: false,	// the Custom card picked before any feature changed
-	build: null,		// a custom build in progress: {selection, text, error}
+	build: null,		// a firmware download in progress: {selection, text, error}
+	firmwarePreset: "full", omittedModules: new Set(),
 	useId: null,		// the flash log's id for this use (see useId)
 	openGroups: new Set(),	// feature groups expanded on the build step
 	openTip: null,		// the feature whose ⓘ bubble is open
@@ -918,7 +919,7 @@ function simLinks() {
 
 // The newest release of the radio (or the version link's): what the update installs
 const updateVersion = () => VERSION_REF ? versionShort()
-	: S.data.releases.filter((x) => x.board === S.radio.id).at(-1)?.version || defaultRef(S.data.site.branch);
+	: selectedFirmwareRelease()?.version || defaultRef(S.data.site.branch);
 
 // One port chooser for every radio: RadioFoundry's USB port or a programming cable. Whatever answers names the radio, and
 // the radio's backend takes the connection from there (c7000ui.js adoptCable: no second chooser)
@@ -966,7 +967,9 @@ async function connectForUpdate(status) {
 	S.decided = {};
 	planUpdate(S.current, S.selection, S.decided);
 	// a build the radio doesn't say: the build step, starting from the closest variant
-	S.editBuild = false;	// Open25-DM32 site: one hosted image, no build to edit
+	S.firmwarePreset = S.current.preset || "full";
+	if (!firmwareReleases().some((r) => firmwarePresetId(r) === S.firmwarePreset)) S.firmwarePreset = "full";
+	S.editBuild = false;
 	diag.note("update: radio", { board: p.board, git: p.git, git_time: p.version?.git_time ?? null, said: p.version?.preset ?? null,
 		start: p.version?.start ?? null, record: record ? (record.from_update ? "update" : "yes") : "no", build: S.current.kind,
 		preset: S.current.preset || S.current.guess || null });
@@ -1089,7 +1092,7 @@ function updateView() {
 			h("dl", { class: "kv-list" },
 				h("dt", {}, t("flash.update.radio")), h("dd", {}, S.radio.name),
 				h("dt", {}, t("flash.update.version")), h("dd", {}, t("flash.update.from_to", { from: firmwareName(p.version), to: updateVersion() }))),
-			backup, backupPanel, image, status));
+			firmwarePresetPicker(draw), backup, backupPanel, image, status));
 		const busy = building && !S.build.error;
 		const go = async () => {
 			if (S.editBuild) return next();
@@ -1164,6 +1167,8 @@ function selectRadio(r) {
 	S.langAdded = null;
 	S.firmware = null;
 	S.buildOptions = {};
+	S.firmwarePreset = "full";
+	S.omittedModules.clear();
 	S.variant = null;	// the hardware variant is read from the radio again
 	S.stockRead = null;
 }
@@ -1171,8 +1176,60 @@ function selectRadio(r) {
 // ---------------------------------------------------------------------------------------------------------------
 // install: the build (variant, a la carte)
 
-// Open25-DM32 site: the firmware step. One image, hosted on this site (data/releases.json), no feature choice and no
-// build service; or the user's own DM-32 build with its manifest
+const firmwarePresetId = (release) => release.variant || "full";
+const firmwareReleases = () => S.data.releases.filter((r) => r.board === S.radio.id);
+const selectedFirmwareRelease = () => firmwareReleases().find((r) => firmwarePresetId(r) === S.firmwarePreset);
+
+function firmwarePresetPicker(redraw) {
+	const releases = firmwareReleases();
+	if (releases.length < 2) return null;
+	return h("label", { class: "form-row" },
+		h("span", {}, t("flash.preset.label")),
+		h("select", { disabled: !!S.build && !S.build.error, onchange: (e) => {
+			S.firmwarePreset = e.target.value;
+			S.firmware = null;
+			S.build = null;
+			S.c7want = null;
+			redraw();
+		} }, releases.map((r) => {
+			const id = firmwarePresetId(r);
+			return h("option", { value: id, selected: id === S.firmwarePreset },
+				tOr(`flash.preset.${id}`, id));
+		})));
+}
+
+const OPTIONAL_BUILD_MODULES = [
+	["p25", "P25"], ["nxdn", "NXDN"], ["ysf", "System Fusion"], ["m17", "M17"],
+	["dstar", "D-STAR"], ["aprs", "APRS"], ["mdc1200", "MDC-1200"], ["rssi-graph", "RSSI"],
+];
+
+function customFirmwareOptions() {
+	const cmd = h("code", {});
+	const controls = new Map();
+	const render = () => {
+		cmd.textContent = ["python3 tools/build_current.py", ...[...S.omittedModules].map((id) => `--without ${id}`)].join(" ");
+		for (const [id, input] of controls) {
+			const missing = id === "dstar" && S.omittedModules.has("p25") ||
+				id === "m17" && ["p25", "nxdn", "ysf"].every((mode) => S.omittedModules.has(mode));
+			input.checked = !missing && !S.omittedModules.has(id);
+			input.disabled = missing;
+		}
+	};
+	const rows = OPTIONAL_BUILD_MODULES.map(([id, label]) => {
+		const input = h("input", { type: "checkbox", onchange: () => {
+			if (input.checked) S.omittedModules.delete(id);
+			else S.omittedModules.add(id);
+			render();
+		} });
+		controls.set(id, input);
+		return h("label", { class: "toggle" }, input, h("span", {}, label));
+	});
+	render();
+	return h("details", { class: "small" }, h("summary", {}, t("flash.preset.custom")),
+		h("p", {}, t("flash.preset.custom_help")),
+		rows, h("pre", {}, cmd));
+}
+
 function buildView() {
 	const wrap = h("div", { class: "flasher" });
 	const go = async () => {
@@ -1181,7 +1238,7 @@ function buildView() {
 		if (S.firmware) next();
 	};
 	const draw = () => {
-		const rel = S.data.releases.filter((x) => x.board === S.radio.id).at(-1);
+		const rel = selectedFirmwareRelease();
 		const busy = !!S.build && !S.build.error;
 		S.forward(button(busy ? [spinner(), t("flash.fw.loading")] : t(`flash.nav.to_${stepsFor()[S.step + 1]}`), go,
 			{ primary: true, disabled: busy || (!rel && !S.firmware && !S.sim) }));
@@ -1190,6 +1247,7 @@ function buildView() {
 			: busy ? h("p", { class: "muted", role: "status" }, spinner(), S.build.text)
 			: S.sim ? h("p", { class: "small muted" }, t("flash.sim.image")) : null;
 		wrap.replaceChildren(panel(t("flash.fw.title"),
+			firmwarePresetPicker(draw),
 			rel ? h("dl", { class: "kv-list" },
 				h("dt", {}, t("flash.fw.version")), h("dd", {}, (rel.name || rel.version)),
 				h("dt", {}, t("flash.fw.size")), h("dd", {}, t("flash.fw.kb", { n: Math.round(rel.size / 1024) })),
@@ -1197,6 +1255,7 @@ function buildView() {
 				: notice(t("flash.build.no_image"), "bad"),
 			h("p", {}, t("flash.fw.lead")),
 			h("p", { class: "small muted" }, t("flash.fw.codec")),
+			customFirmwareOptions(),
 			image,
 			h("details", { class: "small" }, h("summary", {}, t("flash.build.self_title")),
 				h("p", {}, t("flash.fw.self_text")),
@@ -1272,9 +1331,7 @@ function nest(items) {
 
 const selectionKey = (sel) => `${VERSION_REF || ""}:${sel.radio.id}:${JSON.stringify(S.buildOptions || {})}:${[...sel.on].sort().join(",")}`;
 
-// Open25-DM32 site: the image this site hosts (site/build.py --firmware: firmware/<board>/, listed in releases.json),
-// fetched from the same origin and checked against its manifest like a release's. There is no build service for this
-// derivative, so the selection is not sent anywhere
+// Download the selected preset and verify it against the release catalog and its manifest.
 async function requestBuild(redraw) {
 	const key = selectionKey(S.selection);
 	S.build = { selection: key, text: t("flash.fw.loading") };
@@ -1283,7 +1340,7 @@ async function requestBuild(redraw) {
 		const catalog = await fetch(`${ROOT}data/releases.json?check=${Date.now()}`, { cache: "no-store" });
 		if (!catalog.ok) throw new Error(`releases.json: HTTP ${catalog.status}`);
 		S.data.releases = (await catalog.json()).releases || [];
-		const rel = S.data.releases.filter((x) => x.board === S.radio.id).at(-1);
+		const rel = selectedFirmwareRelease();
 		if (!rel) throw new Error(t("flash.build.no_image"));
 		const get = async (url) => {
 			const r = await fetch(ROOT + url, { cache: "no-cache" });
@@ -1292,7 +1349,8 @@ async function requestBuild(redraw) {
 		};
 		const [m, img] = await Promise.all([get(rel.manifest).then((r) => r.json()),
 			get(rel.image).then((r) => r.arrayBuffer()).then((x) => new Uint8Array(x))]);
-		if (m.image?.sha256 !== rel.sha256) throw new Error(`${rel.manifest} is not the manifest releases.json lists`);
+		if (m.image?.sha256 !== rel.sha256 || firmwarePresetId(m) !== firmwarePresetId(rel))
+			throw new Error(`${rel.manifest} is not the manifest releases.json lists`);
 		await verify(m, img, fb(), S.board.id);
 		S.firmware = { manifest: m, image: img, source: t("flash.fw.source", { version: m.version }), origin: "release", variant: m.variant || "full" };
 		S.build = null;

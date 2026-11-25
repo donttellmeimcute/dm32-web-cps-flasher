@@ -82,17 +82,18 @@ acepta `any` en RX RAN, y la conversión del codeplug original conserva los cana
 Incluye lo de `2026.11.14-p25-nac` (NAC P25 escrito en la radio) y la corrección del siseo P25. Pasa las pruebas
 automatizadas y compila sin avisos; queda pendiente probarla en una radio física.
 
-`data/releases.json` lista la imagen; el flasher descarga `firmware/dm32/<imagen>.bin` y su manifiesto
+`data/releases.json` lista las variantes Completa, Multimodo y DMR + FM de cada release. El flasher descarga
+`firmware/dm32/<imagen>.bin` de la variante elegida y su manifiesto
 `rfoundry-release/1` (`.json`) de este mismo sitio y comprueba tamaño, SHA-256, rangos y que no toque el códec antes de
-escribir nada. No hay servicio de compilación: no se eligen funciones. En "Usar mi propia compilación del firmware" se
-puede instalar otro `rfoundry_dm32.bin` (sin códec) con o sin su manifiesto.
+escribir. La selección de funciones individuales genera un comando para compilar en el repositorio del firmware.
+En **Usar mi propia compilación del firmware** se puede instalar el `rfoundry_dm32.bin` resultante con su manifiesto opcional.
 
 Este sitio no envía telemetría: el registro de instalaciones y el envío de informes y archivos al backend de
 RadioFoundry están desactivados. "Informar de un problema" solo descarga el informe para adjuntarlo a un issue.
 
 ## Cambiar la imagen cuando haya una compilación nueva
 
-**Automático:** cada commit a `main` de DM32-nxdn-p25 publica una release con la imagen. La acción `Sync firmware`
+**Automático:** cada commit a `main` de DM32-nxdn-p25 publica una release con las imágenes. La acción `Sync firmware`
 (`.github/workflows/sync-firmware.yml`) revisa cada 15 minutos la última release; si es nueva, comprueba sus SHA-256,
 la instala con `tools/set_firmware.py` y hace commit, y GitHub Pages la sirve. Se puede lanzar a mano en Actions › Sync
 firmware. Para que sea inmediato, guarda en DM32-nxdn-p25 un secreto `FLASHER_TOKEN` (token con permiso de Actions
@@ -111,7 +112,7 @@ A mano:
 2. En este repositorio:
 
    ```sh
-   python tools/set_firmware.py ruta/a/dist/rfoundry-dm32-<versión>.json
+   python tools/set_firmware.py ruta/a/dist/rfoundry-dm32-*.json
    ```
 
    Copia la imagen y su manifiesto a `firmware/dm32/` (borra los anteriores), reescribe `data/releases.json` y
