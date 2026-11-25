@@ -12,7 +12,7 @@ import { t3Kind, t3System } from "./mode_t3.js?v=1a101b7bc6";
 import { p25Kind, p25TrunkKind, p25System } from "./mode_p25.js?v=6276ed067d";
 import { nxdnKind, nxdnScramblerKind } from "./mode_nxdn.js?v=6276ed067d";
 import { amKind } from "./mode_am.js?v=c16ffd9bbf";
-import { ysfKind } from "./mode_ysf.js?v=c16ffd9bbf";
+import { ysfKind } from "./mode_ysf.js?v=d0af9dc2fd";
 
 import { m17Kind } from "./mode_m17.js?v=e54b64a875";
 import { dstarKind } from "./mode_dstar.js?v=73b72f8d2a";

@@ -111,7 +111,7 @@ export const CONVERTERS = [
 		async convert(bytes, name) {
 			// the codeplug modules load only when a conversion runs
 			const { importQdmr } = await import("../codeplug/qdmr.js?v=e66b6edf06");
-			const { empty, encode } = await import("../codeplug/model.js?v=1274c7a098");
+			const { empty, encode } = await import("../codeplug/model.js?v=d0af9dc2fd");
 			const m = empty();
 			try {
 				importQdmr(m, new TextDecoder().decode(bytes));
@@ -127,7 +127,7 @@ export const CONVERTERS = [
 		name: "RadioFoundry codeplug image to qdmr YAML",
 		async convert(bytes, name) {
 			const { exportQdmr } = await import("../codeplug/qdmr.js?v=e66b6edf06");
-			const { decode } = await import("../codeplug/model.js?v=1274c7a098");
+			const { decode } = await import("../codeplug/model.js?v=d0af9dc2fd");
 			const { CodeplugImage } = await import("../codeplug/image.js");
 			const { text } = exportQdmr(decode(CodeplugImage.from(bytes.subarray(0, CODEPLUG_SPAN))));
 			return { name: `${base(name)}.yaml`, data: new TextEncoder().encode(text) };
@@ -136,7 +136,7 @@ export const CONVERTERS = [
 ];
 
 async function codeplugModules() {
-	const { empty, encode, decode } = await import("../codeplug/model.js?v=1274c7a098");
+	const { empty, encode, decode } = await import("../codeplug/model.js?v=d0af9dc2fd");
 	const { importStock, detectStock } = await import("../codeplug/stock_tyt.js?v=76466c6282");
 	const { CodeplugImage } = await import("../codeplug/image.js");
 	return { empty, encode, decode, importStock, detectStock, CodeplugImage };
