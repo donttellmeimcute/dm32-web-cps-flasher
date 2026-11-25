@@ -3,7 +3,7 @@
 const panel = document.querySelector("[data-kofi-supporters]");
 
 async function showSupporters(panel) {
-    const response = await fetch("https://dm32-kofi-supporters.arcanehero32768.chatgpt.site/supporters", {
+    const response = await fetch("https://dm32-kofi-supporters.rkurogata.workers.dev/supporters", {
         credentials: "omit",
         referrerPolicy: "no-referrer",
         cache: "no-store",

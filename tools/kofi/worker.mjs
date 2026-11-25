@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 const FLASHER_ORIGIN = "https://donttellmeimcute.github.io";
 const MAX_BODY_BYTES = 65536;
-const NAME_PREFIX = "supporters/";
 
 async function handleTip(request, env) {
     if (!env.KOFI_VERIFICATION_TOKEN) return new Response(null, { status: 503 });
@@ -50,24 +49,14 @@ async function handleTip(request, env) {
         return new Response(null, { status: 200 });
     }
 
-    const digest = await crypto.subtle.digest("SHA-256", encoder.encode(name.toLowerCase()));
-    const id = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
-    // Each normalized display name has its own key, so parallel tips never overwrite the list.
-    await env.BUCKET.put(NAME_PREFIX + id, "", { onlyIf: { etagDoesNotMatch: "*" }, customMetadata: { name } });
-    // A null conditional write means this display name was already recorded.
+    await env.DB.prepare("INSERT INTO supporters (name_key, name) VALUES (?, ?) ON CONFLICT (name_key) DO NOTHING")
+        .bind(name.toLowerCase(), name).run();
     return new Response(null, { status: 200 });
 }
 
 async function listSupporters(env) {
-    const supporters = [];
-    let cursor;
-    do {
-        const page = await env.BUCKET.list({ prefix: NAME_PREFIX, cursor, include: ["customMetadata"] });
-        for (const entry of page.objects) {
-            if (entry.customMetadata?.name) supporters.push(entry.customMetadata.name);
-        }
-        cursor = page.truncated ? page.cursor : undefined;
-    } while (cursor);
+    const { results } = await env.DB.prepare("SELECT name FROM supporters ORDER BY name_key").all();
+    const supporters = results.map(({ name }) => name);
     return Response.json({ supporters }, {
         headers: { "Access-Control-Allow-Origin": FLASHER_ORIGIN, "Cache-Control": "no-store" }
     });
