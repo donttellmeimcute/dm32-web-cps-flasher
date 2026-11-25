@@ -70,7 +70,7 @@ cp "$OUT/static/img/radios/voxel-station.png" "$W/site/static/img/radios/"
 for f in csv.js stock_baofeng.js mode_m17.js mode_dstar.js mode_t3.js fastlink.js transport.js modes.js model.js records.js; do
 	if [ -f "$OUT/static/js/codeplug/$f" ]; then cp "$OUT/static/js/codeplug/$f" "$W/site/static/js/codeplug/"; fi
 done
-cp "$OUT/static/js/support.js" "$W/site/static/js/"
+cp "$OUT/static/js/support.js" "$OUT/static/js/kofi-supporters.js" "$W/site/static/js/"
 for f in app.js c7000ui.js migrate.js; do
 	cp "$OUT/static/js/flasher/$f" "$W/site/static/js/flasher/"
 done

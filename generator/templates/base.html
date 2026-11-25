@@ -51,6 +51,10 @@
         <a class="support-primary" href="https://ko-fi.com/lyraarsgoetia" target="_blank" rel="noopener noreferrer" data-thanks="{{t support.thanks}}"><span aria-hidden="true">♥</span> {{t support.coffee}} <span aria-hidden="true">↗</span></a>
         <a class="support-secondary" href="https://throne.com/lyraarsgoetia" target="_blank" rel="noopener noreferrer">{{t support.gear}} <span aria-hidden="true">↗</span></a>
       </div>
+      <section class="kofi-supporters" data-kofi-supporters hidden aria-labelledby="kofi-supporters-title">
+        <h3 id="kofi-supporters-title">{{t support.donors}}</h3>
+        <ul role="list"></ul>
+      </section>
     </div>
   </div>
 </section>
@@ -67,6 +71,7 @@
 	</div>
 </footer>
 <script type="module" src="{{root}}static/js/site.js?v={{ assets }}"></script>
+<script type="module" src="{{root}}static/js/kofi-supporters.js?v=25517acd29"></script>
 {{{ scripts }}}
 </body>
 </html>

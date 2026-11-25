@@ -252,3 +252,8 @@ body { background: var(--bg); }
 @keyframes heart-arrive { from { transform: translateY(8%) rotate(-3deg); } }
 @keyframes heart-rise { from { transform: translateY(12%) rotate(1deg); } to { transform: translateY(-20%) rotate(-8deg); } }
 @keyframes console-enter { from { transform: translateY(3px); } }
+
+.kofi-supporters { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #8c6c83; }
+.kofi-supporters h3 { margin: 0 0 .6rem; color: #fff1f4; font-size: 1rem; }
+.kofi-supporters ul { display: flex; flex-wrap: wrap; gap: .4rem .6rem; margin: 0; padding: 0; list-style: none; }
+.kofi-supporters li { max-width: 100%; overflow-wrap: anywhere; padding: .2rem .65rem; border-radius: .5rem; background: #493347; color: #fff1f4; }
