@@ -7,6 +7,13 @@
 name: Sync firmware
 
 on:
+  # A deliberate change to the sync workflow can also request an immediate refresh.
+  # Do not watch generated firmware or manifests: sync commits must not loop.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync-firmware.yml'
+      - 'tools/firmware-sync-request.txt'
   schedule:
     - cron: "*/15 * * * *"
   workflow_dispatch:
