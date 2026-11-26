@@ -13,8 +13,8 @@ import { equal, startsWith, toHex } from "../flasher/bytes.js?v=c16ffd9bbf";
 import { classify } from "../codeplug/detect.js?v=4436b923d7";
 import { importStock, STOCK, RDT_MD380 } from "../codeplug/stock_tyt.js?v=76466c6282";
 import { DM32_STOCK, importStock as importDm32 } from "../codeplug/stock_baofeng.js?v=705a8b996e";
-import { empty, encode } from "../codeplug/model.js?v=0bfc9c5ae1";
-import { KEY_BASE, KEY_MAX, withoutSecrets } from "../codeplug/channelmodes.js?v=d0af9dc2fd";
+import { empty, encode } from "../codeplug/model.js?v=94924b8387";
+import { KEY_BASE, KEY_MAX, withoutSecrets } from "../codeplug/channelmodes.js?v=94924b8387";
 import { areaForWrite, decodeArea, putArea, KV_ADDR, KV_SIZE } from "../codeplug/kv.js";
 
 // code: the editor.err.* text; params: what the file was, for the error report (never its contents)

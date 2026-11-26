@@ -8,7 +8,7 @@
 // mode is offered for a new channel only when the radio reports it or the codeplug already holds it; with none, every
 // mode is offered (validation warns once a radio that lacks one connects).
 
-import { t3Kind, t3System } from "./mode_t3.js?v=1a101b7bc6";
+import { t3Kind, t3System } from "./mode_t3.js?v=94924b8387";
 import { p25Kind, p25TrunkKind, p25System } from "./mode_p25.js?v=6276ed067d";
 import { nxdnKind, nxdnScramblerKind } from "./mode_nxdn.js?v=6276ed067d";
 import { amKind } from "./mode_am.js?v=c16ffd9bbf";

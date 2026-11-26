@@ -8,10 +8,10 @@
 
 import { parseFreq, parseTone, mhz } from "./fields.js?v=c16ffd9bbf";
 import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=f3daccc684";
-import { newChannel, newContact, remove, assignNumbers, applyLowFm } from "./model.js?v=0bfc9c5ae1";
-import { setKind } from "./channelmodes.js?v=d0af9dc2fd";
+import { newChannel, newContact, remove, assignNumbers, applyLowFm } from "./model.js?v=94924b8387";
+import { setKind } from "./channelmodes.js?v=94924b8387";
 import { dstarCallValid } from "./mode_dstar.js";
-import { kindName } from "./modes.js?v=d0af9dc2fd";
+import { kindName } from "./modes.js?v=94924b8387";
 import { callOk } from "./mode_m17.js?v=e54b64a875";
 import { SCRAMBLER_KIND } from "./mode_nxdn.js";
 
