@@ -7,9 +7,9 @@
 // {row, column, code, params}, and the page words them.
 
 import { parseFreq, parseTone, mhz } from "./fields.js?v=c16ffd9bbf";
-import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=e2482525d8";
-import { newChannel, newContact, remove, assignNumbers, applyLowFm } from "./model.js?v=e2482525d8";
-import { setKind } from "./channelmodes.js?v=e2482525d8";
+import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf, FM_SQUELCH_OPEN } from "./records.js?v=4a6f63fa1c";
+import { newChannel, newContact, remove, assignNumbers, applyLowFm } from "./model.js?v=1fd60e66a2";
+import { setKind } from "./channelmodes.js?v=dfce712279";
 import { dstarCallValid } from "./mode_dstar.js";
 import { kindName } from "./modes.js?v=d0af9dc2fd";
 import { callOk } from "./mode_m17.js?v=e54b64a875";
@@ -479,7 +479,7 @@ export const TABLES = {
 			}, undefined, ["Bandwidth", "BW"]),
 			c("RX Tone", "rxTone", asTone, undefined, ["RX CTCSS/DCS", "Decode", "RX CTCSS", "CTC/DCS Decode"]),
 			c("TX Tone", "txTone", asTone, undefined, ["TX CTCSS/DCS", "Encode", "TX CTCSS", "CTC/DCS Encode"]),
-			c("Squelch", "squelch", asInt(0, 21, 0), undefined, ["Squelch Level"]),
+			c("Squelch", "squelch", asInt(0, FM_SQUELCH_OPEN, 0), undefined, ["Squelch Level"]),
 			c("Color Code", "colorCode", asInt(0, 15, 1), undefined, ["CC", "Colour Code"]),
 			c("Timeslot", "timeslot", (s) => {
 				const slot = /^slot\s*([12])$/i.exec(s.trim());

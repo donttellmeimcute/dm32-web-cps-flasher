@@ -6,11 +6,11 @@
 
 import { h, button } from "../flasher/dom.js?v=c16ffd9bbf";
 import { parseFreq, parseTone, mhz } from "../codeplug/fields.js?v=c16ffd9bbf";
-import { LIMITS, POWER_NAMES, DMR_PRIV } from "../codeplug/records.js?v=e2482525d8";
-import { refNumber, listenBand, applyLowFm } from "../codeplug/model.js?v=e2482525d8";
+import { LIMITS, POWER_NAMES, DMR_PRIV, FM_SQUELCH_OPEN } from "../codeplug/records.js?v=4a6f63fa1c";
+import { refNumber, listenBand, applyLowFm } from "../codeplug/model.js?v=1fd60e66a2";
 import { keyValid } from "../codeplug/kv.js?v=0b03c0496e";
 import { kindRow, kindName, offeredKinds } from "../codeplug/modes.js?v=d0af9dc2fd";
-import { KEY_ALGS, validKeyHex, setKind } from "../codeplug/channelmodes.js?v=e2482525d8";
+import { KEY_ALGS, validKeyHex, setKind } from "../codeplug/channelmodes.js?v=dfce712279";
 import { specField } from "./modefields.js?v=c16ffd9bbf";
 
 // --- Parsers shared by the columns and the forms ---
@@ -346,6 +346,13 @@ function aesOptions(m, t, alg, current, fallback) {
 }
 
 // features: the connected radio's (null: none), which says the kinds a channel may be made
+// FM squelch stores the qdmr scale. The DM-32 shows levels 0–9, with 0 explicitly open.
+function fmSquelchLevel({ squelch }) {
+	if (!squelch) return null;
+	if (squelch === FM_SQUELCH_OPEN) return 0;
+	return Math.min(9, Math.ceil(squelch / 2));
+}
+
 export function channelForm(m, t, { features = null } = {}) {
 	const sel = (key, label, options, extra = {}) => ({ key, label: t(label), type: "select", options, ...extra });
 	const chk = (key, label) => ({ key, label: t(label), type: "bool" });
@@ -449,7 +456,15 @@ export function channelForm(m, t, { features = null } = {}) {
 		fm(sel("bw", "editor.col.bw", () => [[12.5, "12.5 kHz"], [25, "25 kHz"]])),
 		fm(txt("rxTone", "editor.col.rx_tone", tone(t), (v) => v)),
 		fm(txt("txTone", "editor.col.tx_tone", tone(t), (v) => v)),
-		fm(sel("squelch", "editor.col.squelch", () => [[0, t("editor.squelch.default")], ...[...Array(21).keys()].map((n) => [n + 1, String(n + 1)])])),
+		fm(sel("squelch", "editor.col.squelch", () => [[null, t("editor.squelch.default")],
+			...[...Array(10).keys()].map((level) => [level, String(level)])], {
+			get: fmSquelchLevel,
+			set: (r, level) => {
+				// Preserve an older record if the displayed level was left alone.
+				if (level !== fmSquelchLevel(r))
+					r.squelch = level === null ? 0 : level === 0 ? FM_SQUELCH_OPEN : level * 2;
+			},
+		})),
 		fm(chk("vox", "editor.col.vox")),
 		fm(chk("toneBurst", "editor.col.tone_burst")),
 		dmr({ group: t("editor.form.digital") }),

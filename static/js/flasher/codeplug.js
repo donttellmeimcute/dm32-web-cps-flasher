@@ -6,10 +6,10 @@
 
 import { openBundle, CODEPLUG_SPAN } from "./backup.js?v=c16ffd9bbf";
 import { startsWith } from "./bytes.js?v=c16ffd9bbf";
-import { classify } from "../codeplug/detect.js?v=e2482525d8";
+import { classify } from "../codeplug/detect.js?v=d2dd5fb3ba";
 import { CodeplugImage, TFTP_SIZE } from "../codeplug/image.js?v=c16ffd9bbf";
-import { STOCK, RDT_MD380, RDT_UV380 } from "../codeplug/stock_tyt.js?v=e2482525d8";
-import { DM32_STOCK } from "../codeplug/stock_baofeng.js?v=e2482525d8";
+import { STOCK, RDT_MD380, RDT_UV380 } from "../codeplug/stock_tyt.js?v=a41dac85a2";
+import { DM32_STOCK } from "../codeplug/stock_baofeng.js?v=10efe00bbf";
 
 // A stock TYT-family codeplug in a dump or memory image (docs/spec/codeplug-stock-tyt.md): its family, or null
 const stockLayout = (b) => {
@@ -68,7 +68,7 @@ export const CONVERTERS = [
 		id: "stock-to-yaml", from: "tyt-stock", to: "yaml", status: "ready",
 		name: "Stock codeplug to qdmr YAML (through the RadioFoundry layout)",
 		async convert(bytes, name) {
-			const { exportQdmr } = await import("../codeplug/qdmr.js?v=e66b6edf06");
+			const { exportQdmr } = await import("../codeplug/qdmr.js?v=b2895c9fae");
 			const { decode, CodeplugImage } = await codeplugModules();
 			const data = await fromStock(bytes, stockLayout(bytes));
 			const { text } = exportQdmr(decode(CodeplugImage.from(data)));
@@ -98,7 +98,7 @@ export const CONVERTERS = [
 		id: "dm32-stock-to-yaml", from: "dm32-stock", to: "yaml", status: "ready",
 		name: "Stock DM-32UV codeplug to qdmr YAML (through the RadioFoundry layout)",
 		async convert(bytes, name) {
-			const { exportQdmr } = await import("../codeplug/qdmr.js?v=e66b6edf06");
+			const { exportQdmr } = await import("../codeplug/qdmr.js?v=b2895c9fae");
 			const { decode, CodeplugImage } = await codeplugModules();
 			const { text } = exportQdmr(decode(CodeplugImage.from(await fromDm32(bytes))));
 			return { name: `${base(name)}.yaml`, data: new TextEncoder().encode(text) };
@@ -110,8 +110,8 @@ export const CONVERTERS = [
 		name: "qdmr YAML to a RadioFoundry codeplug image (open-firmware layout)",
 		async convert(bytes, name) {
 			// the codeplug modules load only when a conversion runs
-			const { importQdmr } = await import("../codeplug/qdmr.js?v=e66b6edf06");
-			const { empty, encode } = await import("../codeplug/model.js?v=dfef36e031");
+			const { importQdmr } = await import("../codeplug/qdmr.js?v=b2895c9fae");
+			const { empty, encode } = await import("../codeplug/model.js?v=1fd60e66a2");
 			const m = empty();
 			try {
 				importQdmr(m, new TextDecoder().decode(bytes));
@@ -126,8 +126,8 @@ export const CONVERTERS = [
 		id: "rfoundry-to-yaml", from: "openfw-image", to: "yaml", status: "ready",
 		name: "RadioFoundry codeplug image to qdmr YAML",
 		async convert(bytes, name) {
-			const { exportQdmr } = await import("../codeplug/qdmr.js?v=e66b6edf06");
-			const { decode } = await import("../codeplug/model.js?v=dfef36e031");
+			const { exportQdmr } = await import("../codeplug/qdmr.js?v=b2895c9fae");
+			const { decode } = await import("../codeplug/model.js?v=1fd60e66a2");
 			const { CodeplugImage } = await import("../codeplug/image.js");
 			const { text } = exportQdmr(decode(CodeplugImage.from(bytes.subarray(0, CODEPLUG_SPAN))));
 			return { name: `${base(name)}.yaml`, data: new TextEncoder().encode(text) };
@@ -136,8 +136,8 @@ export const CONVERTERS = [
 ];
 
 async function codeplugModules() {
-	const { empty, encode, decode } = await import("../codeplug/model.js?v=dfef36e031");
-	const { importStock, detectStock } = await import("../codeplug/stock_tyt.js?v=76466c6282");
+	const { empty, encode, decode } = await import("../codeplug/model.js?v=1fd60e66a2");
+	const { importStock, detectStock } = await import("../codeplug/stock_tyt.js?v=a41dac85a2");
 	const { CodeplugImage } = await import("../codeplug/image.js");
 	return { empty, encode, decode, importStock, detectStock, CodeplugImage };
 }
@@ -154,7 +154,7 @@ async function fromStock(bytes, layout) {
 // An open-firmware codeplug image converted from a stock DM-32UV one
 async function fromDm32(bytes) {
 	const { empty, encode } = await codeplugModules();
-	const { detectStock, importStock } = await import("../codeplug/stock_baofeng.js?v=705a8b996e");
+	const { detectStock, importStock } = await import("../codeplug/stock_baofeng.js?v=10efe00bbf");
 	if (detectStock(bytes) !== DM32_STOCK) throw fail("no_stock", "this file holds no stock codeplug this page can read");
 	const m = empty();
 	importStock(m, bytes);

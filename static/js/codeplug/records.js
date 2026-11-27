@@ -20,6 +20,7 @@ export const LIMITS = {
 // --- Layout ---
 
 export const CH_SIZE = 56;
+export const FM_SQUELCH_OPEN = 22;
 export const DMR_PRIV = { default: 0, aes: 1, basic: 2, enhanced: 3, off: 4, aes128: 5 };
 const DMR_PRIV_BASE = 0x5AA4, DMR_AES128_TX = 0x5AAA;
 const CH_PER_BANK = 128;
@@ -80,7 +81,7 @@ export function decodeChannel(r, memory = false) {
 		allSkip: (f4 & 0x10) !== 0,
 		zoneSkip: (f4 & 0x20) !== 0,
 		vox: (f4 & 0x40) !== 0,
-		squelch: r[0x37] <= 21 ? r[0x37] : 10,
+		squelch: r[0x37] <= FM_SQUELCH_OPEN ? r[0x37] : 10,
 		colorCode: r[0x2C] & 0x0F,
 		timeslot: r[0x31] & 0x40 ? 2 : 1,
 		contact: u16(r, 0x2E),
@@ -128,7 +129,7 @@ export function encodeChannel(c, r, memory = false) {
 	putTone(r, 0x22, c.txTone);
 	r[0x33] = (r[0x33] & ~0x76) | (c.bw === 25 ? 0x02 : 0) | (c.rxOnly || aes128 ? 0x04 : 0) | (c.allSkip ? 0x10 : 0) |
 		(c.zoneSkip ? 0x20 : 0) | (c.vox ? 0x40 : 0);
-	r[0x37] = clamp(c.squelch, 0, 21);
+	r[0x37] = clamp(c.squelch, 0, FM_SQUELCH_OPEN);
 	r[0x2C] = (r[0x2C] & 0xF0) | (c.colorCode & 0x0F);
 	r[0x31] = (r[0x31] & ~0x40) | (c.timeslot === 2 ? 0x40 : 0);
 	put16(r, 0x2E, c.contact || 0);

@@ -8,10 +8,10 @@
 import {
 	LIMITS, CH_SIZE, bankBitmap, channelAddr, decodeChannel, zoneLayout, ZONE_BITMAP, ZONE_DATA, CONTACTS,
 	CONTACT_SIZE, decodeContact, LIST_COUNTS, LISTS, LIST_SIZE, GENERAL,
-} from "./records.js?v=e2482525d8";
+} from "./records.js?v=4a6f63fa1c";
 import { getBcdId } from "./fields.js?v=c16ffd9bbf";
-import { STOCK, stockBytes, stockEvidence, stockDmrId, RDT_MD380, RDT_UV380 } from "./stock_tyt.js?v=e2482525d8";
-import { DM32_STOCK, stockEvidence as dm32Evidence } from "./stock_baofeng.js?v=e2482525d8";
+import { STOCK, stockBytes, stockEvidence, stockDmrId, RDT_MD380, RDT_UV380 } from "./stock_tyt.js?v=a41dac85a2";
+import { DM32_STOCK, stockEvidence as dm32Evidence } from "./stock_baofeng.js?v=10efe00bbf";
 
 // A Latin-1 name field: {text, ok}; ok when the text is printable and only 0x00 or 0xFF follow it
 export function latinName(b, off, len) {

@@ -5,7 +5,7 @@
 // reads its records, and fills the editing model (model.js) from it as stock_tyt.js does, with the same note codes.
 
 import { getFreq } from "./fields.js?v=c16ffd9bbf";
-import { DMR_PRIV, LIMITS, POWER_NAMES } from "./records.js?v=e2482525d8";
+import { DMR_PRIV, LIMITS, POWER_NAMES } from "./records.js?v=4a6f63fa1c";
 
 export const DM32_STOCK = "baofeng-dm32";
 

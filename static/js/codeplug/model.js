@@ -13,11 +13,11 @@ import {
 	ZONE_BITMAP, ZONE_DATA, ZONE_RECORD, CONTACTS, CONTACT_SIZE, decodeContact, encodeContact, LIST_COUNTS, LISTS,
 	LIST_SIZE, decodeList, encodeList, DTMF_CONTACTS, decodeDtmf, encodeDtmf, validDtmf, APRS_BASE, APRS_SIZE,
 	decodeAprs, encodeAprs, decodeGeneral, encodeGeneral, VFO, LUCZ,
-} from "./records.js?v=e2482525d8";
+} from "./records.js?v=4a6f63fa1c";
 import { parseTone } from "./fields.js?v=c16ffd9bbf";
 import { readHeader } from "./iddb.js?v=c16ffd9bbf";
 import { decodeArea, keyValid, KEYS, RECORD_KEYS, recordValid } from "./kv.js?v=0b03c0496e";
-import { decodeModes, encodeModes, syncModes, setKind, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=e2482525d8";
+import { decodeModes, encodeModes, syncModes, setKind, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=dfce712279";
 
 import { encodeBootColor } from "./bootimage.js?v=e2482525d8";
 
