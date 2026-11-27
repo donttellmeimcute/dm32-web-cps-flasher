@@ -59,6 +59,7 @@ import * as crumbs from "./trail.js?v=c16ffd9bbf";
 import { missingApi, kitPanel, kitLine } from "./manual.js?v=c16ffd9bbf";
 import { showBetaNotice } from "./beta.js?v=c16ffd9bbf";
 import { DROP_OK, START_KEEP, currentBuild, planUpdate } from "./update.js?v=c16ffd9bbf";
+import { availableModules, customFirmwareRelease, isStandardPreset, localBuildCommand, moduleEnabled, moduleMissingDependency, moduleOmissions } from "./custommodes.js?v=8d01b5d2f8";
 import { readDfuInfo, choiceFor, hwoptAction, pendingHwopt, majorsFor, runsOriginal, BOOTLOADER } from "./origversion.js?v=c16ffd9bbf";
 import { readOriginal, deviceKind, spiSeconds, Guard } from "./origbackup.js?v=c16ffd9bbf";
 import { toSerial, CLICK_WAIT_MS } from "./netmode.js?v=c16ffd9bbf";
@@ -142,7 +143,7 @@ const initialState = () => ({
 	langAdded: null,	// the language pack that pick put in the build, taken out again when the pick changes
 	customPicked: false,	// the Custom card picked before any feature changed
 	build: null,		// a firmware download in progress: {selection, text, error}
-	firmwarePreset: "full", omittedModules: new Set(),
+	firmwarePreset: "full", omittedModules: moduleOmissions(),
 	useId: null,		// the flash log's id for this use (see useId)
 	openGroups: new Set(),	// feature groups expanded on the build step
 	openTip: null,		// the feature whose ⓘ bubble is open
@@ -993,8 +994,7 @@ async function connectForUpdate(status) {
 	planUpdate(S.current, S.selection, S.decided);
 	if (p.version?.preset === "custom") {
 		S.firmwarePreset = "custom";
-		S.omittedModules = new Set(OPTIONAL_BUILD_MODULES.filter(([id]) =>
-			S.current.off?.includes(id.toUpperCase().replaceAll("-", "_"))).map(([id]) => id));
+		S.omittedModules = moduleOmissions(S.current.off, p.features);
 	} else {
 		S.firmwarePreset = S.current.preset || "full";
 		if (!firmwareReleases().some((r) => firmwarePresetId(r) === S.firmwarePreset)) S.firmwarePreset = "full";
@@ -1200,7 +1200,7 @@ function selectRadio(r) {
 	S.firmware = null;
 	S.buildOptions = {};
 	S.firmwarePreset = "full";
-	S.omittedModules.clear();
+	S.omittedModules = moduleOmissions();
 	S.ownManifest = null;
 	S.ownImageRequest = null;
 	S.variant = null;	// the hardware variant is read from the radio again
@@ -1214,15 +1214,8 @@ const firmwarePresetId = (release) => release.variant || "full";
 const firmwareReleases = () => S.data.releases.filter((r) => r.board === S.radio.id);
 function selectedFirmwareRelease() {
 	if (S.firmwarePreset !== "custom") return firmwareReleases().find((r) => firmwarePresetId(r) === S.firmwarePreset);
-	return firmwareReleases().find((release) => {
-		if (!isStandardPreset(firmwarePresetId(release)) && !firmwarePresetId(release).startsWith("modes-")) return false;
-		const enabled = new Set((release.features || "").split(","));
-		return OPTIONAL_BUILD_MODULES.every(([id]) =>
-			enabled.has(id.toUpperCase().replaceAll("-", "_")) === moduleEnabled(id));
-	});
+	return customFirmwareRelease(firmwareReleases(), S.omittedModules);
 }
-
-const isStandardPreset = (id) => ["full", "multimode", "dmr-fm"].includes(id);
 
 function firmwarePresetPicker(redraw) {
 	const presets = [...new Set([...firmwareReleases().map(firmwarePresetId).filter(isStandardPreset), "custom"])];
@@ -1240,20 +1233,6 @@ function firmwarePresetPicker(redraw) {
 			tOr(`flash.preset.${id}`, id)))));
 }
 
-const OPTIONAL_BUILD_MODULES = [
-	["p25", "P25"], ["nxdn", "NXDN"], ["ysf", "YSF (System Fusion)"], ["m17", "M17"],
-	["dstar", "D-STAR"], ["aprs", "APRS"], ["mdc1200", "MDC-1200"], ["rssi-graph", "RSSI"],
-];
-
-function moduleMissingDependency(id) {
-	const omitted = S.omittedModules;
-	return (id === "dstar" && omitted.has("p25")) ||
-		(id === "m17" && ["p25", "nxdn", "ysf"].every((mode) => omitted.has(mode))) ||
-		(id === "mdc1200" && omitted.has("aprs"));
-}
-
-const moduleEnabled = (id) => !S.omittedModules.has(id) && !moduleMissingDependency(id);
-
 function ownFirmwareFields(redraw) {
 	return [
 		filePicker(t("flash.build.own_manifest"), ".json", async (f) => { S.ownManifest = JSON.parse(new TextDecoder().decode(f.data)); }),
@@ -1264,10 +1243,11 @@ function ownFirmwareFields(redraw) {
 function customFirmwareOptions(redraw) {
 	const precompiled = selectedFirmwareRelease();
 	const busy = !!S.build && !S.build.error;
-	const controls = OPTIONAL_BUILD_MODULES.map(([id, label]) => {
+	const controls = availableModules(firmwareReleases()).map(([id, label]) => {
 		const fieldId = `firmware-mode-${id}`;
 		const input = h("input", {
-			id: fieldId, type: "checkbox", checked: moduleEnabled(id), disabled: busy || moduleMissingDependency(id),
+			id: fieldId, type: "checkbox", checked: moduleEnabled(id, S.omittedModules),
+			disabled: busy || moduleMissingDependency(id, S.omittedModules),
 			onchange: () => {
 				if (input.checked) S.omittedModules.delete(id);
 				else S.omittedModules.add(id);
@@ -1280,10 +1260,9 @@ function customFirmwareOptions(redraw) {
 				document.getElementById(fieldId)?.focus();
 			},
 		});
-		return h("label", { class: "toggle" }, input, h("span", {}, label));
+		return h("label", { class: "toggle" }, input, h("span", {}, tOr(`flash.module.${id}`, label)));
 	});
-	const omitted = OPTIONAL_BUILD_MODULES.filter(([id]) => S.omittedModules.has(id));
-	const cmd = ["python3 tools/build_current.py", ...omitted.map(([id]) => `--without ${id}`)].join(" ");
+	const cmd = localBuildCommand(S.omittedModules);
 	const own = h("details", { class: "small", open: !precompiled },
 		h("summary", {}, t("flash.build.self_title")),
 		h("p", {}, t("flash.preset.custom_help"), " ",
