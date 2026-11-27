@@ -13,11 +13,13 @@ import {
 	ZONE_BITMAP, ZONE_DATA, ZONE_RECORD, CONTACTS, CONTACT_SIZE, decodeContact, encodeContact, LIST_COUNTS, LISTS,
 	LIST_SIZE, decodeList, encodeList, DTMF_CONTACTS, decodeDtmf, encodeDtmf, validDtmf, APRS_BASE, APRS_SIZE,
 	decodeAprs, encodeAprs, decodeGeneral, encodeGeneral, VFO, LUCZ,
-} from "./records.js?v=fed4a990e8";
+} from "./records.js?v=e2482525d8";
 import { parseTone } from "./fields.js?v=c16ffd9bbf";
 import { readHeader } from "./iddb.js?v=c16ffd9bbf";
 import { decodeArea, keyValid, KEYS, RECORD_KEYS, recordValid } from "./kv.js?v=0b03c0496e";
-import { decodeModes, encodeModes, syncModes, setKind, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=4e3b27413b";
+import { decodeModes, encodeModes, syncModes, setKind, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=e2482525d8";
+
+import { encodeBootColor } from "./bootimage.js?v=e2482525d8";
 
 const REFS = ["contact", "rxList", "aprs"];
 
@@ -235,6 +237,7 @@ export function encode(m) {
 	encodeGeneral(m.general, b);
 	// the modes' records after the records they name (channel-modes.md 2.4: the record first, then its tag)
 	encodeModes(m, b, () => channelNames(m.base.bytes));
+	encodeBootColor(b, m.general.bootColor, m.general.bootImage);
 	fixLucz(b, m);
 	return img;
 }

@@ -20,7 +20,7 @@ import { overlapping as protectOverlap } from "./protect.js?v=c16ffd9bbf";
 import { stockApplication } from "./stockfw.js?v=c16ffd9bbf";
 import { CODEPLUG_SPAN } from "./backup.js?v=c16ffd9bbf";
 import { TFTP_SIZE } from "../codeplug/image.js?v=c16ffd9bbf";
-import { classify } from "../codeplug/detect.js?v=4436b923d7";
+import { classify } from "../codeplug/detect.js?v=e2482525d8";
 
 export class RestoreError extends Error {}
 

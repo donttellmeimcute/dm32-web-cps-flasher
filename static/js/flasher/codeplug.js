@@ -6,10 +6,10 @@
 
 import { openBundle, CODEPLUG_SPAN } from "./backup.js?v=c16ffd9bbf";
 import { startsWith } from "./bytes.js?v=c16ffd9bbf";
-import { classify } from "../codeplug/detect.js?v=4436b923d7";
+import { classify } from "../codeplug/detect.js?v=e2482525d8";
 import { CodeplugImage, TFTP_SIZE } from "../codeplug/image.js?v=c16ffd9bbf";
-import { STOCK, RDT_MD380, RDT_UV380 } from "../codeplug/stock_tyt.js?v=76466c6282";
-import { DM32_STOCK } from "../codeplug/stock_baofeng.js?v=705a8b996e";
+import { STOCK, RDT_MD380, RDT_UV380 } from "../codeplug/stock_tyt.js?v=e2482525d8";
+import { DM32_STOCK } from "../codeplug/stock_baofeng.js?v=e2482525d8";
 
 // A stock TYT-family codeplug in a dump or memory image (docs/spec/codeplug-stock-tyt.md): its family, or null
 const stockLayout = (b) => {

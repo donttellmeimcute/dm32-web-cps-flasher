@@ -12,12 +12,14 @@
 
 import { CodeplugImage, EDITOR_REGIONS, IDDB_HEADER, CODEPLUG_SPAN } from "./image.js?v=c16ffd9bbf";
 import { readHeader, extent, AREA1, AREA1_SIZE, AREA2 } from "./iddb.js?v=c16ffd9bbf";
-import { GENERAL, BOOT_TEXT } from "./records.js?v=fed4a990e8";
+import { GENERAL, BOOT_TEXT } from "./records.js?v=e2482525d8";
 import { Link, probe, whyNoAnswer } from "../flasher/link.js?v=c16ffd9bbf";
 import { crc32, sleep } from "../flasher/bytes.js?v=c16ffd9bbf";
 import { encodeBlock } from "../flasher/lz4.js?v=c16ffd9bbf";
 import { FastLink, FastError, BLOCK, REASON } from "./fastlink.js?v=d7aaac3b33";
 import { note } from "../diag.js?v=c16ffd9bbf";
+
+import { BOOT_COLOR_AREA } from "./bootimage.js?v=e2482525d8";
 
 export class TransportError extends Error {
 	constructor(code, params = {}) {
@@ -49,9 +51,9 @@ export function keepIdentity(want, have) {
 }
 
 // Regions of the codeplug a write may change
-export function writeRanges() {
+export function writeRanges(regions = EDITOR_REGIONS) {
 	const out = [];
-	for (const [a, b] of EDITOR_REGIONS) {
+	for (const [a, b] of regions) {
 		let s = a;
 		for (const [ka, kb] of KEEP_OUT) {
 			if (ka >= s && ka < b) {
@@ -156,6 +158,7 @@ export class CpsSerial {
 		this.probe = p;
 		const features = String(p.features || "").split(",");
 		this.compact = features.includes("IDDB_COMPACT");
+		this.colorSplash = features.includes("SPLASH_COLOR");
 		this.fast = null;
 		if (p.version?.programming_locked === "1") {
 			this.flash = null;
@@ -220,6 +223,10 @@ export class CpsSerial {
 		return Math.min(cp.end - cp.base, this.fast?.end || Infinity, this.flash ? this.flash - cp.base : Infinity);
 	}
 
+	get regions() {
+		return this.colorSplash ? [...EDITOR_REGIONS, BOOT_COLOR_AREA] : EDITOR_REGIONS;
+	}
+
 	// The codeplug's regions read into a fresh image (the rest erased); with iddb, the whole ID database too. cache: an
 	// image read before; with the fast protocol its blocks whose CRC still matches aren't read again
 	async read({ iddb = true, progress = () => {}, signal, cache = null } = {}) {
@@ -245,7 +252,7 @@ export class CpsSerial {
 	// The database's header first, so the progress covers the whole read, database too
 	async cpsRead({ iddb, progress, signal }) {
 		const img = await this.cpsGet(CodeplugImage.from(new Uint8Array(0)), [IDDB_HEADER], { signal });
-		return this.cpsGet(img, [...EDITOR_REGIONS, ...(iddb ? this.iddbRest(img) : [])], { signal, progress });
+		return this.cpsGet(img, [...this.regions, ...(iddb ? this.iddbRest(img) : [])], { signal, progress });
 	}
 
 	cpsReadIddb(img, { progress, signal }) {
@@ -296,7 +303,7 @@ export class CpsSerial {
 	}
 
 	cpsPlan(want, have, { iddb = false } = {}) {
-		const plan = changes(want.bytes, have?.bytes ?? null, writeRanges());
+		const plan = changes(want.bytes, have?.bytes ?? null, writeRanges(this.regions));
 		if (iddb) plan.push(...changes(want.bytes, null, iddbRanges(want)));
 		plan.sort((x, y) => x[0] - y[0]);
 		const bytes = plan.reduce((n, [, runs]) => n + runs.reduce((m, [, d]) => m + d.length, 0), 0);
@@ -423,7 +430,7 @@ export class CpsSerial {
 	// Whole blocks of the database after its header's block (read whole with the header), and with regions the
 	// codeplug's too, in one pass
 	async fastReadIddb(img, { cache, progress, signal, regions = false, iddb = true }) {
-		const ranges = blocksOf([...(regions ? EDITOR_REGIONS : []), ...(iddb ? this.iddbRest(img) : [])])
+		const ranges = blocksOf([...(regions ? this.regions : []), ...(iddb ? this.iddbRest(img) : [])])
 			.filter(([a]) => a < IDDB_HEADER[0] || a >= IDDB_HEADER[0] + BLOCK).map(([a]) => [a, a + BLOCK]);
 		await this.fastBlocks(img, ranges, { cache, progress, signal, total: ranges.length * BLOCK });
 		return img;
@@ -448,7 +455,7 @@ export class CpsSerial {
 	}
 
 	async fastPlan(want, have, { iddb = false } = {}) {
-		const cp = writeRanges(), db = iddb ? iddbRanges(want) : [];
+		const cp = writeRanges(this.regions), db = iddb ? iddbRanges(want) : [];
 		want.ensure(Math.max(...[...cp, ...db].map(([, b]) => b)));
 		const sums = await this.fastSums(blocksOf([...cp, ...db]).map(([a]) => a));
 		const codeplug = await this.fastChanged(want, have, cp, sums);
@@ -483,7 +490,7 @@ export class CpsSerial {
 		}
 		// a block the fast protocol refuses (outside what it serves on this radio) goes through the CPS
 		for (const a of refused) {
-			const runs = changes(want.bytes, null, writeRanges().filter(([x, y]) => x < a + BLOCK && y > a)
+			const runs = changes(want.bytes, null, writeRanges(this.regions).filter(([x, y]) => x < a + BLOCK && y > a)
 				.map(([x, y]) => [Math.max(x, a), Math.min(y, a + BLOCK)]));
 			for (const [sector, r] of runs) await this.writeSector(sector, r);
 		}

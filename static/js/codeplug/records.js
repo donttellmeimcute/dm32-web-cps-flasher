@@ -10,7 +10,7 @@ import {
 	getFreq, putFreq, getBcdId, putBcdId, getTone, putTone, getName, putName, getCoord, coordBytes, u16, put16,
 } from "./fields.js?v=c16ffd9bbf";
 import { decodeArea, getKey, getValue, getRecord, KEYS, RECORD_KEYS } from "./kv.js";
-import { BOOT_IMAGE_KEY, bootImageValid } from "./bootimage.js";
+import { BOOT_IMAGE_KEY, bootImageValid, decodeBootColor } from "./bootimage.js?v=e2482525d8";
 
 export const LIMITS = {
 	channels: 1024, zones: 68, zoneChannels: 80, contacts: 1024, rxLists: 76, rxListContacts: 32,
@@ -352,6 +352,7 @@ export function decodeGeneral(b) {
 	const g = b.subarray(GENERAL, GENERAL + GENERAL_SIZE);
 	const kv = decodeArea(b).entries;
 	const bootImage = getValue(kv, BOOT_IMAGE_KEY);
+	const bootColor = decodeBootColor(b, bootImage);
 	return {
 		radioName: getName(g, 0, 8),
 		dmrId: getBcdId(g, 8),
@@ -360,6 +361,7 @@ export function decodeGeneral(b) {
 		bootLine1: getName(b, BOOT_TEXT, 16),
 		bootLine2: getName(b, BOOT_TEXT + 16, 16),
 		...(bootImageValid(bootImage) ? { bootImage } : {}),
+		...(bootColor ? { bootColor } : {}),
 		...Object.fromEntries(KEYS.map((row) => [row.name, getKey(kv, row)])),
 		...Object.fromEntries(RECORD_KEYS.map((row) => [row.name, getRecord(kv, row)])),
 	};

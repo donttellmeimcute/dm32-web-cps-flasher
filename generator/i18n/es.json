@@ -135,7 +135,7 @@
 	"editor.general.section_modes": "Ajustes por modo",
 	"editor.general.boot_image": "Imagen de inicio",
 	"editor.general.boot_image_reset": "Restaurar imagen original",
-	"editor.general.boot_image_help": "PNG, JPEG o WebP. Se muestra en cuatro tonos en firmware compatible.",
+	"editor.general.boot_image_help": "PNG, JPEG o WebP. 128 × 128 y hasta 16 colores con firmware actualizado. Las versiones anteriores usan cuatro tonos.",
 	"editor.general.boot_image_error": "No se pudo abrir esta imagen.",
 	"editor.general.boot_preview": "Vista previa de la pantalla de inicio",
 	"editor.general.boot_preview_photo": "Foto de fábrica",

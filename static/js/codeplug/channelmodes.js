@@ -17,9 +17,9 @@
 // m.modeSettings: {kind id: the module's fields}.
 
 import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, KV_SIZE, KV_HDR, KEYS, getKey, keyValid, keyValue, RECORD_KEYS, getRecord, sameRecord, recordValid, recordValue } from "./kv.js";
-import { BOOT_IMAGE_KEY, bootImageValid } from "./bootimage.js";
+import { BOOT_IMAGE_KEY, bootImageValid } from "./bootimage.js?v=e2482525d8";
 import { getName, putName } from "./fields.js?v=c16ffd9bbf";
-import { redactDmrBasicKeys } from "./records.js?v=fed4a990e8";
+import { redactDmrBasicKeys } from "./records.js?v=e2482525d8";
 import { KINDS, kindRow, typeRow, radioRuns } from "./modes.js?v=d0af9dc2fd";
 import { u16, u32, put16, put32, sameBytes, sameValue, nameCheck } from "./modebytes.js?v=c16ffd9bbf";
 import { SCRAMBLER_ALG, SCRAMBLER_SEED_MAX } from "./mode_nxdn.js";

@@ -7,9 +7,9 @@
 // {row, column, code, params}, and the page words them.
 
 import { parseFreq, parseTone, mhz } from "./fields.js?v=c16ffd9bbf";
-import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=fed4a990e8";
-import { newChannel, newContact, remove, assignNumbers, applyLowFm } from "./model.js?v=dfef36e031";
-import { setKind } from "./channelmodes.js?v=4e3b27413b";
+import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=e2482525d8";
+import { newChannel, newContact, remove, assignNumbers, applyLowFm } from "./model.js?v=e2482525d8";
+import { setKind } from "./channelmodes.js?v=e2482525d8";
 import { dstarCallValid } from "./mode_dstar.js";
 import { kindName } from "./modes.js?v=d0af9dc2fd";
 import { callOk } from "./mode_m17.js?v=e54b64a875";

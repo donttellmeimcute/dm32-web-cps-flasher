@@ -10,25 +10,25 @@ import { h, t, ROOT, HOME, button, notice, download, progressBar, num as fmtNum,
 import { equal } from "../flasher/bytes.js?v=c16ffd9bbf";
 import { SerialStream, serialSupported, serialApi, RFOUNDRY_USB, browserErrorKey, knownRadioPort } from "../flasher/link.js?v=c16ffd9bbf";
 import { CodeplugImage, IDDB_HEADER, EDITOR_REGIONS } from "../codeplug/image.js?v=c16ffd9bbf";
-import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=dfef36e031";
-import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=fed4a990e8";
-import { BOOT_IMAGE_EDGE, packBootImage } from "../codeplug/bootimage.js";
-import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=1932f7beff";
+import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=e2482525d8";
+import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=e2482525d8";
+import { BOOT_IMAGE_EDGE, packBootImage, BOOT_COLOR_EDGE, packBootColor, bootColorForWrite } from "../codeplug/bootimage.js?v=e2482525d8";
+import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=e2482525d8";
 import { FastError } from "../codeplug/fastlink.js?v=d7aaac3b33";
 import { areaForWrite, KEYS, RECORD_KEYS, SIG_STEPS, SIG_HZ_MAX, SIG_HZ_UNIT, SIG_MS_MAX, recordValid, sameRecord } from "../codeplug/kv.js?v=0b03c0496e";
 import { toSerial, CLICK_WAIT_MS } from "../flasher/netmode.js?v=c16ffd9bbf";
 import { convert as convertDb, readHeader as dbHeader } from "../codeplug/iddb.js?v=c16ffd9bbf";
-import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=a8e073504d";
+import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=e2482525d8";
 import { FakeCpsRadio } from "../codeplug/fakecps.js?v=f2317c7c75";
 import { Grid } from "./grid.js?v=c16ffd9bbf";
 import { History } from "./undo.js?v=c16ffd9bbf";
-import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=caf603e2e2";
-import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=8ab8a92641";
-import { drawBootPreview, BOOT_PREVIEW_WIDTH, BOOT_PREVIEW_HEIGHT } from "./bootpreview.js?v=21c0de0054";
-import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=4e3b27413b";
-import { openFile, saveBytes, secretFreeBytes, stockAesAreaForWrite, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=48ab7ea2e5";
+import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=e2482525d8";
+import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=e2482525d8";
+import { drawBootPreview, BOOT_PREVIEW_WIDTH, BOOT_PREVIEW_HEIGHT } from "./bootpreview.js?v=e2482525d8";
+import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=e2482525d8";
+import { openFile, saveBytes, secretFreeBytes, stockAesAreaForWrite, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=e2482525d8";
 import { extensions } from "./extensions.js?v=c16ffd9bbf";
-import "./parts.js?v=e0a40e3415";
+import "./parts.js?v=e2482525d8";
 import * as diag from "../diag.js?v=c16ffd9bbf";
 import { initReporting, reportedLine } from "../report.js?v=c16ffd9bbf";
 import { updateFor } from "../flasher/version.js?v=c16ffd9bbf";
@@ -64,6 +64,7 @@ const messages = h("div", { class: "ed-messages", "aria-live": "polite" });
 function load(model, name, { fromRadio = false, stockAes = false } = {}) {
 	S.model = model;
 	S.stockAes = stockAes;
+	S.fromRadio = fromRadio;
 	S.fileName = name;
 	S.history.reset();
 	S.dirty = false;
@@ -388,8 +389,8 @@ function openRecord(tab, r) {
 function bootImageField(g) {
 	const current = S.model;
 	const err = h("span", { class: "small ed-err", "aria-live": "polite" });
-	const setImage = (bootImage) => change(t("editor.undo.edit"), () => {
-		S.model.general = { ...S.model.general, bootImage };
+	const setImage = (bootImage, bootColor) => change(t("editor.undo.edit"), () => {
+		S.model.general = { ...S.model.general, bootImage, bootColor };
 	});
 	const input = h("input", { id: "g-boot-image", type: "file", accept: "image/png,image/jpeg,image/webp" });
 	input.addEventListener("change", async () => {
@@ -398,15 +399,17 @@ function bootImageField(g) {
 		try {
 			const image = await createImageBitmap(file);
 			try {
-				const edge = BOOT_IMAGE_EDGE;
-				const canvas = h("canvas", { width: edge, height: edge });
-				const ctx = canvas.getContext("2d");
-				const scale = edge / Math.max(image.width, image.height);
-				const w = Math.max(1, Math.round(image.width * scale));
-				const hgt = Math.max(1, Math.round(image.height * scale));
-				ctx.drawImage(image, (edge - w) / 2, (edge - hgt) / 2, w, hgt);
-				if (S.model === current)
-					setImage(packBootImage(ctx.getImageData(0, 0, edge, edge).data));
+				const fit = (edge) => {
+					const canvas = h("canvas", { width: edge, height: edge });
+					const ctx = canvas.getContext("2d");
+					const scale = edge / Math.max(image.width, image.height);
+					const w = Math.max(1, Math.round(image.width * scale));
+					const hgt = Math.max(1, Math.round(image.height * scale));
+					ctx.drawImage(image, Math.floor((edge - w) / 2), Math.floor((edge - hgt) / 2), w, hgt);
+					return ctx.getImageData(0, 0, edge, edge).data;
+				};
+				if (S.model === current && input.files[0] === file)
+					setImage(packBootImage(fit(BOOT_IMAGE_EDGE)), packBootColor(fit(BOOT_COLOR_EDGE)));
 			} finally {
 				image.close();
 			}
@@ -416,7 +419,7 @@ function bootImageField(g) {
 		}
 	});
 	return h("div", { class: "form-row" }, h("label", { for: "g-boot-image" }, t("editor.general.boot_image")),
-		input, g.bootImage ? button(t("editor.general.boot_image_reset"), () => setImage(null), { quiet: true }) : null,
+		input, g.bootImage ? button(t("editor.general.boot_image_reset"), () => setImage(null, null), { quiet: true }) : null,
 		h("span", { class: "small muted" }, t("editor.general.boot_image_help")), err);
 }
 
@@ -467,7 +470,7 @@ function radioTab() {
 	if (pctx) {
 		drawBootPreview(pctx, { line1: g.bootLine1 ?? "", line2: g.bootLine2 ?? "",
 			model: S.conn?.radio?.name ?? "DM-32UV", version: S.conn?.probe?.git ?? "",
-			photoLabel: t("editor.general.boot_preview_photo"), bootImage: g.bootImage });
+			photoLabel: t("editor.general.boot_preview_photo"), bootImage: g.bootImage, bootColor: g.bootColor });
 	}
 	const modeRows = modeSettingsPart(api(), features());
 	const keyRows = keyringPart(api(), features());
@@ -760,7 +763,7 @@ async function connect() {
 		const hash = location.hash;
 		S.fake = S.fake || new FakeCpsRadio({ board: "DM-32UV", image: CodeplugImage.blank().bytes, foreign: hash === "#sim-foreign",
 			// #sim-modes: firmware that runs every channel mode the editor knows (modes.js)
-			features: hash.startsWith("#sim-compact") ? "FM,DMR,IDDB_COMPACT,SIG_TONES" : hash.startsWith("#sim-modes") ? "FM,DMR,DMR_TRUNK,P25,P25_TRUNK,NXDN,SIG_TONES" : "FM,DMR,SIG_TONES", release: hash.match(/[#&]release=([\w.]+)/)?.[1],
+			features: hash.startsWith("#sim-compact") ? "FM,DMR,SPLASH_COLOR,IDDB_COMPACT,SIG_TONES" : hash.startsWith("#sim-modes") ? "FM,DMR,SPLASH_COLOR,DMR_TRUNK,P25,P25_TRUNK,NXDN,SIG_TONES" : "FM,DMR,SPLASH_COLOR,SIG_TONES", release: hash.match(/[#&]release=([\w.]+)/)?.[1],
 			gitTime: Number(hash.match(/[#&]git_time=(\d+)/)?.[1]) || 0 });
 		stream = S.fake.stream();
 	} else {
@@ -1148,6 +1151,7 @@ async function planWrite() {
 		} else {
 			areaForWrite(file.bytes, c.image.bytes, S.model.base?.bytes);
 		}
+		if (c.transport.colorSplash) bootColorForWrite(file.bytes, c.image.bytes, S.model.base?.bytes, S.model.general, !S.fromRadio);
 		const kept = keepIdentity(file, c.image);
 		const differs = IDENTITY.some(([a, b]) => kept.bytes.subarray(a, b).some((x, i) => x !== file.bytes[a + i]));
 		const plans = { file: await c.transport.plan(file, c.image, { iddb }) };
@@ -1232,6 +1236,7 @@ function writeChosen(c, { want }, iddb, prepared) {
 			if (iddb) c.dbKnown = true;
 			S.iddbChanged = false;
 			S.model.base = want;
+			S.fromRadio = true;
 			S.model.iddb = dbHeader(want.bytes);	// format N when it went to a radio that reads only that
 			S.dirty = false;
 			refresh();

@@ -4,9 +4,9 @@
 // File takes either back. An import is one undoable change, and its problems are listed by row and column.
 
 import { register } from "./extensions.js?v=c16ffd9bbf";
-import { exportTable, exportAll, importTable, importAll, TABLES, CsvError } from "../codeplug/csv.js?v=b138343b91";
+import { exportTable, exportAll, importTable, importAll, TABLES, CsvError } from "../codeplug/csv.js?v=e2482525d8";
 import { zip } from "../flasher/zip.js?v=c16ffd9bbf";
-import { datedName } from "./files.js?v=48ab7ea2e5";
+import { datedName } from "./files.js?v=e2482525d8";
 
 const TABLE_TABS = Object.keys(TABLES);
 
