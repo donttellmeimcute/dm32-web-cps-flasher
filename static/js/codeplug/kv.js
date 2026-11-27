@@ -179,29 +179,42 @@ export function putKeys(bytes, vals) {
 
 const sameBytes = (a, b) => a === b || (a != null && b != null && a.length === b.length && a.every((x, i) => x === b[i]));
 
+// The keys that belong to the codeplug, not to the radio: the channel modes' systems, entries, secrets and tags
+// (channel-modes.md 2, 7), the kinds' radio-wide records and the keyring. A P25 or NXDN channel is a DMR receive-only
+// record plus its tag, so these travel with the channels in the file: a clone to another radio takes them with it.
+// The scalar keys (KEYS) are the radio's own settings, and any other key is left to the radio.
+const CONTENT_FAMILIES = [[0x0100, 0x100], [0x0200, 0x100], [0x0300, 0x100], [0x0400, 0x400], [0x0A00, 0x100], [0x1900, 0x400]];
+const SECRET_FAMILIES = [[0x0300, 0x100], [0x1900, 0x400]];
+const inFamilies = (families, key) => families.some(([b, n]) => key >= b && key < b + n);
+
 // The area a write to a radio sends (6, 7), put into file's bytes. base is the image the editor opened.
 // - The radio's area is of a newer version: the radio's, as it is.
-// - The edit didn't change the area from base, or the file's isn't valid: the radio's. A file without an area
-//   (another tool's, 0xFF there) never erases the keys.
-// - The edit changed it and the radio has a valid area: the radio's area with only the keys the edit changed, set or
-//   removed. A key the radio's menu or debug link changed since the file was read keeps the radio's value.
-// - The radio has no valid area, or no base is given (a file sent as it is): the file's.
+// - The file's isn't valid: the radio's. A file without an area (another tool's, 0xFF there) never erases the keys.
+// - The radio has no valid area (a new radio): the file's, as it is, with its modes.
+// - Both are valid: the radio's area with the file's codeplug keys (CONTENT_FAMILIES) in it, set or removed, so the
+//   channels' modes arrive with the channels. A secret the file doesn't hold is the radio's to keep, unless the edit
+//   removed it from base. The radio's own keys stay unless the edit changed them: a key the radio's menu or debug link
+//   changed since the file was read keeps the radio's value.
+// - No base is given (a file sent as it is): every key is the file's.
 // Throws RangeError when the radio's keys and the edit's don't fit together
 export function areaForWrite(file, radio, base = null) {
 	const sector = (b) => b.subarray(KV_ADDR, KV_ADDR + KV_SIZE);
 	const f = decodeArea(file), r = decodeArea(radio);
-	const edited = !base || !sector(file).every((x, i) => x === sector(base)[i]);
-	if (r.state === "newer" || !edited || f.state !== "valid") {
+	if (r.state === "newer" || f.state !== "valid") {
 		sector(file).set(sector(radio));
 		return;
 	}
 	if (!base || r.state !== "valid") return;
 	const was = decodeArea(base).entries;
 	let entries = dedupe(r.entries);
-	for (const key of new Set([...was, ...f.entries].map((e) => e.key))) {
-		const now = getValue(f.entries, key);
-		if (sameBytes(getValue(was, key), now)) continue;
-		entries = now == null ? deleteValue(entries, key) : setValue(entries, key, now);
+	for (const key of new Set([...was, ...f.entries, ...entries].map((e) => e.key))) {
+		const now = getValue(f.entries, key), before = getValue(was, key);
+		if (inFamilies(CONTENT_FAMILIES, key)) {
+			if (now != null) entries = setValue(entries, key, now);
+			else if (!inFamilies(SECRET_FAMILIES, key) || before != null) entries = deleteValue(entries, key);
+		} else if (!sameBytes(before, now)) {
+			entries = now == null ? deleteValue(entries, key) : setValue(entries, key, now);
+		}
 	}
 	sector(file).set(encodeArea(entries, sector(radio)));
 }

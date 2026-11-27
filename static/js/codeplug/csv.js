@@ -8,10 +8,10 @@
 
 import { parseFreq, parseTone, mhz } from "./fields.js?v=c16ffd9bbf";
 import { LIMITS, POWER_NAMES, CALL_TYPES, validDtmf } from "./records.js?v=f3daccc684";
-import { newChannel, newContact, remove, assignNumbers, applyLowFm } from "./model.js?v=0bfc9c5ae1";
-import { setKind } from "./channelmodes.js?v=d0af9dc2fd";
+import { newChannel, newContact, remove, assignNumbers, applyLowFm } from "./model.js?v=94924b8387";
+import { setKind } from "./channelmodes.js?v=94924b8387";
 import { dstarCallValid } from "./mode_dstar.js";
-import { kindName } from "./modes.js?v=d0af9dc2fd";
+import { kindName } from "./modes.js?v=94924b8387";
 import { callOk } from "./mode_m17.js?v=e54b64a875";
 import { SCRAMBLER_KIND } from "./mode_nxdn.js";
 
@@ -306,6 +306,38 @@ const ranCol = (header, key, aliases) => ({
 	},
 });
 
+// P25 NACs (mode_p25.js): kind 2 (modes.js), three hex digits. These columns update a channel that already is P25, or
+// one the file itself makes P25 (Mode is applied before the other columns). A blank RX NAC keeps the value; a blank TX
+// NAC sends the RX NAC (the default NAC when the RX NAC is every NAC), as the editor's blank TX NAC does. A value on
+// a channel that is not P25 is reported instead of being dropped silently.
+const P25_KIND = 2, NAC_DEFAULT = 0x293, NAC_ANY = 0xF7E, NAC_MAX = 0xFFF;
+const txNacDefault = (rx) => (rx === NAC_ANY ? NAC_DEFAULT : rx);
+const nacText = (v) => v.toString(16).toUpperCase().padStart(3, "0");
+const nacCol = (header, key, aliases) => ({
+	header, aliases, key,
+	get: (r) => {
+		if (r.kind !== P25_KIND || !r.params) return "";
+		const v = r.params[key];
+		if (!Number.isInteger(v)) return "";
+		if (key === "txNac" && v === txNacDefault(r.params.rxNac ?? NAC_DEFAULT)) return "";
+		return nacText(v);
+	},
+	set: (r, s) => {
+		s = s.trim();
+		if (r.kind !== P25_KIND || !r.params) {
+			if (s === "") return;
+			throw new Bad("bad_value", { value: s, allowed: "P25 channels" });
+		}
+		if (s === "") {
+			if (key === "txNac") r.params = { ...r.params, txNac: txNacDefault(r.params.rxNac ?? NAC_DEFAULT) };
+			return;
+		}
+		const hex = s.replace(/^0x/i, "");
+		if (!/^[0-9a-f]{1,3}$/i.test(hex)) throw new Bad("bad_value", { value: s, allowed: `0-${nacText(NAC_MAX)} (hex)` });
+		r.params = { ...r.params, [key]: parseInt(hex, 16) };
+	},
+});
+
 // YSF (mode_ysf.js): kind 6 (modes.js). A column of a YSF channel's parameters, blank on any other channel; a value
 // on a channel that is not YSF is reported as a bad value instead of being dropped silently. A blank cell keeps the
 // value, except TX DG-ID, which sends the RX DG-ID, and Destination, which calls ALL, as the editor's blanks do.
@@ -499,6 +531,8 @@ export const TABLES = {
 					if (r.kind !== 1) throw new Bad("bad_value", { value: s, allowed: "T3" });
 					r.acceptBadCrc = asBool(s);
 				} },
+			nacCol("RX NAC", "rxNac", ["Receive NAC"]),
+			nacCol("TX NAC", "txNac", ["Transmit NAC"]),
 			ysfDtCol(),
 			ysfDevCol(),
 			ysfDgidCol("RX DG-ID", "rxDgid", ["Receive DG-ID"]),
@@ -667,7 +701,11 @@ export function importTable(m, text, table = detect(text)) {
 		else taken.add(rec);
 		const work = { ...rec };
 		let skip = false;
-		for (const { col, index } of found) {
+		// Mode first: it makes or unmakes the channel's kind, and the kind's columns (RAN, DG-ID) read the kind
+		// then the RX RAN and RX NAC, which the blank TX RAN and TX NAC follow, wherever the file puts its columns
+		const rank = (k) => (k === "mode" ? 0 : k === "rxRan" || k === "rxNac" ? 1 : 2);
+		const ordered = [...found].sort((a, b) => rank(a.col.key) - rank(b.col.key));
+		for (const { col, index } of ordered) {
 			try {
 				col.set(work, row[index] ?? "", m, (e) => problems.push({ row: i + 1, column: col.header, code: e.code, params: e.params }));
 			} catch (e) {

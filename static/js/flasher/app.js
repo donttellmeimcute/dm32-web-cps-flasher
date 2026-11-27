@@ -41,7 +41,7 @@ import { codecSegments, loadCodec, readCodec, saveCodec } from "./codecsave.js?v
 import { FakeRadio, simulation, randomBytes, rng } from "./fake.js?v=c16ffd9bbf";
 import { t, tOr, num, LANG, ROOT, HOME, h, download, filePicker, progressBar, stopBars, logBox, notice, button, spinner, panel, localTime, partNames, barsRunning } from "./dom.js?v=c16ffd9bbf";
 import { stepHistory } from "./stephistory.js?v=c16ffd9bbf";
-import * as c7ui from "./c7000ui.js?v=cf1f692ff1";
+import * as c7ui from "./c7000ui.js?v=94924b8387";
 import { variantWarning, variantVerdict } from "./iapui.js?v=c16ffd9bbf";
 import { groups as variantGroups } from "./variant.js?v=c16ffd9bbf";
 import { FakeC7000, c7000Simulation, fakeC7000Options } from "./fakec7000.js?v=c16ffd9bbf";
@@ -2569,7 +2569,7 @@ async function bringChannels(status, { finish }) {
 	const saved = S.backupDone ? S.backupParts?.find((x) => x.what === "spi-flash")?.data : null;
 	let m;
 	try {
-		m = await import("./migrate.js?v=30fb128c1c");
+		m = await import("./migrate.js?v=94924b8387");
 	} catch (e) {
 		diag.error("flash/channels load", e);
 	}
