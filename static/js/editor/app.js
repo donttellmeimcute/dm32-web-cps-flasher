@@ -10,12 +10,12 @@ import { h, t, ROOT, HOME, button, notice, download, progressBar, num as fmtNum,
 import { equal } from "../flasher/bytes.js?v=c16ffd9bbf";
 import { SerialStream, serialSupported, serialApi, RFOUNDRY_USB, browserErrorKey, knownRadioPort } from "../flasher/link.js?v=c16ffd9bbf";
 import { CodeplugImage, IDDB_HEADER, EDITOR_REGIONS } from "../codeplug/image.js?v=c16ffd9bbf";
-import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=0bfc9c5ae1";
-import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=f3daccc684";
+import { decode, encode, empty, remove, validate, newChannel, newContact, numberAll, assignNumbers } from "../codeplug/model.js?v=dfef36e031";
+import { LIMITS, decodeGeneral } from "../codeplug/records.js?v=fed4a990e8";
 import { BOOT_IMAGE_EDGE, packBootImage } from "../codeplug/bootimage.js";
 import { CpsSerial, TransportError, estimate, keepIdentity, IDENTITY, iddbRanges } from "../codeplug/transport.js?v=1932f7beff";
 import { FastError } from "../codeplug/fastlink.js?v=d7aaac3b33";
-import { areaForWrite, KEYS } from "../codeplug/kv.js?v=c16ffd9bbf";
+import { areaForWrite, KEYS, RECORD_KEYS, SIG_STEPS, SIG_HZ_MAX, SIG_HZ_UNIT, SIG_MS_MAX, recordValid, sameRecord } from "../codeplug/kv.js?v=0b03c0496e";
 import { toSerial, CLICK_WAIT_MS } from "../flasher/netmode.js?v=c16ffd9bbf";
 import { convert as convertDb, readHeader as dbHeader } from "../codeplug/iddb.js?v=c16ffd9bbf";
 import { convertIddb, iddbEnd } from "../codeplug/sources/output.js?v=a8e073504d";
@@ -25,7 +25,7 @@ import { History } from "./undo.js?v=c16ffd9bbf";
 import { bulkColumns, columns, channelForm, formDialog, membersDialog, refLabel, parseAreaKey } from "./views.js?v=caf603e2e2";
 import { systemsTab, systemsShown, modeSettingsPart, keyringPart } from "./modesview.js?v=8ab8a92641";
 import { drawBootPreview, BOOT_PREVIEW_WIDTH, BOOT_PREVIEW_HEIGHT } from "./bootpreview.js?v=21c0de0054";
-import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=d0af9dc2fd";
+import { syncModes, withoutSecrets } from "../codeplug/channelmodes.js?v=4e3b27413b";
 import { openFile, saveBytes, secretFreeBytes, stockAesAreaForWrite, tftpBytes, datedName, FileError, imageFrom, saveDraft, loadDraft, clearDraft } from "./files.js?v=48ab7ea2e5";
 import { extensions } from "./extensions.js?v=c16ffd9bbf";
 import "./parts.js?v=e0a40e3415";
@@ -492,6 +492,7 @@ function radioTab() {
 				onOff("totWarnTone", t("editor.general.tot_warn_tone")),
 				onOff("batteryTone", t("editor.general.battery_tone")),
 				onOff("txDenyTone", t("editor.general.tx_deny_tone"))),
+			signalingTones(g),
 			section(t("editor.general.section_network"),
 				field("arsServer", t("editor.general.ars_server"), 8, t("editor.general.ars_server_help"), areaKey("arsServer")),
 				field("ipGateway", t("editor.general.ip_gateway"), 8, t("editor.general.ip_gateway_help"), areaKey("ipGateway"))),
@@ -505,6 +506,119 @@ function radioTab() {
 			h("dt", {}, t("editor.firmware")), h("dd", {}, p?.git || "?")));
 	}
 	return h("div", {}, ...parts);
+}
+
+// --- Signaling tone roll and preview ---
+
+// The chain as a pitch against time: a bar a step, as wide as it lasts on a fixed axis of SIG_MS_MAX and as high as its
+// frequency (0 to SIG_HZ_MAX). A pause is a tick on the baseline. Steps after the first of 0 ms are not drawn; what is
+// past the limit is marked. Numbers only, so it is safe to set as markup
+function signalingTones(general) {
+	const cards = RECORD_KEYS.map((row) => {
+		const current = general[row.name];
+		const tone = structuredClone(current ?? { dmr: 0, fm: 0,
+			hz: Array(SIG_STEPS).fill(0), ms: Array(SIG_STEPS).fill(0) });
+		const put = (value) => change(t("editor.undo.edit"), () => {
+			S.model.general = { ...S.model.general, [row.name]: value };
+		});
+		const title = t(`editor.sig.${row.name.slice(3).toLowerCase()}`);
+		const summary = h("span", { class: "small muted sig-summary" });
+		const graphic = h("div", { class: "sig-track", "aria-hidden": "true" });
+		const help = h("p", { class: "small", "aria-live": "polite" });
+		const apply = button(t("editor.sig.apply"), () => put(tone));
+		const preview = button(t("editor.sig.play"), () => playSignalingTone(tone, row), { quiet: true });
+		const reset = button(t("editor.sig.reset"), () => put(null), { quiet: true });
+		reset.disabled = current == null;
+		const outputs = ["dmr", "fm"].map((key) => {
+			const id = `g-${row.name}-${key}`;
+			const air = key === "dmr" ? row.air : row.fmAir;
+			const field = h("select", { id }, ...Array.from({ length: air ? 5 : 3 }, (_, value) =>
+				h("option", { value: String(value) }, t(`editor.sig.out.${value}`))));
+			field.value = String(tone[key]);
+			field.addEventListener("change", () => { tone[key] = Number(field.value); update(); });
+			return h("div", { class: "form-row" }, h("label", { for: id }, t(`editor.sig.${key}`)), field);
+		});
+		const steps = Array.from({ length: SIG_STEPS }, (_, i) => {
+			const input = (key, max, increment) => {
+				const field = h("input", { type: "number", min: 0, max, step: increment, required: true,
+					value: tone[key][i], inputmode: "numeric",
+					"aria-label": `${t("editor.sig.step", { n: i + 1 })} · ${t(`editor.sig.${key}`)}` });
+				field.addEventListener("input", () => {
+					tone[key][i] = field.valueAsNumber;
+					field.setAttribute("aria-invalid", String(!field.validity.valid));
+					update();
+				});
+				return h("td", {}, field);
+			};
+			return h("tr", {}, h("th", { scope: "row" }, String(i + 1)),
+				input("hz", SIG_HZ_MAX, SIG_HZ_UNIT), input("ms", SIG_MS_MAX, 10));
+		});
+		function update() {
+			const end = tone.ms.indexOf(0);
+			const active = end < 0 ? SIG_STEPS : end;
+			const total = tone.ms.slice(0, active).reduce((sum, n) => sum + n, 0);
+			const valid = recordValid(row, tone) && total <= SIG_MS_MAX;
+			apply.disabled = !valid || sameRecord(current, tone) ||
+				(current == null && tone.dmr === 0 && tone.fm === 0 && !tone.hz.some(Boolean) && !tone.ms.some(Boolean));
+			preview.disabled = !valid;
+			steps.forEach((tr, i) => tr.classList.toggle("sig-dim", i > active));
+			help.classList.toggle("ed-err", !valid);
+			help.textContent = !valid ? t("editor.problem.sig_range") :
+				total === 0 ? t("editor.sig.empty") : t("editor.sig.total", { ms: total, max: SIG_MS_MAX });
+			graphic.replaceChildren(...tone.ms.slice(0, active).map((ms, i) =>
+				h("span", { class: tone.hz[i] === 0 ? "sig-pause" : "", style:
+					`width:${ms / SIG_MS_MAX * 100}%;height:${Math.max(8, tone.hz[i] / SIG_HZ_MAX * 100)}%` })));
+		}
+		summary.textContent = t(current == null ? "editor.general.not_set" : "editor.sig.saved");
+		update();
+		return h("details", { class: "sig-card", open: current != null },
+			h("summary", {}, h("strong", {}, title), summary),
+			h("div", { class: "sig-body" }, h("div", { class: "sig-controls" }, ...outputs, graphic, help,
+				h("div", { class: "sig-actions" }, preview, reset, apply)),
+				h("table", { class: "sig-steps" },
+					h("thead", {}, h("tr", {}, ...["step_col", "hz", "ms"].map((key) =>
+						h("th", { scope: "col" }, t(`editor.sig.${key}`))))),
+					h("tbody", {}, ...steps))));
+	});
+	return h("section", { class: "sig-section" }, h("h3", {}, t("editor.sig.title")),
+		h("p", { class: "small muted" }, t("editor.sig.help")),
+		S.conn && !features().split(",").includes("SIG_TONES") ?
+			h("p", { class: "small muted" }, t("editor.sig.firmware")) : null,
+		...cards);
+}
+
+let signalingAudio;
+async function playSignalingTone(tone, row) {
+	const Audio = window.AudioContext || window.webkitAudioContext;
+	if (!Audio) return say(t("editor.sig.no_audio"), "bad");
+	try {
+		signalingAudio ??= new Audio();
+		const ctx = signalingAudio;
+		await ctx.resume();
+		let at = ctx.currentTime + 0.025;
+		const fallback = row.name === "sigBegin" ? [[1600, 50], [0, 40], [1600, 50]] :
+			[[1200, 50], [0, 30], [900, 70]];
+		const sequence = tone.ms[0] === 0 ? fallback : tone.ms.map((ms, i) => [tone.hz[i], ms]);
+		for (const [hz, ms] of sequence) {
+			if (ms === 0) break;
+			const end = at + ms / 1000;
+			if (hz !== 0) {
+				const oscillator = ctx.createOscillator();
+				const gain = ctx.createGain();
+				oscillator.frequency.value = hz;
+				gain.gain.setValueAtTime(0, at);
+				gain.gain.linearRampToValueAtTime(0.18, at + 0.002);
+				gain.gain.setValueAtTime(0.18, end - 0.002);
+				gain.gain.linearRampToValueAtTime(0, end);
+				oscillator.connect(gain).connect(ctx.destination);
+				oscillator.start(at);
+				oscillator.stop(end);
+			}
+			at = end;
+		}
+	} catch {
+		say(t("editor.sig.no_audio"), "bad");
+	}
 }
 
 // --- Problems tab ---
@@ -646,7 +760,7 @@ async function connect() {
 		const hash = location.hash;
 		S.fake = S.fake || new FakeCpsRadio({ board: "DM-32UV", image: CodeplugImage.blank().bytes, foreign: hash === "#sim-foreign",
 			// #sim-modes: firmware that runs every channel mode the editor knows (modes.js)
-			features: hash.startsWith("#sim-compact") ? "FM,DMR,IDDB_COMPACT" : hash.startsWith("#sim-modes") ? "FM,DMR,DMR_TRUNK,P25,P25_TRUNK,NXDN" : "FM,DMR", release: hash.match(/[#&]release=([\w.]+)/)?.[1],
+			features: hash.startsWith("#sim-compact") ? "FM,DMR,IDDB_COMPACT,SIG_TONES" : hash.startsWith("#sim-modes") ? "FM,DMR,DMR_TRUNK,P25,P25_TRUNK,NXDN,SIG_TONES" : "FM,DMR,SIG_TONES", release: hash.match(/[#&]release=([\w.]+)/)?.[1],
 			gitTime: Number(hash.match(/[#&]git_time=(\d+)/)?.[1]) || 0 });
 		stream = S.fake.stream();
 	} else {

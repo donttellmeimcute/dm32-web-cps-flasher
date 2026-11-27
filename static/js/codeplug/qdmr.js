@@ -6,7 +6,7 @@
 // was left out. The mapping was learned from qdmr's manual and from files qdmr writes and reads, never its source.
 
 import { parse, stringify, flow, Tag } from "./yaml.js?v=c16ffd9bbf";
-import { LIMITS } from "./records.js?v=f3daccc684";
+import { LIMITS } from "./records.js?v=fed4a990e8";
 import { parseTone } from "./fields.js?v=c16ffd9bbf";
 
 export class QdmrError extends Error {

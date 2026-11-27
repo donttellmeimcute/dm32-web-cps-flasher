@@ -9,7 +9,7 @@ import { EE, FL } from "./image.js?v=c16ffd9bbf";
 import {
 	getFreq, putFreq, getBcdId, putBcdId, getTone, putTone, getName, putName, getCoord, coordBytes, u16, put16,
 } from "./fields.js?v=c16ffd9bbf";
-import { decodeArea, getKey, getValue, KEYS } from "./kv.js";
+import { decodeArea, getKey, getValue, getRecord, KEYS, RECORD_KEYS } from "./kv.js";
 import { BOOT_IMAGE_KEY, bootImageValid } from "./bootimage.js";
 
 export const LIMITS = {
@@ -361,6 +361,7 @@ export function decodeGeneral(b) {
 		bootLine2: getName(b, BOOT_TEXT + 16, 16),
 		...(bootImageValid(bootImage) ? { bootImage } : {}),
 		...Object.fromEntries(KEYS.map((row) => [row.name, getKey(kv, row)])),
+		...Object.fromEntries(RECORD_KEYS.map((row) => [row.name, getRecord(kv, row)])),
 	};
 }
 

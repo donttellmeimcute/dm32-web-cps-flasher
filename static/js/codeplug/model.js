@@ -13,11 +13,11 @@ import {
 	ZONE_BITMAP, ZONE_DATA, ZONE_RECORD, CONTACTS, CONTACT_SIZE, decodeContact, encodeContact, LIST_COUNTS, LISTS,
 	LIST_SIZE, decodeList, encodeList, DTMF_CONTACTS, decodeDtmf, encodeDtmf, validDtmf, APRS_BASE, APRS_SIZE,
 	decodeAprs, encodeAprs, decodeGeneral, encodeGeneral, VFO, LUCZ,
-} from "./records.js?v=f3daccc684";
+} from "./records.js?v=fed4a990e8";
 import { parseTone } from "./fields.js?v=c16ffd9bbf";
 import { readHeader } from "./iddb.js?v=c16ffd9bbf";
-import { decodeArea, keyValid, KEYS } from "./kv.js?v=c16ffd9bbf";
-import { decodeModes, encodeModes, syncModes, setKind, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=d0af9dc2fd";
+import { decodeArea, keyValid, KEYS, RECORD_KEYS, recordValid } from "./kv.js?v=0b03c0496e";
+import { decodeModes, encodeModes, syncModes, setKind, removeModes, validateModes, MODE_LIMITS } from "./channelmodes.js?v=4e3b27413b";
 
 const REFS = ["contact", "rxList", "aprs"];
 
@@ -319,7 +319,13 @@ export function validate(m, { bands = null, features = null } = {}) {
 	for (const row of areaKeys) {
 		if (!keyValid(row, g[row.name])) err("general", null, row.name, "range", { min: row.min, max: row.max });
 	}
+	const recKeys = RECORD_KEYS.filter((row) => g[row.name] != null);
+	for (const row of recKeys) {
+		if (!recordValid(row, g[row.name])) err("general", null, row.name, "sig_range", { hz: 3400, ms: 900 });
+	}
 	// an area of a version the editor doesn't know reads as empty and is never written: a value set here is lost
+	if (recKeys.length && m.base && decodeArea(m.base.bytes).state === "newer")
+		err("general", null, recKeys[0].name, "settings_area_newer");
 	if (areaKeys.length && m.base && decodeArea(m.base.bytes).state === "newer") warn("general", null, areaKeys[0].name, "settings_area_newer");
 
 	const counts = [["channels", LIMITS.channels], ["contacts", LIMITS.contacts], ["rxLists", LIMITS.rxLists],

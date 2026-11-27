@@ -16,10 +16,10 @@
 // fields, raw}], secret (the module's fields, {raw} for a type without, null for none), flagsRaw, raw}.
 // m.modeSettings: {kind id: the module's fields}.
 
-import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, KV_SIZE, KV_HDR, KEYS, getKey, keyValid, keyValue } from "./kv.js";
+import { decodeArea, getValue, setValue, deleteValue, dedupe, putArea, KV_ADDR, KV_SIZE, KV_HDR, KEYS, getKey, keyValid, keyValue, RECORD_KEYS, getRecord, sameRecord, recordValid, recordValue } from "./kv.js";
 import { BOOT_IMAGE_KEY, bootImageValid } from "./bootimage.js";
 import { getName, putName } from "./fields.js?v=c16ffd9bbf";
-import { redactDmrBasicKeys } from "./records.js?v=f3daccc684";
+import { redactDmrBasicKeys } from "./records.js?v=fed4a990e8";
 import { KINDS, kindRow, typeRow, radioRuns } from "./modes.js?v=d0af9dc2fd";
 import { u16, u32, put16, put32, sameBytes, sameValue, nameCheck } from "./modebytes.js?v=c16ffd9bbf";
 import { SCRAMBLER_ALG, SCRAMBLER_SEED_MAX } from "./mode_nxdn.js";
@@ -382,6 +382,13 @@ export function modeEntries(m, entries, baseNames = () => new Map()) {
 			if (getKey(out, row) === value) continue;
 			if (value === null) del(row.key);
 			else if (keyValid(row, value)) set(row.key, keyValue(row, value));
+		}
+		for (const row of RECORD_KEYS) {
+			if (!(row.name in m.general)) continue;
+			const value = m.general[row.name];
+			if (sameRecord(getRecord(out, row), value)) continue;
+			if (value === null) del(row.key);
+			else if (recordValid(row, value)) set(row.key, recordValue(value, getValue(out, row.key)));
 		}
 		const image = m.general.bootImage;
 		if (bootImageValid(image)) set(BOOT_IMAGE_KEY, image);

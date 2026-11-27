@@ -5,7 +5,7 @@
 // as data (modes.js says how) and drawn by the editor's generic views.
 
 import { u8, u16, u32, s8, put16, put32, grow, hex, unhex } from "./modebytes.js?v=c16ffd9bbf";
-import { ID_MAX } from "./kv.js?v=c16ffd9bbf";
+import { ID_MAX } from "./kv.js?v=0b03c0496e";
 
 export const T3_BLOCK = 39, T3_SITES = 8, T3_LCN = 4094, T3_CTRL = 4;
 
